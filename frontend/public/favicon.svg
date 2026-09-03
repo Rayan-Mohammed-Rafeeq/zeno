@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 325 325"
+   version="1.1"
+   id="svg7"
+   sodipodi:docname="favicon.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   width="325"
+   height="325"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs7" />
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.1425781"
+     inkscape:cx="248.12308"
+     inkscape:cy="162.35214"
+     inkscape:window-width="1440"
+     inkscape:window-height="829"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg7" />
+  <title
+     id="title1">NIRO Logo</title>
+  <circle
+     cx="162.5"
+     cy="162.5"
+     r="154"
+     stroke="#0b1738"
+     stroke-width="17"
+     id="circle1"
+     style="fill:#0b1738;fill-opacity:1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>NIRO Logo</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <path
+     d="m 47.010767,61.518499 q 0,-13.37235 13.247616,-13.37235 L 198.25435,167.54211 q 8.83174,7.64135 8.83174,18.14819 v 74.50307 q 0,13.37236 -13.24762,1.91035 L 55.842511,142.70775 q -8.831744,-7.64135 -8.831744,-18.14819 z"
+     fill="#ffffff"
+     id="path1-0"
+     style="fill:#ffffff;fill-opacity:1;stroke-width:1.02688" />
+  <path
+     d="m 223.6456,82.532194 q 0,-13.37235 15.45555,-13.37235 h 26.49522 q 15.45555,0 15.45555,13.37235 V 256.3727 q 0,13.37235 -15.45555,13.37235 h -26.49522 q -15.45555,0 -15.45555,-13.37235 z"
+     fill="#ffffff"
+     id="path2-9"
+     style="fill:#ffffff;fill-opacity:1;stroke-width:1.02688" />
+  <ellipse
+     cx="50.043728"
+     cy="196.79208"
+     fill="#8588e6"
+     id="circle2"
+     rx="10.618921"
+     ry="9.4831963"
+     style="fill:#8588e6;fill-opacity:1;stroke-width:1.115"
+     inkscape:transform-center-x="1.3663962"
+     inkscape:transform-center-y="8.2757271" />
+  <rect
+     x="41.895191"
+     y="214.69151"
+     width="17.663481"
+     height="55.392578"
+     rx="8.8317404"
+     fill="#8588e6"
+     id="rect2"
+     style="fill:#8588e6;fill-opacity:1;stroke-width:1.38239" />
+  <rect
+     x="67.290527"
+     y="184.35324"
+     width="25.178814"
+     height="106.20024"
+     rx="12.589407"
+     fill="#8588e6"
+     id="rect3"
+     style="fill:#8588e6;fill-opacity:1;stroke-width:1.34782" />
+  <rect
+     x="100.88451"
+     y="208.77672"
+     width="19.029905"
+     height="64.951408"
+     rx="9.5149536"
+     fill="#8588e6"
+     id="rect4-4"
+     style="fill:#8588e6;fill-opacity:1;stroke-width:1.06585" />
+  <rect
+     x="127.6463"
+     y="225.74268"
+     width="17.663481"
+     height="32.432426"
+     rx="8.8317404"
+     fill="#8588e6"
+     id="rect5-8"
+     style="fill:#8588e6;fill-opacity:1;stroke-width:0.923301" />
+</svg>

@@ -1,0 +1,57 @@
+# ==============================
+# Secrets / Environment
+# ==============================
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# ==============================
+# OS / Editor
+# ==============================
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# ==============================
+# Frontend (Node / Vite)
+# ==============================
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==============================
+# Backend (Java / Maven)
+# ==============================
+target/
+build/
+.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+*.ear
+spring.log
+
+# ==============================
+# Data — generated / runtime output
+# (keep ground-truth and evaluation stubs via .gitkeep)
+# ==============================
+data/generated/**
+!data/generated/.gitkeep
+data/evaluation/**
+!data/evaluation/.gitkeep

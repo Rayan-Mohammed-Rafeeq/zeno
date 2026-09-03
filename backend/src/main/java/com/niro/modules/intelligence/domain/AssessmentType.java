@@ -1,0 +1,10 @@
+package com.niro.modules.intelligence.domain;
+
+public enum AssessmentType {
+    POTENTIAL_COORDINATED_REFUND_ABUSE,
+    POTENTIAL_VELOCITY_ABUSE,
+    POTENTIAL_DEVICE_SHARING,
+    POTENTIAL_ACCOUNT_FARMING,
+    NORMAL_BEHAVIOR,
+    INCONCLUSIVE
+}

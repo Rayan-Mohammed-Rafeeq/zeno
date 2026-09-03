@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: niro-postgres
+    environment:
+      POSTGRES_DB: niro
+      POSTGRES_USER: niro
+      POSTGRES_PASSWORD: niro
+    ports:
+      - "5432:5432"
+    volumes:
+      - niro_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U niro -d niro"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: niro-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DATABASE_URL: jdbc:postgresql://postgres:5432/niro
+      DATABASE_USERNAME: niro
+      DATABASE_PASSWORD: niro
+      JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production-must-be-at-least-256-bits}
+      RESEND_API_KEY: ${RESEND_API_KEY:-re_placeholder}
+      APP_FRONTEND_URL: ${APP_FRONTEND_URL:-http://localhost:5173}
+      AI_API_KEY: ${AI_API_KEY:-placeholder}
+      AI_ENABLED: ${AI_ENABLED:-false}
+    ports:
+      - "8080:8080"
+    profiles:
+      - full
+
+volumes:
+  niro_pgdata:
