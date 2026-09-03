@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 527.31012 551.25629"
+   fill="none"
+   version="1.1"
+   id="svg13"
+   sodipodi:docname="store.svg"
+   width="527.31012"
+   height="551.25629"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs13" />
+  <sodipodi:namedview
+     id="namedview13"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.83571429"
+     inkscape:cx="251.88034"
+     inkscape:cy="244.70085"
+     inkscape:window-width="1440"
+     inkscape:window-height="829"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg13" />
+  <!-- Store building -->
+  <path
+     d="M 14.287552,183.29915 H 490.28755 v 327 H 14.287552 Z"
+     fill="#a69b91"
+     id="path1" />
+  <rect
+     style="fill:#1a1a1a;fill-opacity:0.992157"
+     id="rect13"
+     width="10.769231"
+     height="47.863247"
+     x="103.31319"
+     y="64.384621"
+     rx="8" />
+  <rect
+     style="fill:#1a1a1a;fill-opacity:0.992157"
+     id="rect14"
+     width="10.769231"
+     height="47.863247"
+     x="367.75766"
+     y="64.384621"
+     rx="8" />
+  <!-- Roof / top sign -->
+  <path
+     d="m 14.287552,183.29915 20,-86.000001 H 470.28755 l 20,86.000001 z"
+     fill="#e85b63"
+     id="path2" />
+  <rect
+     x="55.697815"
+     y="0"
+     width="386"
+     height="79"
+     fill="#ff394b"
+     id="rect2" />
+  <!-- STORE lettering -->
+  <text
+     x="247.50121"
+     y="57.000015"
+     text-anchor="middle"
+     font-family="Arial, Helvetica, sans-serif"
+     font-size="61px"
+     font-weight="900"
+     letter-spacing="2"
+     fill="#fffdf8"
+     id="text2">STORE</text>
+  <!-- Awning -->
+  <path
+     d="M 14.287552,183.29915 H 490.28755 v 57 c -14,20 -36,30 -58,30 -23,0 -45,-10 -59,-30 -14,20 -36,30 -59,30 -23,0 -45,-10 -59,-30 -14,20 -36,30 -59,30 -23,0 -45,-10 -59,-30 -14,20 -36,30 -58.999998,30 -23,0 -50,-10 -64,-30 z"
+     fill="#f1ede6"
+     id="path3" />
+  <path
+     d="m 37.022592,180.90599 h 63.999998 v 57 c -12.999998,20 -36.999998,30 -63.999998,0 z"
+     fill="#e85b63"
+     id="path4" />
+  <path
+     d="m 161.21917,180.90599 h 59 v 57 c -13,20 -36,30 -59,0 z"
+     fill="#e85b63"
+     id="path5" />
+  <path
+     d="m 278.02259,183.29915 h 59 v 57 c -13,20 -36,30 -59,0 z"
+     fill="#e85b63"
+     id="path6" />
+  <path
+     d="m 403.20208,183.29915 h 59 v 57 c -13,20 -36,30 -59,0 z"
+     fill="#e85b63"
+     id="path7" />
+  <!-- Window -->
+  <rect
+     x="55.287552"
+     y="298.29913"
+     width="220"
+     height="139"
+     fill="#e8e7e4"
+     stroke="#f9f8f5"
+     stroke-width="12"
+     id="rect8" />
+  <path
+     d="M 55.287552,368.29915 H 275.28755 m -110,-70 v 139"
+     stroke="#d0d0cc"
+     stroke-width="8"
+     id="path9" />
+  <!-- Door -->
+  <rect
+     x="310.28757"
+     y="298.29913"
+     width="124"
+     height="212"
+     fill="#f8f7f3"
+     stroke="#f0efeb"
+     stroke-width="10"
+     id="rect9" />
+  <circle
+     cx="406.28757"
+     cy="408.29913"
+     r="7"
+     fill="#8b837c"
+     id="circle9" />
+  <!-- Door panel -->
+  <path
+     d="m 325.28755,313.29915 h 94 v 82 h -94 z"
+     stroke="#e0ddd7"
+     stroke-width="5"
+     id="path10" />
+  <!-- Side wall details -->
+  <path
+     d="M 14.287552,510.29915 H 490.28755"
+     stroke="#8c8279"
+     stroke-width="8"
+     id="path11" />
+  <!-- Ground / sidewalk -->
+  <path
+     d="M 14.287552,510.29915 H 490.28755 l 37,33 -524.8717876,4.76068 z"
+     fill="#b6aba0"
+     id="path12"
+     sodipodi:nodetypes="ccccc" />
+  <path
+     d="M 0.02259543,549.25642 527.28755,543.29915"
+     stroke="#a0958b"
+     stroke-width="4"
+     id="path13"
+     sodipodi:nodetypes="cc" />
+</svg>
