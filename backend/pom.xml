@@ -93,10 +93,11 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- HTTP Client for Resend & AI -->
+        <!-- Argon2id password hashing (required by Argon2PasswordEncoder) -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.79</version>
         </dependency>
 
         <!-- DevTools -->

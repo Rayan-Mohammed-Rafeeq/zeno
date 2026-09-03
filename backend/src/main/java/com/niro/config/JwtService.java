@@ -1,5 +1,6 @@
 package com.niro.config;
 
+import com.niro.modules.identity.domain.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -20,6 +21,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class JwtService {
 
+    private static final String CLAIM_EMAIL = "email";
+    private static final String CLAIM_ROLE  = "role";
+
     private final NiroProperties properties;
 
     private SecretKey signingKey() {
@@ -27,13 +31,14 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateAccessToken(UUID userId, String email) {
-        Instant now = Instant.now();
+    public String generateAccessToken(UUID userId, String email, UserRole role) {
+        Instant now    = Instant.now();
         Instant expiry = now.plusSeconds(properties.getJwt().getAccessTokenExpiryMinutes() * 60L);
 
         return Jwts.builder()
                 .subject(userId.toString())
-                .claim("email", email)
+                .claim(CLAIM_EMAIL, email)
+                .claim(CLAIM_ROLE, role.name())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiry))
                 .signWith(signingKey())

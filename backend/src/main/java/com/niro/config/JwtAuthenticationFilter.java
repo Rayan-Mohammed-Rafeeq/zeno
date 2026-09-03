@@ -1,5 +1,6 @@
 package com.niro.config;
 
+import com.niro.modules.identity.domain.UserRole;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,14 +38,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(token) && SecurityContextHolder.getContext().getAuthentication() == null) {
             jwtService.validateAndParse(token).ifPresent(claims -> {
-                UUID userId = UUID.fromString(claims.getSubject());
-                String email = claims.get("email", String.class);
+                UUID     userId = UUID.fromString(claims.getSubject());
+                String   email  = claims.get("email", String.class);
+                String   roleStr = claims.get("role", String.class);
 
-                NiroPrincipal principal = new NiroPrincipal(userId, email);
+                // Gracefully fall back to ANALYST for tokens that predate the role claim
+                UserRole role;
+                try {
+                    role = (roleStr != null) ? UserRole.valueOf(roleStr) : UserRole.ANALYST;
+                } catch (IllegalArgumentException ex) {
+                    role = UserRole.ANALYST;
+                }
+
+                NiroPrincipal principal = new NiroPrincipal(userId, email, role);
+                // Spring Security expects "ROLE_" prefix for hasRole() checks
+                var authority = new SimpleGrantedAuthority("ROLE_" + role.name());
+
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                         principal,
                         null,
-                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                        List.of(authority)
                 );
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(auth);

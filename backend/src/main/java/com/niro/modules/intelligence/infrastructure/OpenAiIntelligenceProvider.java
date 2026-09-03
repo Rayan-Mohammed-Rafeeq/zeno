@@ -13,8 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -94,7 +94,7 @@ public class OpenAiIntelligenceProvider implements IntelligenceProvider {
     }
 
     private String callApi(String prompt) {
-        WebClient client = WebClient.builder()
+        RestClient client = RestClient.builder()
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + properties.getAi().getApiKey())
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
@@ -113,10 +113,9 @@ public class OpenAiIntelligenceProvider implements IntelligenceProvider {
         try {
             Map<?, ?> response = client.post()
                     .uri(properties.getAi().getApiUrl())
-                    .bodyValue(body)
+                    .body(body)
                     .retrieve()
-                    .bodyToMono(Map.class)
-                    .block();
+                    .body(Map.class);
 
             if (response == null) throw new ExternalServiceException("OpenAI", "Empty response");
 
@@ -125,7 +124,7 @@ public class OpenAiIntelligenceProvider implements IntelligenceProvider {
             var first = (Map<?, ?>) choices.get(0);
             var message = (Map<?, ?>) first.get("message");
             return (String) message.get("content");
-        } catch (WebClientResponseException ex) {
+        } catch (RestClientResponseException ex) {
             throw new ExternalServiceException("OpenAI", "API error: " + ex.getStatusCode());
         }
     }

@@ -8,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.util.List;
 import java.util.Map;
@@ -21,8 +21,8 @@ public class ResendEmailService implements EmailService {
 
     private final NiroProperties properties;
 
-    private WebClient buildClient() {
-        return WebClient.builder()
+    private RestClient buildClient() {
+        return RestClient.builder()
                 .baseUrl("https://api.resend.com")
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + properties.getResend().getApiKey())
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -86,12 +86,11 @@ public class ResendEmailService implements EmailService {
             buildClient()
                     .post()
                     .uri("/emails")
-                    .bodyValue(payload)
+                    .body(payload)
                     .retrieve()
-                    .toBodilessEntity()
-                    .block();
+                    .toBodilessEntity();
             log.debug("Email sent via Resend to {}: {}", to, subject);
-        } catch (WebClientResponseException ex) {
+        } catch (RestClientResponseException ex) {
             log.error("Resend API error sending to {}: {} {}", to, ex.getStatusCode(), ex.getResponseBodyAsString());
             throw new ExternalServiceException("Resend", "Failed to send email: " + ex.getStatusCode());
         } catch (Exception ex) {

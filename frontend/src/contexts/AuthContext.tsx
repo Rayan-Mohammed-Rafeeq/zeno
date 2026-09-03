@@ -26,7 +26,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .then(setUser)
         .catch(() => {
           localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
         })
         .finally(() => setIsLoading(false));
     } else {
@@ -35,15 +34,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async (data: LoginRequest) => {
-    const response = await authApi.login(data);
-    setUser(response.user);
+    const { user } = await authApi.login(data);
+    setUser(user);
     navigate('/dashboard');
   };
 
   const register = async (data: RegisterRequest) => {
     await authApi.register(data);
-    // In mock mode, user needs to verify email
-    // In real mode, redirect to verification page
+    // Redirect to verify-email so the user knows to check their inbox
+    navigate('/verify-email');
   };
 
   const logout = async () => {

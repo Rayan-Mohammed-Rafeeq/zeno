@@ -55,3 +55,37 @@ data/generated/**
 !data/generated/.gitkeep
 data/evaluation/**
 !data/evaluation/.gitkeep
+
+# ==============================
+# Python / ML
+# ==============================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# MLflow — run artefacts and local tracking store
+ml/mlruns/
+
+# Raw datasets (large binary files — download separately)
+ml/data/raw/
+
+# Trained model artefacts (regenerate from training scripts)
+ml/data/artifacts/
+
+# Generated reports (reproducible via training scripts)
+ml/reports/
+
+# Processed/cached feature data
+ml/data/processed/

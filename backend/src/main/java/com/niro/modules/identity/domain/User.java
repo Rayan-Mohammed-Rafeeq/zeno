@@ -37,6 +37,11 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
+    private UserRole role = UserRole.ANALYST;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
     private UserStatus status = UserStatus.PENDING_VERIFICATION;
 
     @CreationTimestamp

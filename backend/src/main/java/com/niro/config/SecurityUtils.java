@@ -1,5 +1,6 @@
 package com.niro.config;
 
+import com.niro.modules.identity.domain.UserRole;
 import com.niro.shared.exception.UnauthorizedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,5 +24,13 @@ public final class SecurityUtils {
 
     public static UUID currentUserId() {
         return currentPrincipal().userId();
+    }
+
+    public static UserRole currentRole() {
+        return currentPrincipal().role();
+    }
+
+    public static boolean isAdmin() {
+        return currentRole() == UserRole.ADMIN;
     }
 }

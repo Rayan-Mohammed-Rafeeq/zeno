@@ -289,6 +289,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   confirmPassword: string;
+  merchantName: string;
 }
 
 export interface VerifyEmailRequest {

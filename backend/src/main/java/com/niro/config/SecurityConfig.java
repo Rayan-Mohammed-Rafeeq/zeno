@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -18,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity          // enables @PreAuthorize on controllers
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -39,6 +41,9 @@ public class SecurityConfig {
                             "/api/v1/auth/resend-verification",
                             "/api/v1/auth/forgot-password",
                             "/api/v1/auth/reset-password").permitAll()
+                    // Admin endpoints — ROLE_ADMIN required at the filter-chain level
+                    // (controllers also use @PreAuthorize as defence-in-depth)
+                    .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                     // Actuator health
                     .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                     // OpenAPI
@@ -46,7 +51,7 @@ public class SecurityConfig {
                             "/api/v1/api-docs/**",
                             "/swagger-ui/**",
                             "/swagger-ui.html").permitAll()
-                    // Everything else requires auth
+                    // Everything else requires authentication
                     .anyRequest().authenticated())
             .exceptionHandling(ex -> ex
                     .authenticationEntryPoint((request, response, authException) -> {

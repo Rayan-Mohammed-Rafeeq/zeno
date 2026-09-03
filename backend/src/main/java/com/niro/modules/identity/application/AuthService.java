@@ -4,6 +4,8 @@ import com.niro.config.JwtService;
 import com.niro.config.NiroProperties;
 import com.niro.modules.identity.domain.*;
 import com.niro.modules.identity.interfaces.dto.*;
+import com.niro.modules.merchant.application.MerchantService;
+import com.niro.modules.merchant.interfaces.dto.CreateMerchantRequest;
 import com.niro.shared.exception.BusinessRuleException;
 import com.niro.shared.exception.ConflictException;
 import com.niro.shared.exception.ResourceNotFoundException;
@@ -38,6 +40,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final EmailService emailService;
+    private final MerchantService merchantService;
     private final NiroProperties properties;
 
     @Transactional
@@ -46,20 +49,25 @@ public class AuthService {
             throw new ConflictException("EMAIL_ALREADY_EXISTS", "An account with this email already exists");
         }
 
+        // Every registration creates a new merchant workspace; the registering user is its ADMIN
         User user = User.builder()
                 .name(request.name().trim())
                 .email(request.email().toLowerCase())
                 .passwordHash(passwordEncoder.encode(request.password()))
+                .role(UserRole.ADMIN)
                 .emailVerified(false)
                 .status(UserStatus.PENDING_VERIFICATION)
                 .build();
         user = userRepository.save(user);
 
+        // Create the merchant and link the user — all within the same transaction
+        merchantService.createMerchant(user.getId(), new CreateMerchantRequest(request.merchantName().trim()));
+
         String rawToken = generateSecureToken();
         issueVerificationToken(user.getId(), rawToken);
         emailService.sendVerificationEmail(user.getEmail(), user.getName(), rawToken);
 
-        log.info("User registered: {}", user.getId());
+        log.info("Merchant admin registered: userId={}", user.getId());
         return new RegisterResponse(user.getId(), user.getEmail(),
                 "Registration successful. Please check your email to verify your account.");
     }
@@ -81,9 +89,9 @@ public class AuthService {
             throw new BusinessRuleException("ACCOUNT_SUSPENDED", "This account has been suspended");
         }
 
-        String token = jwtService.generateAccessToken(user.getId(), user.getEmail());
+        String token = jwtService.generateAccessToken(user.getId(), user.getEmail(), user.getRole());
         log.info("User logged in: {}", user.getId());
-        return new LoginResponse(token, user.getId(), user.getEmail(), user.getName());
+        return new LoginResponse(token, user.getId(), user.getEmail(), user.getName(), user.getRole());
     }
 
     @Transactional

@@ -205,11 +205,6 @@ export function Login() {
               Create account
             </Link>
           </p>
-
-          {/* Dev hint */}
-          <div className="mt-8 p-3 rounded-lg text-xs" style={{ background: 'var(--surface-2)', color: 'var(--fg-subtle)' }}>
-            <strong style={{ color: 'var(--fg-muted)' }}>Dev mode:</strong> any email + any password
-          </div>
         </div>
       </div>
     </div>

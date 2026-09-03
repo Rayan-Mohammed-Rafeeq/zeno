@@ -2,6 +2,8 @@
 
 export { authApi } from './authApi';
 export { customerApi } from './customerApi';
+export { adminApi } from './adminApi';
+export type { AdminUser, CreateUserRequest, AdminUserRole, AdminUserStatus } from './adminApi';
 export { apiRequest, ApiError, MOCK_API_ENABLED } from './client';
 export * from './mockData';
 
