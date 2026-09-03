@@ -71,7 +71,7 @@ def train(args: argparse.Namespace) -> None:
 
     # ── 2. Split ──────────────────────────────────────────────────────────
     split = temporal_split(df, order_column="transaction_dt",
-                           metadata={"dataset": dataset_meta["name"]})
+                           metadata={"dataset": dataset_meta["dataset_name"]})
     logger.info(split.summary())
     df_train, df_val, df_test = split.apply(df)
     y_train, y_val, y_test    = temporal_split_labels(labels, split)
@@ -90,7 +90,7 @@ def train(args: argparse.Namespace) -> None:
         mlflow.log_params({
             "algorithm":          "XGBoost",
             "feature_version":    FEATURE_VERSION,
-            "dataset":            dataset_meta["name"],
+            "dataset":            dataset_meta["dataset_name"],
             "is_synthetic":       dataset_meta["is_synthetic"],
             "n_train":            len(X_train),
             "n_val":              len(X_val),

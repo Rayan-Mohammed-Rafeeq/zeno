@@ -125,7 +125,7 @@ def tune(args: argparse.Namespace) -> None:
     # ── Load + split + features (done ONCE, reused across all configs) ────
     df, labels, dataset_meta = load_dataset(args)
     split = temporal_split(df, order_column="transaction_dt",
-                           metadata={"dataset": dataset_meta["name"]})
+                           metadata={"dataset": dataset_meta["dataset_name"]})
     logger.info(split.summary())
     df_train, df_val, df_test = split.apply(df)
     y_train_s, y_val_s, _    = temporal_split_labels(labels, split)
@@ -152,7 +152,7 @@ def tune(args: argparse.Namespace) -> None:
                 "algorithm":          "XGBoost",
                 "tuning_run":         i,
                 "feature_version":    FEATURE_VERSION,
-                "dataset":            dataset_meta["name"],
+                "dataset":            dataset_meta["dataset_name"],
                 "is_synthetic":       dataset_meta["is_synthetic"],
                 **{f"xgb_{k}": v for k, v in cfg.items()},
             })
@@ -208,7 +208,7 @@ def tune(args: argparse.Namespace) -> None:
         "threshold":      best["threshold"],
         "all_results":    results,
         "feature_version": FEATURE_VERSION,
-        "dataset":        dataset_meta["name"],
+        "dataset":        dataset_meta["dataset_name"],
         "test_fingerprint": split.test_fingerprint,
     }
     with open(best_params_path, "wb") as f:

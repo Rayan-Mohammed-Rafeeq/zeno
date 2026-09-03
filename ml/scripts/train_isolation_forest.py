@@ -47,7 +47,7 @@ def train(args: argparse.Namespace) -> None:
     # ── Load + split + features ───────────────────────────────────────────
     df, labels, dataset_meta = load_dataset(args)
     split = temporal_split(df, order_column="transaction_dt",
-                           metadata={"dataset": dataset_meta["name"]})
+                           metadata={"dataset": dataset_meta["dataset_name"]})
     df_train, df_val, _ = split.apply(df)
     y_train_s, y_val_s, _ = temporal_split_labels(labels, split)
 
@@ -59,7 +59,7 @@ def train(args: argparse.Namespace) -> None:
         logger.info("MLflow run: %s", run.info.run_id)
         mlflow.log_params({
             "algorithm":       "IsolationForest",
-            "dataset":         dataset_meta["name"],
+            "dataset":         dataset_meta["dataset_name"],
             "is_synthetic":    dataset_meta["is_synthetic"],
             "contamination":   "auto (from fraud rate)",
             "n_estimators":    200,

@@ -103,6 +103,11 @@ def build_graph(
     """
     g = FraudGraph(merchant_id=merchant_id)
 
+    # Handle empty DataFrame gracefully
+    if len(df) == 0:
+        logger.debug("build_graph called with empty DataFrame — returning empty graph.")
+        return g
+
     required = {"customer_id"}
     missing = required - set(df.columns)
     if missing:
