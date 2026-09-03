@@ -213,7 +213,7 @@ export function NiroVisualization({ isDark, className = '' }: Props) {
 
   return (
     <svg
-      viewBox="0 0 500 430"
+      viewBox="-60 -40 620 520"
       className={className}
       aria-hidden="true"
       style={{ overflow: 'visible', width: '100%', height: '100%' }}
@@ -298,22 +298,6 @@ export function NiroVisualization({ isDark, className = '' }: Props) {
         cx={ORB.cx} cy={ORB.cy + ORB.r + 6}
         rx={ORB.r + 14} ry={12}
         fill={c.platformBody} stroke={c.platformEdge} strokeWidth={0.8}
-      />
-      <ellipse
-        cx={ORB.cx} cy={ORB.cy + ORB.r - 2}
-        rx={ORB.r + 38} ry={23}
-        fill="none" stroke={c.spinRing} strokeWidth={0.6}
-        strokeDasharray="3 12" opacity={0.35}
-        className={`${uid}-spin`}
-        style={{ animationDuration: '18s', transformOrigin: `${ORB.cx}px ${ORB.cy + ORB.r - 2}px` } as React.CSSProperties}
-      />
-      <ellipse
-        cx={ORB.cx} cy={ORB.cy + ORB.r - 2}
-        rx={ORB.r + 24} ry={14}
-        fill="none" stroke={c.spinRing} strokeWidth={0.7}
-        strokeDasharray="5 9" opacity={0.40}
-        className={`${uid}-spin-rev`}
-        style={{ animationDuration: '12s', transformOrigin: `${ORB.cx}px ${ORB.cy + ORB.r - 2}px` } as React.CSSProperties}
       />
 
       {/* Layer 3 — Orb glow rings */}

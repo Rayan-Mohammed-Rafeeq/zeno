@@ -24,6 +24,7 @@ GROUP_GRAPH       = "graph"      # added in Milestone 7
 
 # ---------------------------------------------------------------------------
 # Ordered list of all feature column names produced by the v1.0 pipeline.
+# Graph features (GROUP_GRAPH) are added when the graph hook is registered.
 # Downstream code (model training, SHAP, inference) should reference this
 # list rather than hard-coding column positions.
 # ---------------------------------------------------------------------------
@@ -85,11 +86,31 @@ SEQUENCE_FEATURES: list[str] = [
     "repeated_amount",                  # 1 if amount matches any prior tx within 24h (±1%)
 ]
 
+GRAPH_FEATURES: list[str] = [
+    "graph_customer_degree",
+    "graph_device_degree",
+    "graph_ip_degree",
+    "graph_co_user_count",
+    "graph_suspicious_neighbor_frac",
+    "graph_in_cluster",
+    "graph_cluster_size",
+    "graph_cluster_fraud_rate",
+    "graph_cluster_risk_score",
+    "graph_shared_device_count",
+]
+
 ALL_FEATURE_COLUMNS: list[str] = (
     TRANSACTION_FEATURES
     + BEHAVIORAL_FEATURES
     + DEVICE_IP_FEATURES
     + SEQUENCE_FEATURES
+)
+
+# When graph features are registered (via pipeline.register_graph_feature_hook)
+# they are appended to ALL_FEATURE_COLUMNS at runtime.  This constant captures
+# the full set including graph features for models trained with them.
+ALL_FEATURE_COLUMNS_WITH_GRAPH: list[str] = (
+    ALL_FEATURE_COLUMNS + GRAPH_FEATURES
 )
 
 # Sentinel fill values for missing data — consistent across train and inference

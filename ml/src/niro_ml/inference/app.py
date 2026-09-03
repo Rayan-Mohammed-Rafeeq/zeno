@@ -31,6 +31,7 @@ from fastapi.responses import JSONResponse
 from niro_ml.data.schema import CustomerContext, RawTransaction
 from niro_ml.features.pipeline import audit_for_leakage, run_feature_pipeline
 from niro_ml.inference.aggregator import aggregate_risk_score, normalize_anomaly_score
+from niro_ml.inference.explainer import SHAPExplainer
 from niro_ml.inference.model_registry import RegistryStatus, get_registry
 from niro_ml.inference.request import BatchPredictRequest, PredictRequest
 from niro_ml.inference.response import (
@@ -60,6 +61,8 @@ async def lifespan(app: FastAPI):
             "Niro ML service started — model NOT ready. "
             "Prediction endpoints will return 503 until models are trained."
         )
+    # SHAP explainer is initialised lazily on first /ml/predict call
+    # so startup is fast even when model artefacts are present.
     yield
     logger.info("Niro ML service shutting down.")
 
@@ -189,9 +192,28 @@ async def predict(request: PredictRequest) -> PredictResponse:
     # Risk aggregation
     risk_score, risk_level = aggregate_risk_score(fraud_probability, anomaly_score)
 
-    # SHAP explanations (Milestone 5 will add full SHAP TreeExplainer;
-    # for now, return empty list — model not yet trained)
+    # SHAP explanations — lazy init per registry bundle
     contributions: list[FeatureContribution] = []
+    try:
+        if not hasattr(bundle, "_shap_explainer") or bundle._shap_explainer is None:
+            bundle._shap_explainer = SHAPExplainer(
+                model=bundle.xgb_model,
+                feature_names=bundle.feature_names,
+                model_version=bundle.model_version,
+            )
+        if bundle._shap_explainer.is_available:
+            expl = bundle._shap_explainer.explain_single(X, fraud_probability)
+            contributions = [
+                FeatureContribution(
+                    feature=c.feature,
+                    shap_value=c.shap_value,
+                    direction=c.direction,  # type: ignore[arg-type]
+                    rank=c.rank,
+                )
+                for c in expl.top_n(10)
+            ]
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("SHAP explanation failed (non-fatal): %s", exc)
 
     processing_ms = int((time.monotonic() - t_start) * 1000)
 

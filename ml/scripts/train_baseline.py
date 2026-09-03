@@ -64,7 +64,6 @@ import pandas as pd
 from niro_ml.evaluation.metrics import evaluate, sweep_thresholds
 from niro_ml.evaluation.report import BenchmarkReport, ModelEntry
 from niro_ml.features.base import ALL_FEATURE_COLUMNS, FEATURE_VERSION
-from niro_ml.features.pipeline import run_feature_pipeline
 from niro_ml.models.baseline import BASELINE_HYPERPARAMS, BaselineModel
 from niro_ml.models.splits import (
     SplitResult,
@@ -72,6 +71,7 @@ from niro_ml.models.splits import (
     temporal_split,
     temporal_split_labels,
 )
+from niro_ml.scripts_common import build_feature_matrix, load_dataset
 
 logging.basicConfig(
     level=logging.INFO,
