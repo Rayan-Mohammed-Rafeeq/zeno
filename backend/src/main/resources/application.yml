@@ -91,3 +91,9 @@ niro:
     false-positive-cost:
       manual-review-cost: 15.0
       held-transaction-opportunity-cost: 25.0
+
+  ml:
+    enabled: ${ML_SERVICE_ENABLED:false}
+    service-url: ${ML_SERVICE_URL:http://localhost:8001}
+    timeout-seconds: ${ML_SERVICE_TIMEOUT_SECONDS:5}
+    max-retries: ${ML_SERVICE_MAX_RETRIES:1}

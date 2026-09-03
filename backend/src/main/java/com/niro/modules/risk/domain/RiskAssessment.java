@@ -39,6 +39,19 @@ public class RiskAssessment {
     @Column(name = "flagged")
     private boolean flagged;
 
+    // ── ML-augmented fields (nullable — populated only when ML service is enabled) ──
+    @Column(name = "fraud_probability")
+    private Double fraudProbability;
+
+    @Column(name = "anomaly_score")
+    private Double anomalyScore;
+
+    @Column(name = "model_version", length = 100)
+    private String modelVersion;
+
+    @Column(name = "feature_version", length = 20)
+    private String featureVersion;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;

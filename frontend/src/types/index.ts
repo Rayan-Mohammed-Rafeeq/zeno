@@ -253,11 +253,23 @@ export interface DatasetStep {
 
 export interface DashboardStats {
   transactionsAnalyzed: number;
+  customersAnalyzed: number;
   highRiskCustomers: number;
   suspiciousClusters: number;
   openInvestigations: number;
-  detectionPrecision: number;
-  detectionRecall: number;
+  // ML evaluation metrics — null if no evaluation run yet
+  precision: number | null;
+  recall: number | null;
+  f1: number | null;
+  falsePositiveRate: number | null;
+  riskDistribution: Record<string, number>;
+  topSignals: { signalType: string; count: number }[];
+  recentClusters: { id: string; riskLevel: string; memberCount: number; riskScore: number }[];
+  recentInvestigations: { id: string; subjectType: string; status: string; riskLevel: string }[];
+  dataDisclaimer: string;
+  // Backwards-compat aliases
+  detectionPrecision?: number;
+  detectionRecall?: number;
 }
 
 // API Response types

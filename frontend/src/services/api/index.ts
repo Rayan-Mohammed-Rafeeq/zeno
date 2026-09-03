@@ -138,7 +138,7 @@ export const auditApi = {
     }
     
     const query = new URLSearchParams(params as any).toString();
-    return apiRequest<PaginatedResponse<AuditEvent>>(`/audit?${query}`);
+    return apiRequest<PaginatedResponse<AuditEvent>>(`/audit-events?${query}`);
   },
 };
 
@@ -178,7 +178,7 @@ export const dashboardApi = {
       return mockDashboardStats;
     }
     
-    return apiRequest<DashboardStats>('/dashboard/stats');
+    return apiRequest<DashboardStats>('/dashboard');
   },
 };
 
@@ -202,7 +202,7 @@ export const datasetApi = {
       };
     }
     
-    return apiRequest<DatasetRun>('/dataset/generate', {
+    return apiRequest<DatasetRun>('/datasets/generate', {
       method: 'POST',
       body: JSON.stringify({ recordCount }),
     });
@@ -227,6 +227,6 @@ export const datasetApi = {
       };
     }
     
-    return apiRequest<DatasetRun>('/dataset/current');
+    return apiRequest<DatasetRun>('/datasets/current');
   },
 };

@@ -2,6 +2,8 @@ package com.niro.modules.risk.application;
 
 import com.niro.modules.customer.domain.Customer;
 import com.niro.modules.customer.domain.CustomerRepository;
+import com.niro.modules.ml.application.MlPredictionOrchestrator;
+import com.niro.modules.ml.interfaces.dto.MlPredictionResponse;
 import com.niro.modules.payment.domain.Payment;
 import com.niro.modules.payment.infrastructure.JpaPaymentRepository;
 import com.niro.modules.refund.infrastructure.JpaRefundRepository;
@@ -23,6 +25,22 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Core risk orchestrator.
+ *
+ * When niro.ml.enabled=true, the engine calls the Python ML service for
+ * each customer and merges the ML fraud probability + anomaly score into
+ * the risk assessment alongside the rule-based signal detectors.
+ *
+ * When niro.ml.enabled=false (default), or when the ML service is
+ * unavailable, the engine falls back gracefully to rule-based scoring only.
+ * No exception is thrown — the fallback is silent and logged as WARN.
+ *
+ * MERCHANT ISOLATION
+ * ──────────────────
+ * All queries are scoped by merchantId. The ML orchestrator also receives
+ * merchantId to ensure cross-tenant contamination is impossible.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -35,13 +53,15 @@ public class RiskEngine {
     private final CustomerRepository customerRepository;
     private final JpaPaymentRepository paymentRepository;
     private final JpaRefundRepository refundRepository;
+    private final MlPredictionOrchestrator mlOrchestrator;
 
     @Transactional
     public RiskAssessmentResponse analyzeCustomer(UUID merchantId, UUID customerId) {
         Customer customer = customerRepository.findByMerchantIdAndId(merchantId, customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer", customerId));
         RiskContext ctx = buildContext(merchantId, customer);
-        return runAndPersist(merchantId, ctx);
+        Optional<MlPredictionResponse> mlResult = mlOrchestrator.scoreCustomer(merchantId, customer);
+        return runAndPersist(merchantId, ctx, mlResult);
     }
 
     @Transactional
@@ -60,7 +80,8 @@ public class RiskEngine {
         for (Customer customer : customers) {
             try {
                 RiskContext ctx = buildContext(merchantId, customer);
-                results.add(runAndPersist(merchantId, ctx));
+                Optional<MlPredictionResponse> mlResult = mlOrchestrator.scoreCustomer(merchantId, customer);
+                results.add(runAndPersist(merchantId, ctx, mlResult));
             } catch (Exception ex) {
                 log.warn("Failed to assess customer {}: {}", customer.getId(), ex.getMessage());
             }
@@ -85,6 +106,8 @@ public class RiskEngine {
                 .orElseThrow(() -> new ResourceNotFoundException("RiskAssessment", assessmentId));
         return toResponse(assessment, signalRepository.findAllByAssessmentId(assessmentId));
     }
+
+    // ── Private helpers ───────────────────────────────────────────────────
 
     private RiskContext buildContext(UUID merchantId, Customer customer) {
         List<Payment> customerPayments = paymentRepository
@@ -119,23 +142,61 @@ public class RiskEngine {
                 .build();
     }
 
-    private RiskAssessmentResponse runAndPersist(UUID merchantId, RiskContext ctx) {
+    private RiskAssessmentResponse runAndPersist(
+            UUID merchantId,
+            RiskContext ctx,
+            Optional<MlPredictionResponse> mlResult
+    ) {
+        // ── Rule-based signal detection (always runs) ─────────────────────
         List<RiskSignal> signals = detectors.stream()
                 .map(d -> d.detect(ctx))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());
 
-        int score = scoreCalculator.calculateScore(signals);
-        RiskLevel level = scoreCalculator.calculateLevel(score);
+        int ruleScore = scoreCalculator.calculateScore(signals);
+        RiskLevel ruleLevel = scoreCalculator.calculateLevel(ruleScore);
 
+        // ── ML score integration (when available) ─────────────────────────
+        // When the ML service provides a score, use the ML risk_score and risk_level
+        // as the primary signal (it incorporates the rule-based features as inputs).
+        // When unavailable, fall back to rule-based scoring.
+        int finalScore;
+        RiskLevel finalLevel;
+        Double fraudProbability = null;
+        Double anomalyScore = null;
+        String modelVersion = null;
+        String featureVersion = null;
+
+        if (mlResult.isPresent()) {
+            MlPredictionResponse ml = mlResult.get();
+            finalScore      = ml.riskScore();
+            finalLevel      = parseRiskLevel(ml.riskLevel(), ruleLevel);
+            fraudProbability = ml.fraudProbability();
+            anomalyScore    = ml.anomalyScore();
+            modelVersion    = ml.modelVersion();
+            featureVersion  = ml.featureVersion();
+            log.debug("ML score used for customer {}: score={} level={} fp={:.4f}",
+                    ctx.getCustomer().getId(), finalScore, finalLevel, fraudProbability);
+        } else {
+            finalScore = ruleScore;
+            finalLevel = ruleLevel;
+            log.debug("Rule-based score used for customer {}: score={} level={}",
+                    ctx.getCustomer().getId(), finalScore, finalLevel);
+        }
+
+        // ── Persist ───────────────────────────────────────────────────────
         RiskAssessment assessment = RiskAssessment.builder()
                 .merchantId(merchantId)
                 .customerId(ctx.getCustomer().getId())
-                .riskScore(score)
-                .riskLevel(level)
+                .riskScore(finalScore)
+                .riskLevel(finalLevel)
                 .signalCount(signals.size())
-                .flagged(level == RiskLevel.HIGH || level == RiskLevel.CRITICAL)
+                .flagged(finalLevel == RiskLevel.HIGH || finalLevel == RiskLevel.CRITICAL)
+                .fraudProbability(fraudProbability)
+                .anomalyScore(anomalyScore)
+                .modelVersion(modelVersion)
+                .featureVersion(featureVersion)
                 .build();
         assessment = assessmentRepository.save(assessment);
 
@@ -155,6 +216,15 @@ public class RiskEngine {
         signalRepository.saveAll(signalEntities);
 
         return toResponse(assessment, signalEntities);
+    }
+
+    private RiskLevel parseRiskLevel(String levelStr, RiskLevel fallback) {
+        try {
+            return RiskLevel.valueOf(levelStr.toUpperCase());
+        } catch (Exception ex) {
+            log.warn("Unknown risk level from ML service: '{}', using rule-based: {}", levelStr, fallback);
+            return fallback;
+        }
     }
 
     private RiskAssessmentResponse toResponse(RiskAssessment a, List<RiskSignalEntity> signals) {

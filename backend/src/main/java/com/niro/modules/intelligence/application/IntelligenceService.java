@@ -90,6 +90,11 @@ public class IntelligenceService {
                 .clusterSize(request.clusterSize() != null ? request.clusterSize() : 1)
                 .estimatedExposure(exposure)
                 .signalExplanations(signals.stream().map(RiskSignalEntity::getExplanation).toList())
+                // ML fields — populated when ML service was enabled during risk analysis
+                .fraudProbability(riskAssessment.getFraudProbability())
+                .anomalyScore(riskAssessment.getAnomalyScore())
+                .modelVersion(riskAssessment.getModelVersion())
+                .shapContributions(null) // SHAP contributions stored in ml_predictions; not yet fetched here
                 .build();
 
         AiAssessment assessment = intelligenceProvider.assess(bundle);

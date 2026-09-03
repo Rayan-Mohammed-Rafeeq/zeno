@@ -18,6 +18,7 @@ public class NiroProperties {
     private Ai ai = new Ai();
     private Risk risk = new Risk();
     private Evaluation evaluation = new Evaluation();
+    private Ml ml = new Ml();
 
     @Getter
     @Setter
@@ -76,5 +77,26 @@ public class NiroProperties {
             /** Assumed opportunity cost per held legitimate transaction (USD). Prototype assumption — not real merchant loss. */
             private double heldTransactionOpportunityCost = 25.0;
         }
+    }
+
+    /**
+     * Configuration for the Python FastAPI ML inference service.
+     * The service is opt-in: when ml.enabled=false the risk engine uses
+     * only rule-based signal detectors (existing behaviour is preserved).
+     */
+    @Getter
+    @Setter
+    public static class Ml {
+        /** Whether to call the ML service for risk scoring. Default: false (rule-based only). */
+        private boolean enabled = false;
+
+        /** Base URL of the Python FastAPI ML service. */
+        private String serviceUrl = "http://localhost:8001";
+
+        /** HTTP timeout for ML service calls in seconds. */
+        private int timeoutSeconds = 5;
+
+        /** Number of retry attempts on connection failure before falling back to rule-based scoring. */
+        private int maxRetries = 1;
     }
 }

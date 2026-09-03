@@ -15,6 +15,11 @@ import java.util.UUID;
  *
  * All values are computed from deterministic signals.
  * The AI interprets this evidence; it does NOT determine fraud.
+ *
+ * ML fields (fraudProbability, anomalyScore, shapContributions) are nullable —
+ * they are populated when the ML service is enabled, and absent otherwise.
+ * The LLM prompt must explicitly distinguish ML-derived quantities from
+ * rule-based signals, and must not invent values for absent fields.
  */
 @Getter
 @Builder
@@ -41,4 +46,22 @@ public class EvidenceBundle {
 
     /** Human-readable signal explanations for context */
     private final List<String> signalExplanations;
+
+    // ── ML-augmented fields (nullable — populated when ML service is enabled) ──
+
+    /** Calibrated XGBoost fraud probability [0,1]. Null when ML service disabled. */
+    private final Double fraudProbability;
+
+    /** Normalised Isolation Forest anomaly score [0,1]. Null when ML service disabled. */
+    private final Double anomalyScore;
+
+    /** ML model version string. Null when ML service disabled. */
+    private final String modelVersion;
+
+    /**
+     * Top SHAP feature contributors from the ML explanation.
+     * Each entry: "feature_name (+0.34)" or "feature_name (-0.12)"
+     * Null or empty when ML service disabled.
+     */
+    private final List<String> shapContributions;
 }

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
@@ -24,6 +24,7 @@ import { Evaluation }     from '@/pages/Evaluation';
 import { AuditTrail }     from '@/pages/AuditTrail';
 import { Dataset }        from '@/pages/Dataset';
 import { Settings }       from '@/pages/Settings';
+import { Landing }        from '@/pages/Landing';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -42,6 +43,7 @@ function App() {
           <AuthProvider>
             <Routes>
               {/* Public */}
+              <Route path="/"                element={<Landing />}        />
               <Route path="/login"           element={<Login />}          />
               <Route path="/register"        element={<Register />}       />
               <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -55,7 +57,6 @@ function App() {
                   <ProtectedRoute>
                     <AppLayout>
                       <Routes>
-                        <Route path="/"                       element={<Navigate to="/dashboard" replace />} />
                         <Route path="/dashboard"              element={<Dashboard />}      />
                         <Route path="/customers"              element={<Customers />}      />
                         <Route path="/customers/:id"          element={<CustomerDetail />} />

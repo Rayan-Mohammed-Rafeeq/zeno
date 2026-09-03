@@ -16,6 +16,13 @@ public record RiskAssessmentResponse(
         RiskLevel riskLevel,
         boolean flagged,
         List<RiskSignalResponse> signals,
+
+        // ML-augmented fields — null when ML service is disabled or unavailable
+        Double fraudProbability,
+        Double anomalyScore,
+        String modelVersion,
+        String featureVersion,
+
         Instant createdAt
 ) {
     public static RiskAssessmentResponse from(RiskAssessment a, List<RiskSignalEntity> signals) {
@@ -23,6 +30,10 @@ public record RiskAssessmentResponse(
                 a.getId(), a.getMerchantId(), a.getCustomerId(),
                 a.getRiskScore(), a.getRiskLevel(), a.isFlagged(),
                 signals.stream().map(RiskSignalResponse::from).toList(),
+                a.getFraudProbability(),
+                a.getAnomalyScore(),
+                a.getModelVersion(),
+                a.getFeatureVersion(),
                 a.getCreatedAt());
     }
 }

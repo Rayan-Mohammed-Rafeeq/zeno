@@ -1,20 +1,20 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { dashboardApi, clusterApi, investigationApi } from '@/services/api';
+import { dashboardApi } from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
-import { formatNumber, formatPercent, formatRelativeTime, formatCurrency } from '@/lib/utils';
+import { formatNumber, formatPercent, formatCurrency } from '@/lib/utils';
 import {
   BarChart3, Users, Network, FileSearch, Target, TrendingUp,
-  AlertTriangle, ArrowRight,
+  AlertTriangle, ArrowRight, Activity,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from 'recharts';
 
-/* ── Custom tooltip ────────────────────────────────────────────── */
+/* ── Custom tooltip ──────────────────────────────────────────────── */
 function ChartTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
@@ -28,14 +28,8 @@ function ChartTooltip({ active, payload, label }: any) {
   );
 }
 
-/* ── KPI card ──────────────────────────────────────────────────── */
-function KpiCard({
-  icon: Icon,
-  label,
-  value,
-  sub,
-  accent,
-}: {
+/* ── KPI card ────────────────────────────────────────────────────── */
+function KpiCard({ icon: Icon, label, value, sub, accent }: {
   icon: React.ComponentType<any>;
   label: string;
   value: string;
@@ -47,7 +41,8 @@ function KpiCard({
       <CardContent className="pt-5">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-medium uppercase tracking-wider mb-2" style={{ color: 'var(--fg-subtle)' }}>
+            <div className="text-xs font-medium uppercase tracking-wider mb-2"
+              style={{ color: 'var(--fg-subtle)' }}>
               {label}
             </div>
             <div className="text-2xl font-bold" style={{ color: accent || 'var(--fg)' }}>
@@ -65,36 +60,19 @@ function KpiCard({
   );
 }
 
-/* ── Risk distribution data ────────────────────────────────────── */
-const riskDist = [
-  { name: 'Low',      value: 850, color: '#4ade80' },
-  { name: 'Medium',   value: 320, color: '#fbbf24' },
-  { name: 'High',     value: 120, color: '#fb923c' },
-  { name: 'Critical', value: 23,  color: '#f87171' },
-];
+/* ── Risk level colour map ───────────────────────────────────────── */
+const RISK_COLORS: Record<string, string> = {
+  LOW:      '#4ade80',
+  MEDIUM:   '#fbbf24',
+  HIGH:     '#fb923c',
+  CRITICAL: '#f87171',
+};
 
-const signalDist = [
-  { name: 'Refund\nVelocity',  count: 45 },
-  { name: 'Device\nReuse',     count: 38 },
-  { name: 'Txn\nVelocity',     count: 32 },
-  { name: 'IP\nReuse',         count: 28 },
-  { name: 'Amt\nSimilarity',   count: 24 },
-  { name: 'Coordinated',       count: 18 },
-];
-
-/* ── component ─────────────────────────────────────────────────── */
+/* ── Component ───────────────────────────────────────────────────── */
 export function Dashboard() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: () => dashboardApi.getStats(),
-  });
-  const { data: clustersData } = useQuery({
-    queryKey: ['clusters', { page: 1, pageSize: 5 }],
-    queryFn: () => clusterApi.getClusters({ page: 1, pageSize: 5 }),
-  });
-  const { data: investigationsData } = useQuery({
-    queryKey: ['investigations', { page: 1, pageSize: 5 }],
-    queryFn: () => investigationApi.getInvestigations({ page: 1, pageSize: 5 }),
   });
 
   if (isLoading) {
@@ -104,6 +82,25 @@ export function Dashboard() {
       </div>
     );
   }
+
+  /* ── Derived chart data from live stats ───────────────────────── */
+  const riskDistData = stats?.riskDistribution
+    ? Object.entries(stats.riskDistribution).map(([name, value]) => ({
+        name,
+        value: value as number,
+        color: RISK_COLORS[name] ?? '#94a3b8',
+      }))
+    : [];
+
+  const signalDistData = stats?.topSignals
+    ? stats.topSignals.map((s) => ({
+        name: s.signalType.replace(/_/g, '\n').toLowerCase(),
+        count: s.count,
+      }))
+    : [];
+
+  const precision = stats?.precision ?? null;
+  const recall    = stats?.recall    ?? null;
 
   return (
     <div className="space-y-6">
@@ -115,98 +112,128 @@ export function Dashboard() {
         </p>
       </div>
 
+      {/* Disclaimer */}
+      {stats?.dataDisclaimer && (
+        <div className="flex items-start gap-3 px-4 py-3 rounded-xl text-xs"
+          style={{ background: 'var(--warning-bg)', border: '1px solid var(--warning)', color: 'var(--warning)' }}>
+          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+          <span>{stats.dataDisclaimer}</span>
+        </div>
+      )}
+
       {/* KPI row */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-        <KpiCard icon={BarChart3} label="Transactions Analyzed"
-          value={formatNumber(stats?.transactionsAnalyzed ?? 0)} sub="Last 30 days" />
-        <KpiCard icon={Users}     label="High-Risk Customers"
-          value={formatNumber(stats?.highRiskCustomers ?? 0)}    sub="Requires review"
+        <KpiCard icon={BarChart3}  label="Transactions Analyzed"
+          value={formatNumber(stats?.transactionsAnalyzed ?? 0)} sub="Current dataset" />
+        <KpiCard icon={Users}      label="High-Risk Customers"
+          value={formatNumber(stats?.highRiskCustomers ?? 0)} sub="Requires review"
           accent="var(--risk-high)" />
-        <KpiCard icon={Network}   label="Suspicious Clusters"
-          value={formatNumber(stats?.suspiciousClusters ?? 0)}   sub="Active"
+        <KpiCard icon={Network}    label="Suspicious Clusters"
+          value={formatNumber(stats?.suspiciousClusters ?? 0)} sub="Active"
           accent="var(--risk-critical)" />
         <KpiCard icon={FileSearch} label="Open Investigations"
-          value={formatNumber(stats?.openInvestigations ?? 0)}   sub="Pending review" />
+          value={formatNumber(stats?.openInvestigations ?? 0)} sub="Pending review" />
       </div>
 
-      {/* Precision / Recall */}
-      <div className="grid gap-3 md:grid-cols-2">
-        {[
-          { icon: Target,   label: 'Detection Precision', val: stats?.detectionPrecision ?? 0, desc: 'Flagged cases that are true positives' },
-          { icon: TrendingUp, label: 'Detection Recall',   val: stats?.detectionRecall   ?? 0, desc: 'Actual fraud cases detected'          },
-        ].map(({ icon: Icon, label, val, desc }) => (
-          <Card key={label}>
-            <CardContent className="pt-5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <div className="text-xs font-medium uppercase tracking-wider mb-1" style={{ color: 'var(--fg-subtle)' }}>
-                    {label}
+      {/* Precision / Recall — only shown after evaluation run */}
+      {(precision !== null || recall !== null) && (
+        <div className="grid gap-3 md:grid-cols-2">
+          {[
+            { icon: Target,     label: 'Detection Precision', val: precision ?? 0, desc: 'Flagged cases that are true positives' },
+            { icon: TrendingUp, label: 'Detection Recall',    val: recall    ?? 0, desc: 'Actual fraud cases detected' },
+          ].map(({ icon: Icon, label, val, desc }) => (
+            <Card key={label}>
+              <CardContent className="pt-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="text-xs font-medium uppercase tracking-wider mb-1"
+                      style={{ color: 'var(--fg-subtle)' }}>
+                      {label}
+                    </div>
+                    <div className="text-3xl font-bold" style={{ color: 'var(--accent)' }}>
+                      {formatPercent(val, 1)}
+                    </div>
+                    <div className="text-xs mt-1" style={{ color: 'var(--fg-subtle)' }}>{desc}</div>
                   </div>
-                  <div className="text-3xl font-bold" style={{ color: 'var(--accent)' }}>
-                    {formatPercent(val, 1)}
+                  <div className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0"
+                    style={{ background: 'var(--accent-muted)' }}>
+                    <Icon className="h-4 w-4" style={{ color: 'var(--accent)' }} />
                   </div>
-                  <div className="text-xs mt-1" style={{ color: 'var(--fg-subtle)' }}>{desc}</div>
                 </div>
-                <div className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0"
-                  style={{ background: 'var(--accent-muted)' }}>
-                  <Icon className="h-4 w-4" style={{ color: 'var(--accent)' }} />
+                <div className="mt-4 flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium w-fit"
+                  style={{ background: 'var(--warning-bg)', color: 'var(--warning)' }}>
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  SYNTHETIC EVALUATION DATA
                 </div>
-              </div>
-              <div className="mt-4 flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium w-fit"
-                style={{ background: 'var(--warning-bg)', color: 'var(--warning)' }}>
-                <AlertTriangle className="h-3.5 w-3.5" />
-                SYNTHETIC EVALUATION DATA
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
-      {/* Charts row */}
+      {/* Charts row — live data from backend */}
       <div className="grid gap-4 md:grid-cols-2">
         {/* Risk distribution pie */}
         <Card>
           <CardHeader><CardTitle>Risk Distribution</CardTitle></CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie data={riskDist} cx="50%" cy="50%" outerRadius={80}
-                  dataKey="value" nameKey="name" label={({ name, value }) => `${name}: ${value}`}
-                  labelLine={false}>
-                  {riskDist.map((entry) => (
-                    <Cell key={entry.name} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip content={<ChartTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
+            {riskDistData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie
+                    data={riskDistData} cx="50%" cy="50%" outerRadius={80}
+                    dataKey="value" nameKey="name"
+                    label={({ name, value }) => value > 0 ? `${name}: ${value}` : ''}
+                    labelLine={false}>
+                    {riskDistData.map((entry) => (
+                      <Cell key={entry.name} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<ChartTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[220px] text-sm"
+                style={{ color: 'var(--fg-subtle)' }}>
+                No risk data — run risk analysis first.
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Signal distribution bar */}
+        {/* Signal distribution bar — top 5 signals from backend */}
         <Card>
-          <CardHeader><CardTitle>Risk Signal Distribution</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Top Risk Signals</CardTitle></CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={signalDist} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="name" tick={{ fill: 'var(--fg-subtle)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: 'var(--fg-subtle)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <Tooltip content={<ChartTooltip />} />
-                <Bar dataKey="count" fill="var(--accent)" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {signalDistData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={signalDistData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fill: 'var(--fg-subtle)', fontSize: 10 }}
+                    axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: 'var(--fg-subtle)', fontSize: 10 }}
+                    axisLine={false} tickLine={false} />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Bar dataKey="count" fill="var(--accent)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[220px] text-sm"
+                style={{ color: 'var(--fg-subtle)' }}>
+                No signal data — run risk analysis first.
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Tables row */}
+      {/* Tables row — live clusters + investigations from backend */}
       <div className="grid gap-4 md:grid-cols-2">
-        {/* Suspicious clusters */}
+        {/* Recent suspicious clusters */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Suspicious Clusters</CardTitle>
+              <CardTitle>Recent Suspicious Clusters</CardTitle>
               <Link to="/clusters" className="text-xs flex items-center gap-1 hover:underline"
                 style={{ color: 'var(--accent)' }}>
                 View all <ArrowRight className="h-3 w-3" />
@@ -214,37 +241,44 @@ export function Dashboard() {
             </div>
           </CardHeader>
           <CardContent className="px-0 pb-2">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Cluster</TableHead>
-                  <TableHead>Members</TableHead>
-                  <TableHead>Risk</TableHead>
-                  <TableHead>Exposure</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {clustersData?.data.slice(0, 5).map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell>
-                      <Link to={`/clusters/${c.clusterId}`}
-                        className="font-medium hover:underline" style={{ color: 'var(--accent)' }}>
-                        {c.clusterId}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{c.customerCount}</TableCell>
-                    <TableCell>
-                      <Badge variant="risk" riskLevel={c.riskLevel}>{c.riskLevel}</Badge>
-                    </TableCell>
-                    <TableCell style={{ color: 'var(--fg)' }}>{formatCurrency(c.totalExposure)}</TableCell>
+            {stats?.recentClusters && stats.recentClusters.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pl-6">Cluster</TableHead>
+                    <TableHead>Members</TableHead>
+                    <TableHead>Score</TableHead>
+                    <TableHead>Risk</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {stats.recentClusters.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell className="pl-6">
+                        <Link to={`/clusters/${c.id}`}
+                          className="font-mono text-xs hover:underline"
+                          style={{ color: 'var(--accent)' }}>
+                          {c.id.slice(0, 8)}…
+                        </Link>
+                      </TableCell>
+                      <TableCell style={{ color: 'var(--fg)' }}>{c.memberCount}</TableCell>
+                      <TableCell style={{ color: 'var(--fg)' }}>{c.riskScore}</TableCell>
+                      <TableCell>
+                        <Badge variant="risk" riskLevel={c.riskLevel as any}>{c.riskLevel}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="px-6 py-8 text-sm text-center" style={{ color: 'var(--fg-subtle)' }}>
+                No clusters detected yet. Run cluster detection first.
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Investigation queue */}
+        {/* Recent investigations */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -256,35 +290,44 @@ export function Dashboard() {
             </div>
           </CardHeader>
           <CardContent className="px-0 pb-2">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Subject</TableHead>
-                  <TableHead>Risk</TableHead>
-                  <TableHead>Created</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {investigationsData?.data.filter((i) => i.status !== 'RESOLVED').slice(0, 5).map((inv) => (
-                  <TableRow key={inv.id}>
-                    <TableCell>
-                      <Link to={`/investigations/${inv.investigationId}`}
-                        className="font-medium hover:underline" style={{ color: 'var(--accent)' }}>
-                        {inv.investigationId}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="max-w-[140px] truncate" style={{ color: 'var(--fg)' }}>
-                      {inv.subject}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="risk" riskLevel={inv.riskLevel}>{inv.riskLevel}</Badge>
-                    </TableCell>
-                    <TableCell>{formatRelativeTime(inv.createdAt)}</TableCell>
+            {stats?.recentInvestigations && stats.recentInvestigations.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pl-6">ID</TableHead>
+                    <TableHead>Subject</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Risk</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {stats.recentInvestigations.map((inv) => (
+                    <TableRow key={inv.id}>
+                      <TableCell className="pl-6">
+                        <Link to={`/investigations/${inv.id}`}
+                          className="font-mono text-xs hover:underline"
+                          style={{ color: 'var(--accent)' }}>
+                          {inv.id.slice(0, 8)}…
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-xs" style={{ color: 'var(--fg)' }}>
+                        {inv.subjectType}
+                      </TableCell>
+                      <TableCell className="text-xs" style={{ color: 'var(--fg-muted)' }}>
+                        {inv.status}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="risk" riskLevel={inv.riskLevel as any}>{inv.riskLevel}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="px-6 py-8 text-sm text-center" style={{ color: 'var(--fg-subtle)' }}>
+                No open investigations.
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
