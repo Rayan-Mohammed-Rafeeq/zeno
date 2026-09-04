@@ -202,11 +202,13 @@ const REGISTER_STYLES = `
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 24px 40px;
+    padding: 16px 40px;
     background: var(--auth-panel-bg);
     position: relative;
     overflow-y: auto;
+    scrollbar-width: none;
   }
+  .niro-auth::-webkit-scrollbar { display: none; }
 
   .niro-auth::before {
     content: '';
@@ -236,16 +238,16 @@ const REGISTER_STYLES = `
     position: relative;
     z-index: 1;
     width: 100%;
-    max-width: 400px;
-    padding: 12px 0;
+    max-width: 380px;
+    padding: 6px 0;
   }
 
   /* ── Floating card ── */
   .niro-auth-card {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
-    border-radius: 20px;
-    padding: 30px 34px 26px;
+    border-radius: 18px;
+    padding: 22px 28px 18px;
     box-shadow: var(--card-shadow);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -263,40 +265,40 @@ const REGISTER_STYLES = `
   }
 
   /* ── Card header ── */
-  .niro-card-header { margin-bottom: 22px; }
+  .niro-card-header { margin-bottom: 14px; }
 
   .niro-accent-pill {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 10px 4px 8px;
+    padding: 3px 9px 3px 7px;
     border-radius: 100px;
     background: var(--pill-bg);
     border: 1px solid var(--pill-border);
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--auth-accent);
-    margin-bottom: 12px;
+    margin-bottom: 8px;
   }
 
   .niro-accent-pill svg { opacity: 0.85; }
 
   .niro-auth-heading {
-    font-size: 1.6rem;
+    font-size: 1.35rem;
     font-weight: 800;
     letter-spacing: -0.03em;
     color: var(--auth-heading);
-    margin: 0 0 5px;
+    margin: 0 0 3px;
     line-height: 1.15;
   }
 
   .niro-auth-subheading {
-    font-size: 0.87rem;
+    font-size: 0.82rem;
     color: var(--auth-sub);
     margin: 0;
-    line-height: 1.55;
+    line-height: 1.5;
   }
 
   /* ── Alerts ── */
@@ -304,38 +306,38 @@ const REGISTER_STYLES = `
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    padding: 11px 14px;
-    border-radius: 10px;
+    padding: 9px 12px;
+    border-radius: 9px;
     background: var(--danger-bg);
     border: 1px solid var(--danger-border);
     color: var(--danger);
-    font-size: 0.84rem;
+    font-size: 0.82rem;
     line-height: 1.45;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
 
   .niro-success {
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    padding: 11px 14px;
-    border-radius: 10px;
+    padding: 9px 12px;
+    border-radius: 9px;
     background: var(--success-bg);
     border: 1px solid var(--success-border);
     color: var(--success);
-    font-size: 0.84rem;
+    font-size: 0.82rem;
     line-height: 1.45;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
 
   /* ── Section divider label ── */
   .niro-section-label {
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     font-weight: 700;
     letter-spacing: 0.09em;
     text-transform: uppercase;
     color: var(--auth-accent);
-    margin: 18px 0 12px;
+    margin: 10px 0 8px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -350,16 +352,16 @@ const REGISTER_STYLES = `
   }
 
   /* ── Fields ── */
-  .niro-field { margin-bottom: 14px; }
+  .niro-field { margin-bottom: 9px; }
 
   .niro-label {
     display: block;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.03em;
     text-transform: uppercase;
     color: var(--auth-label);
-    margin-bottom: 7px;
+    margin-bottom: 5px;
   }
 
   /* ── Input with icon ── */
@@ -371,7 +373,7 @@ const REGISTER_STYLES = `
 
   .niro-input-icon {
     position: absolute;
-    left: 13px;
+    left: 11px;
     color: var(--input-icon);
     display: flex;
     align-items: center;
@@ -382,10 +384,10 @@ const REGISTER_STYLES = `
 
   .niro-input {
     width: 100%;
-    height: 44px;
-    padding: 0 14px 0 40px;
-    border-radius: 11px;
-    font-size: 0.88rem;
+    height: 38px;
+    padding: 0 12px 0 36px;
+    border-radius: 9px;
+    font-size: 0.85rem;
     outline: none;
     transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
     background: var(--input-bg);
@@ -399,19 +401,19 @@ const REGISTER_STYLES = `
 
   .niro-input:focus {
     border-color: var(--auth-accent);
-    box-shadow: 0 0 0 3.5px var(--input-focus-ring);
+    box-shadow: 0 0 0 3px var(--input-focus-ring);
     background: var(--input-bg-focus);
   }
 
   .niro-input-wrap:focus-within .niro-input-icon { color: var(--auth-accent); }
 
-  .niro-input-pw { padding-right: 44px; }
+  .niro-input-pw { padding-right: 38px; }
 
   .niro-pw-wrap { position: relative; }
 
   .niro-pw-toggle {
     position: absolute;
-    right: 13px; top: 50%;
+    right: 11px; top: 50%;
     transform: translateY(-50%);
     background: none; border: none;
     padding: 4px; cursor: pointer;
@@ -425,10 +427,10 @@ const REGISTER_STYLES = `
   /* ── Submit ── */
   .niro-submit {
     width: 100%;
-    height: 48px;
-    border-radius: 11px;
+    height: 42px;
+    border-radius: 9px;
     border: none;
-    font-size: 0.93rem;
+    font-size: 0.9rem;
     font-weight: 700;
     letter-spacing: 0.02em;
     cursor: pointer;
@@ -442,7 +444,7 @@ const REGISTER_STYLES = `
     overflow: hidden;
     transition: opacity 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
     box-shadow: var(--btn-shadow);
-    margin-top: 6px;
+    margin-top: 4px;
   }
 
   .niro-submit::after {
@@ -465,7 +467,7 @@ const REGISTER_STYLES = `
 
   /* Spinner */
   .niro-spinner {
-    width: 18px; height: 18px;
+    width: 16px; height: 16px;
     border: 2px solid rgba(255,255,255,0.3);
     border-top-color: #fff;
     border-radius: 50%;
@@ -668,6 +670,110 @@ const REGISTER_STYLES = `
     .niro-submit       { height: 46px; }
     .niro-auth-card    { padding: 18px 14px 16px; border-radius: 16px; }
   }
+
+  /* ── BACK / SWITCH BUTTONS ── */
+  .niro-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px 7px 10px;
+    border-radius: 100px;
+    background: transparent;
+    border: 1.5px solid var(--card-border);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--auth-sub);
+    text-decoration: none;
+    cursor: pointer;
+    letter-spacing: 0.01em;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    white-space: nowrap;
+    margin-bottom: 16px;
+  }
+  .niro-back-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--pill-bg);
+    opacity: 0;
+    transition: opacity 0.22s ease;
+  }
+  .niro-back-btn:hover {
+    color: var(--auth-accent);
+    border-color: var(--auth-accent);
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 4px 16px rgba(94, 91, 193, 0.18);
+  }
+  .niro-back-btn:hover::before { opacity: 1; }
+  .niro-back-btn:active { transform: translateY(0) scale(0.97); }
+  .niro-back-btn:hover .niro-back-arrow { transform: translateX(-3px); }
+  .niro-back-arrow {
+    display: inline-flex;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .niro-switch-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 16px 7px 14px;
+    border-radius: 100px;
+    background: var(--pill-bg);
+    border: 1.5px solid var(--pill-border);
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--auth-accent);
+    text-decoration: none;
+    cursor: pointer;
+    letter-spacing: 0.01em;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    white-space: nowrap;
+  }
+  .niro-switch-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transform: translateX(-120%) skewX(-15deg);
+  }
+  .niro-switch-btn:hover {
+    background: var(--auth-accent);
+    border-color: var(--auth-accent);
+    color: #fff;
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 6px 20px rgba(94, 91, 193, 0.35);
+  }
+  .niro-switch-btn:hover::before { animation: niro-reg-shimmer 0.55s ease forwards; }
+  .niro-switch-btn:active { transform: translateY(0) scale(0.97); }
+  .niro-switch-btn:hover .niro-switch-arrow { transform: translateX(3px); }
+  .niro-switch-arrow {
+    display: inline-flex;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes niro-reg-shimmer {
+    0%   { transform: translateX(-120%) skewX(-15deg); }
+    100% { transform: translateX(220%)  skewX(-15deg); }
+  }
+
+  .niro-auth-footer-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+  .niro-auth-footer-label {
+    font-size: 0.84rem;
+    color: var(--auth-sub);
+  }
 `;
 
 export function Register() {
@@ -791,6 +897,16 @@ export function Register() {
               <img src={logoSrc} alt="NIRO" height={32} draggable={false} style={{ height: 32, width: 'auto' }} />
               <span className="niro-mobile-logo-text">NIRO</span>
             </div>
+
+            {/* ← Back to Home */}
+            <Link to="/" className="niro-back-btn" aria-label="Back to home">
+              <span className="niro-back-arrow" aria-hidden="true">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 12H5M12 5l-7 7 7 7"/>
+                </svg>
+              </span>
+              Back to home
+            </Link>
 
             {/* Floating card */}
             <div className="niro-auth-card">
@@ -934,10 +1050,17 @@ export function Register() {
 
             </div>{/* /card */}
 
-            <p className="niro-auth-footer">
-              Already have a workspace?{' '}
-              <Link to="/login">Sign in</Link>
-            </p>
+            <div className="niro-auth-footer-row">
+              <span className="niro-auth-footer-label">Already have a workspace?</span>
+              <Link to="/login" className="niro-switch-btn">
+                Sign in
+                <span className="niro-switch-arrow" aria-hidden="true">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </span>
+              </Link>
+            </div>
 
           </div>
         </div>
