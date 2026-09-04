@@ -8,7 +8,7 @@ export { apiRequest, ApiError, MOCK_API_ENABLED } from './client';
 export * from './mockData';
 
 // Import remaining APIs
-import type { Transaction, RiskCluster, Investigation, AuditEvent, EvaluationMetrics, SignalPerformance, FalsePositiveCase, DashboardStats, DatasetRun, ClusterGraph, PaginatedResponse } from '@/types';
+import type { Transaction, RiskCluster, Investigation, AuditEvent, EvaluationMetrics, SignalPerformance, FalsePositiveCase, DashboardStats, DatasetRun, ClusterGraph, PaginatedResponse, ModelMonitoringHealth } from '@/types';
 import { apiRequest, MOCK_API_ENABLED, delay } from './client';
 import { mockTransactions, mockClusters, mockInvestigations, mockAuditEvents, mockEvaluationMetrics, mockSignalPerformance, mockFalsePositives, mockDashboardStats, generateClusterGraph } from './mockData';
 
@@ -148,7 +148,6 @@ export const evaluationApi = {
       await delay();
       return mockEvaluationMetrics;
     }
-    
     return apiRequest<EvaluationMetrics>('/evaluation/metrics');
   },
 
@@ -157,7 +156,6 @@ export const evaluationApi = {
       await delay();
       return mockSignalPerformance;
     }
-    
     return apiRequest<SignalPerformance[]>('/evaluation/signals');
   },
 
@@ -166,8 +164,32 @@ export const evaluationApi = {
       await delay();
       return mockFalsePositives;
     }
-    
     return apiRequest<FalsePositiveCase[]>('/evaluation/false-positives');
+  },
+};
+
+export const monitoringApi = {
+  async getHealth(): Promise<ModelMonitoringHealth> {
+    if (MOCK_API_ENABLED) {
+      await delay();
+      return {
+        overallStatus: 'HEALTHY',
+        modelStatus: 'READY',
+        modelVersion: 'xgboost-v1',
+        featureVersion: '1.0',
+        nRecentPredictions: 0,
+        predMean: null,
+        predStd: null,
+        highRiskFraction: null,
+        predictionDriftLevel: 'UNKNOWN',
+        dataQuality: 'GOOD',
+        featureDriftLevel: 'UNKNOWN',
+        mlServiceEnabled: false,
+        mlServiceReachable: false,
+        disclaimer: 'ML service disabled — rule-based scoring in use.',
+      };
+    }
+    return apiRequest<ModelMonitoringHealth>('/monitoring/health');
   },
 };
 

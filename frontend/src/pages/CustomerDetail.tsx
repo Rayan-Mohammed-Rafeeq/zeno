@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { customerApi } from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
+import { PaginationBar } from '@/components/ui/Pagination';
 import { formatNumber, formatCurrency, formatRelativeTime } from '@/lib/utils';
-import { ArrowLeft, AlertTriangle, ShieldAlert, Activity, CreditCard, Smartphone, Globe } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, ShieldAlert, Activity, CreditCard, Smartphone, Globe, Receipt } from 'lucide-react';
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -20,6 +23,8 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 export function CustomerDetail() {
   const { id } = useParams<{ id: string }>();
+  const [txPage, setTxPage] = useState(1);
+  const TX_PAGE_SIZE = 10;
 
   const { data: customer, isLoading } = useQuery({
     queryKey: ['customer', id],
@@ -30,6 +35,12 @@ export function CustomerDetail() {
   const { data: risk } = useQuery({
     queryKey: ['customer-risk', id],
     queryFn: () => customerApi.getCustomerRiskAssessment(id!),
+    enabled: !!id,
+  });
+
+  const { data: txData } = useQuery({
+    queryKey: ['customer-transactions', id, txPage],
+    queryFn: () => customerApi.getCustomerTransactions(id!, { page: txPage, pageSize: TX_PAGE_SIZE }),
     enabled: !!id,
   });
 
@@ -251,6 +262,70 @@ export function CustomerDetail() {
           </Card>
         </div>
       )}
+
+      {/* Transaction history */}
+      <div>
+        <SectionLabel>Transaction History</SectionLabel>
+        <Card>
+          <CardContent className="px-0 py-0">
+            {!txData?.data.length ? (
+              <div className="flex flex-col items-center justify-center py-10 gap-2">
+                <Receipt className="h-8 w-8" style={{ color: 'var(--fg-subtle)' }} />
+                <p className="text-sm" style={{ color: 'var(--fg-muted)' }}>No transactions found</p>
+              </div>
+            ) : (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="pl-6">Transaction ID</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Method</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Risk</TableHead>
+                      <TableHead>Timestamp</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {txData.data.map((tx) => (
+                      <TableRow key={tx.id}>
+                        <TableCell className="pl-6">
+                          <Link to={`/transactions/${tx.transactionId}`}
+                            className="font-mono text-xs hover:underline"
+                            style={{ color: 'var(--accent)' }}>
+                            {tx.transactionId}
+                          </Link>
+                        </TableCell>
+                        <TableCell className="font-semibold tabular-nums" style={{ color: 'var(--fg)' }}>
+                          {formatCurrency(tx.amount)}
+                        </TableCell>
+                        <TableCell className="text-xs" style={{ color: 'var(--fg-muted)' }}>
+                          {tx.paymentMethod}
+                        </TableCell>
+                        <TableCell className="text-xs" style={{ color: 'var(--fg-muted)' }}>
+                          {tx.status}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="risk" riskLevel={tx.riskLevel}>{tx.riskLevel}</Badge>
+                        </TableCell>
+                        <TableCell className="text-xs" style={{ color: 'var(--fg-subtle)' }}>
+                          {formatRelativeTime(tx.timestamp)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <PaginationBar
+                  page={txPage} pageSize={TX_PAGE_SIZE} total={txData.total}
+                  onPrev={() => setTxPage(p => Math.max(1, p - 1))}
+                  onNext={() => setTxPage(p => p + 1)}
+                  label="transactions"
+                />
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

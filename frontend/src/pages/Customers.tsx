@@ -5,6 +5,7 @@ import { customerApi } from '@/services/api';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
+import { PaginationBar } from '@/components/ui/Pagination';
 import { formatNumber, formatRelativeTime, formatCurrency } from '@/lib/utils';
 import { Search, Filter, Users } from 'lucide-react';
 
@@ -18,10 +19,12 @@ const STATUS_DOT: Record<string, string> = {
 export function Customers() {
   const [search, setSearch]       = useState('');
   const [riskFilter, setRisk]     = useState('ALL');
+  const [page, setPage]           = useState(1);
+  const PAGE_SIZE = 20;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['customers', { search, riskLevel: riskFilter }],
-    queryFn:  () => customerApi.getCustomers({ search, riskLevel: riskFilter }),
+    queryKey: ['customers', { search, riskLevel: riskFilter, page }],
+    queryFn:  () => customerApi.getCustomers({ search, riskLevel: riskFilter, page, pageSize: PAGE_SIZE }),
   });
 
   return (
@@ -180,12 +183,12 @@ export function Customers() {
                   ))}
                 </TableBody>
               </Table>
-              <div className="px-6 py-3 border-t flex items-center justify-between text-xs"
-                style={{ borderColor: 'var(--border)', color: 'var(--fg-subtle)' }}>
-                <span>Showing {data.data.length} of {formatNumber(data.total)} customers</span>
-                <span>Page {data.page}</span>
-              </div>
-            </>
+              <PaginationBar
+                page={page} pageSize={PAGE_SIZE} total={data.total}
+                onPrev={() => setPage(p => Math.max(1, p - 1))}
+                onNext={() => setPage(p => p + 1)}
+                label="customers"
+              />            </>
           )}
         </CardContent>
       </Card>

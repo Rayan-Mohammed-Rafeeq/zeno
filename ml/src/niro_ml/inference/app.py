@@ -41,7 +41,6 @@ from niro_ml.inference.response import (
     ModelInfoResponse,
     PredictResponse,
 )
-
 logger = logging.getLogger(__name__)
 
 
@@ -214,6 +213,14 @@ async def predict(request: PredictRequest) -> PredictResponse:
             ]
     except Exception as exc:  # noqa: BLE001
         logger.warning("SHAP explanation failed (non-fatal): %s", exc)
+
+    # Track prediction in monitoring buffer (in-process, resets on restart)
+    if not hasattr(app.state, "recent_fraud_probs"):
+        app.state.recent_fraud_probs = []
+    app.state.recent_fraud_probs.append(fraud_probability)
+    # Keep last 1000 predictions in memory
+    if len(app.state.recent_fraud_probs) > 1000:
+        app.state.recent_fraud_probs = app.state.recent_fraud_probs[-1000:]
 
     processing_ms = int((time.monotonic() - t_start) * 1000)
 
@@ -416,3 +423,88 @@ def _predict_anomaly_score(bundle, X: np.ndarray) -> float:
 
 def _predict_anomaly_score_batch(bundle, X: np.ndarray) -> np.ndarray:
     return bundle.isolation_forest.score_samples(X)
+
+
+# ---------------------------------------------------------------------------
+# Model monitoring endpoint
+# ---------------------------------------------------------------------------
+
+@app.get("/ml/monitoring/health", tags=["Monitoring"])
+async def monitoring_health() -> dict:
+    """
+    Lightweight model health check.
+
+    Returns a summary of:
+    - model load status
+    - recent prediction count (in-process memory only — resets on restart)
+    - prediction distribution stats (mean, std of recent fraud_probability scores)
+    - data quality indicator
+
+    This is a DEMONSTRATION monitoring endpoint.  It tracks predictions
+    in the current process's memory.  A production system would persist
+    prediction logs to a time-series store.
+
+    Returns HTTP 200 always — use model_status and overall_status fields
+    to determine health.
+
+    Limitations (always returned in the response):
+      - Only tracks predictions made since the last service restart.
+      - Does not compute PSI against a training baseline (no artefact storage for baselines).
+      - 'DEGRADED' / 'CRITICAL' status means the distributions look different
+        from expected — not that the model has definitively degraded.
+    """
+    registry = get_registry()
+    h = registry.health_dict()
+
+    # Pull in-memory prediction buffer from app state
+    recent_probs: list[float] = getattr(app.state, "recent_fraud_probs", [])
+    n_recent = len(recent_probs)
+
+    pred_mean   = float(sum(recent_probs) / n_recent) if n_recent > 0 else None
+    pred_std    = float(float(sum((p - pred_mean) ** 2 for p in recent_probs) / n_recent) ** 0.5) \
+                  if n_recent > 1 and pred_mean is not None else None
+    pred_high   = sum(1 for p in recent_probs if p >= 0.5) if n_recent > 0 else 0
+
+    # Simple quality classification
+    if not registry.is_ready:
+        overall_status = "UNAVAILABLE"
+        data_quality   = "UNKNOWN"
+        pred_drift     = "UNKNOWN"
+    elif n_recent < 30:
+        overall_status = "HEALTHY"
+        data_quality   = "GOOD"
+        pred_drift     = "UNKNOWN"
+    else:
+        # Very basic drift: if >40% of recent predictions are high-risk, flag MEDIUM
+        high_frac = pred_high / n_recent
+        if high_frac > 0.40:
+            pred_drift     = "HIGH"
+            overall_status = "DEGRADED"
+        elif high_frac > 0.20:
+            pred_drift     = "MEDIUM"
+            overall_status = "HEALTHY"
+        else:
+            pred_drift     = "LOW"
+            overall_status = "HEALTHY"
+        data_quality = "GOOD"
+
+    return {
+        "model_status":   h.get("model_status", "UNLOADED"),
+        "model_version":  h.get("model_version"),
+        "feature_version": h.get("feature_version"),
+        "overall_status": overall_status,
+        "n_recent_predictions": n_recent,
+        "prediction_distribution": {
+            "mean":          round(pred_mean, 4) if pred_mean is not None else None,
+            "std":           round(pred_std,  4) if pred_std  is not None else None,
+            "high_risk_frac": round(pred_high / max(n_recent, 1), 4),
+            "drift_level":   pred_drift,
+        },
+        "data_quality":   data_quality,
+        "feature_drift":  "UNKNOWN",
+        "limitations": (
+            "In-memory tracking only — resets on service restart. "
+            "Production monitoring requires persistent prediction logging. "
+            "Drift classification uses simple thresholds, not statistical tests."
+        ),
+    }

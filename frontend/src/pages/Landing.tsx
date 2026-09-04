@@ -1,233 +1,2610 @@
 import { Link } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
-import {
-  ArrowRight, ChevronDown, Menu, X, ShieldCheck,
-  TrendingUp, Clock, Star, Check,
-  AlertTriangle, Zap, Users, BarChart3, Lock,
-  Smile, ThumbsUp, ArrowUpRight,
-} from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { ArrowRight, Menu, X } from 'lucide-react';
 import { NiroLogo } from '@/components/brand/Logo';
 import { useTheme } from '@/contexts/ThemeContext';
+import { NiroVisualization } from '@/components/brand/NiroVisualization';
 
-const LANDING_STYLES = `
-  .landing { min-height: 100vh; overflow: hidden; background: var(--bg); color: var(--fg); }
-  .landing *, .landing *::before, .landing *::after { box-sizing: border-box; }
-  .landing a { color: inherit; text-decoration: none; }
-  .landing-shell { width: min(1180px, calc(100% - 48px)); margin: 0 auto; }
-  .landing-nav { height: 76px; display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 10; }
-  .landing-brand { display:flex; align-items:center; gap:10px; font-size:17px; font-weight:800; letter-spacing:.18em; }
-  .landing-brand img { width:auto; height:34px; }
-  .landing-nav-links { display:flex; align-items:center; gap:30px; color:var(--fg-muted); font-size:14px; font-weight:600; }
-  .landing-nav-links a:hover { color:var(--fg); }
-  .landing-nav-actions { display:flex; align-items:center; gap:12px; font-size:14px; font-weight:700; }
-  .landing-login { color:var(--fg-muted); padding:10px; }
-  .landing-login:hover { color:var(--fg); }
-  .landing-button { display:inline-flex; min-height:44px; align-items:center; justify-content:center; gap:8px; border-radius:8px; padding:0 17px; font-size:14px; font-weight:750; border:1px solid transparent; transition:transform .2s ease, background .2s ease, border-color .2s ease; }
-  .landing-button:hover { transform:translateY(-2px); }
-  .landing-button--primary { color:var(--accent-fg); background:var(--accent); box-shadow:0 10px 20px color-mix(in srgb, var(--accent) 22%, transparent); }
-  .landing-button--primary:hover { background:var(--accent-hover); }
-  .landing-button--secondary { border-color:var(--border-strong); color:var(--fg); background:color-mix(in srgb, var(--surface) 82%, transparent); }
-  .landing-button--secondary:hover { background:var(--surface); }
-  .landing-menu { display:none; border:0; background:transparent; color:var(--fg); padding:8px; }
-  .landing-mobile-panel { display:none; }
-  .landing-hero { padding:72px 0 92px; position:relative; }
-  .landing-hero::before { content:''; position:absolute; z-index:0; width:720px; height:520px; top:-210px; right:-180px; border-radius:50%; background:radial-gradient(ellipse, color-mix(in srgb, var(--accent) 16%, transparent), transparent 68%); filter:blur(12px); pointer-events:none; }
-  .landing-hero-grid { display:grid; grid-template-columns:minmax(0, .88fr) minmax(500px, 1.12fr); align-items:center; gap:56px; position:relative; z-index:1; }
-  .landing-eyebrow { display:inline-flex; align-items:center; gap:8px; color:var(--accent); font-size:11px; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
-  .landing-eyebrow span { width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 5px var(--accent-muted); }
-  .landing-title { max-width:640px; font-size:clamp(43px, 5.1vw, 72px); letter-spacing:-.065em; line-height:.98; margin:18px 0 22px; font-weight:780; }
-  .landing-title em { font-style:normal; color:var(--accent); }
-  .landing-copy { max-width:520px; font-size:17px; line-height:1.65; color:var(--fg-muted); margin:0; }
-  .landing-hero-actions { display:flex; flex-wrap:wrap; gap:12px; margin:31px 0 27px; }
-  .landing-hero-note { display:flex; align-items:center; gap:9px; font-size:13px; color:var(--fg-muted); }
-  .landing-hero-note svg { color:var(--success); }
-  .landing-console { position:relative; border:1px solid var(--border-strong); border-radius:16px; padding:12px; background:color-mix(in srgb, var(--surface) 91%, var(--accent-muted)); box-shadow:0 28px 65px color-mix(in srgb, var(--fg) 14%, transparent), 0 3px 10px color-mix(in srgb, var(--fg) 6%, transparent); }
-  .landing-console::before { content:''; position:absolute; inset:-1px; border-radius:16px; padding:1px; background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 70%, transparent), transparent 32%, color-mix(in srgb, var(--accent) 28%, transparent)); -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; }
-  .landing-console-bar { height:38px; display:flex; align-items:center; justify-content:space-between; padding:0 7px 8px 10px; border-bottom:1px solid var(--border); color:var(--fg-muted); font-size:12px; font-weight:700; }
-  .landing-live { display:flex; align-items:center; gap:7px; color:var(--success); font-size:10px; text-transform:uppercase; letter-spacing:.09em; }
-  .landing-live i { width:6px; height:6px; border-radius:50%; background:var(--success); animation:landing-pulse 2.4s ease infinite; }
-  .landing-console-main { display:grid; grid-template-columns:1.1fr .9fr; gap:10px; padding-top:10px; }
-  .landing-panel { border:1px solid var(--border); background:color-mix(in srgb, var(--surface) 88%, transparent); border-radius:10px; padding:16px; }
-  .landing-transaction-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
-  .landing-panel-kicker { text-transform:uppercase; letter-spacing:.12em; color:var(--fg-subtle); font-size:9px; font-weight:800; }
-  .landing-transaction-id { margin-top:7px; font-size:13px; font-weight:800; }
-  .landing-score { width:50px; height:50px; border:5px solid var(--risk-high-bg); border-top-color:var(--risk-high); border-right-color:var(--risk-high); border-radius:50%; display:grid; place-items:center; color:var(--risk-high); font-size:12px; font-weight:800; }
-  .landing-transaction-details { display:grid; grid-template-columns:repeat(2,1fr); gap:11px; padding:15px 0; border-bottom:1px solid var(--border); }
-  .landing-detail label { display:block; color:var(--fg-subtle); text-transform:uppercase; font-size:9px; letter-spacing:.08em; font-weight:800; margin-bottom:3px; }
-  .landing-detail b { font-size:12px; color:var(--fg); }
-  .landing-decision { display:flex; gap:9px; align-items:center; padding-top:14px; color:var(--fg-muted); font-size:12px; }
-  .landing-decision svg { color:var(--risk-high); flex:none; }
-  .landing-decision strong { color:var(--fg); display:block; font-size:12px; }
-  .landing-signals { display:flex; flex-direction:column; gap:10px; }
-  .landing-signals h3 { margin:1px 0 3px; font-size:12px; }
-  .landing-signal { display:flex; gap:9px; align-items:center; border:1px solid var(--border); border-radius:8px; padding:9px; font-size:11px; color:var(--fg-muted); }
-  .landing-signal > span { width:25px; height:25px; display:grid; place-items:center; border-radius:7px; background:var(--accent-muted); color:var(--accent); flex:none; }
-  .landing-signal b { display:block; color:var(--fg); font-size:11px; }
-  .landing-signal small { color:var(--risk-high); font-size:10px; font-weight:700; }
-  .landing-signal-chart { height:71px; display:flex; align-items:end; gap:5px; padding:10px 3px 0; border-top:1px solid var(--border); }
-  .landing-signal-chart span { width:100%; border-radius:3px 3px 1px 1px; background:var(--accent-muted); }
-  .landing-signal-chart span:nth-child(5), .landing-signal-chart span:nth-child(6) { background:var(--risk-high); }
-  .landing-proof { border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:21px 0; }
-  .landing-proof-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:16px; }
-  .landing-proof-item { display:flex; align-items:center; justify-content:center; gap:9px; color:var(--fg-muted); font-size:13px; font-weight:700; }
-  .landing-proof-item svg { color:var(--accent); width:18px; height:18px; }
-  .landing-section { padding:118px 0; }
-  .landing-section--soft { background:color-mix(in srgb, var(--surface-2) 54%, transparent); border-block:1px solid var(--border); }
-  .landing-section-heading { max-width:660px; }
-  .landing-section-heading h2 { margin:12px 0 14px; font-size:clamp(32px, 3.7vw, 50px); line-height:1.06; letter-spacing:-.045em; }
-  .landing-section-heading p { margin:0; max-width:600px; color:var(--fg-muted); line-height:1.65; font-size:16px; }
-  .landing-problem-grid { display:grid; grid-template-columns:.85fr 1.15fr; gap:100px; align-items:center; }
-  .landing-problem-list { display:grid; gap:2px; }
-  .landing-problem { display:grid; grid-template-columns:40px 1fr; gap:14px; padding:18px 0; border-bottom:1px solid var(--border); }
-  .landing-problem-number { color:var(--accent); font-size:12px; padding-top:3px; font-weight:800; letter-spacing:.05em; }
-  .landing-problem h3 { margin:0 0 6px; font-size:16px; }
-  .landing-problem p { color:var(--fg-muted); font-size:14px; line-height:1.55; margin:0; }
-  .landing-flow { position:relative; display:grid; grid-template-columns:repeat(4, 1fr); margin-top:54px; border-top:1px solid var(--border-strong); }
-  .landing-flow-step { padding:24px 24px 0 0; position:relative; }
-  .landing-flow-step:not(:last-child)::after { content:'→'; position:absolute; top:-13px; right:8px; color:var(--accent); background:var(--bg); padding:0 8px; font-size:19px; }
-  .landing-flow-dot { width:12px; height:12px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 6px var(--accent-muted); margin-bottom:24px; }
-  .landing-flow-step svg { color:var(--accent); margin-bottom:14px; }
-  .landing-flow-step h3 { font-size:16px; margin:0 0 7px; }
-  .landing-flow-step p { font-size:13px; color:var(--fg-muted); line-height:1.55; margin:0; max-width:210px; }
-  .landing-capabilities { display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; margin-top:50px; }
-  .landing-capability { border-top:2px solid var(--border-strong); padding:24px 2px; transition:border-color .2s ease, transform .2s ease; }
-  .landing-capability:hover { border-color:var(--accent); transform:translateY(-4px); }
-  .landing-capability-icon { width:39px; height:39px; display:grid; place-items:center; border-radius:9px; background:var(--accent-muted); color:var(--accent); margin-bottom:18px; }
-  .landing-capability h3 { font-size:16px; margin:0 0 9px; }
-  .landing-capability p { margin:0; color:var(--fg-muted); line-height:1.6; font-size:13px; }
-  .landing-showcase { display:grid; grid-template-columns:1fr 1fr; gap:70px; align-items:center; }
-  .landing-showcase-window { border:1px solid var(--border-strong); border-radius:14px; overflow:hidden; background:var(--surface); box-shadow:var(--shadow-lg); }
-  .landing-showcase-top { padding:13px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; font-size:11px; color:var(--fg-muted); }
-  .landing-showcase-top b { color:var(--fg); font-size:12px; }
-  .landing-showcase-body { padding:20px; display:grid; gap:14px; }
-  .landing-showcase-row { display:grid; grid-template-columns:42px 1fr auto; gap:12px; align-items:center; padding:12px; background:var(--surface-2); border-radius:9px; }
-  .landing-showcase-row > span { width:34px; height:34px; display:grid; place-items:center; border-radius:8px; background:var(--accent-muted); color:var(--accent); }
-  .landing-showcase-row b { font-size:12px; display:block; }
-  .landing-showcase-row small { font-size:11px; color:var(--fg-muted); }
-  .landing-risk-chip { color:var(--risk-high); background:var(--risk-high-bg); padding:5px 7px; border-radius:5px; text-transform:uppercase; font-size:9px; font-weight:800; }
-  .landing-callout { padding:18px; border-left:2px solid var(--accent); background:var(--accent-muted); border-radius:0 9px 9px 0; }
-  .landing-callout h3 { margin:0 0 8px; font-size:15px; }
-  .landing-callout p { color:var(--fg-muted); margin:0; font-size:13px; line-height:1.6; }
-  .landing-security { display:grid; grid-template-columns:.8fr 1.2fr; gap:100px; align-items:center; }
-  .landing-security-lines { display:grid; gap:0; border-top:1px solid var(--border); }
-  .landing-security-line { display:flex; gap:15px; padding:18px 0; border-bottom:1px solid var(--border); }
-  .landing-security-line svg { color:var(--accent); flex:none; margin-top:2px; }
-  .landing-security-line b { display:block; margin-bottom:4px; font-size:14px; }
-  .landing-security-line p { margin:0; font-size:13px; line-height:1.5; color:var(--fg-muted); }
-  .landing-cta { margin:0 0 84px; padding:75px clamp(24px, 8vw, 96px); border:1px solid var(--border-strong); border-radius:18px; position:relative; overflow:hidden; background:var(--surface); }
-  .landing-cta::after { content:''; width:480px; height:480px; position:absolute; right:-190px; top:-250px; border-radius:50%; background:radial-gradient(circle, color-mix(in srgb,var(--accent) 20%, transparent), transparent 68%); pointer-events:none; }
-  .landing-cta > * { position:relative; z-index:1; }
-  .landing-cta h2 { max-width:680px; margin:14px 0 17px; letter-spacing:-.05em; line-height:1.02; font-size:clamp(34px, 4vw, 54px); }
-  .landing-cta p { max-width:560px; color:var(--fg-muted); margin:0 0 27px; line-height:1.6; }
-  .landing-footer { border-top:1px solid var(--border); padding:38px 0; }
-  .landing-footer-inner { display:flex; align-items:center; justify-content:space-between; gap:30px; }
-  .landing-footer-copy { color:var(--fg-subtle); font-size:12px; }
-  .landing-footer-links { display:flex; flex-wrap:wrap; gap:20px; color:var(--fg-muted); font-size:12px; }
-  @keyframes landing-pulse { 50% { opacity:.35; transform:scale(.75); } }
-  @media (prefers-reduced-motion: reduce) { .landing *, .landing *::before, .landing *::after { animation:none!important; transition:none!important; } }
-  @media (max-width: 950px) { .landing-hero { padding-top:50px; } .landing-hero-grid, .landing-problem-grid, .landing-showcase, .landing-security { grid-template-columns:1fr; gap:48px; } .landing-hero-copy { max-width:700px; } .landing-console { max-width:680px; width:100%; } .landing-capabilities { grid-template-columns:repeat(2,1fr); } .landing-proof-grid { grid-template-columns:repeat(2,1fr); row-gap:22px; } }
-  @media (max-width: 720px) { .landing-shell { width:min(100% - 32px, 1180px); } .landing-nav { height:68px; } .landing-nav-links, .landing-nav-actions { display:none; } .landing-menu { display:block; } .landing-mobile-panel { position:absolute; display:grid; gap:8px; top:64px; left:16px; right:16px; padding:14px; border:1px solid var(--border); border-radius:10px; background:var(--surface); box-shadow:var(--shadow-lg); } .landing-mobile-panel a { padding:9px; color:var(--fg-muted); font-size:14px; font-weight:650; } .landing-mobile-panel .landing-button { margin-top:4px; } .landing-hero { padding:50px 0 62px; } .landing-title { font-size:46px; } .landing-copy { font-size:16px; } .landing-console-main { grid-template-columns:1fr; } .landing-proof-item { justify-content:flex-start; } .landing-section { padding:76px 0; } .landing-flow { grid-template-columns:1fr 1fr; gap:20px 0; } .landing-flow-step:nth-child(2)::after { display:none; } .landing-flow-step { padding-right:16px; } .landing-capabilities { grid-template-columns:1fr; margin-top:35px; } .landing-showcase { gap:38px; } .landing-footer-inner { align-items:flex-start; flex-direction:column; } }
-  @media (max-width: 430px) { .landing-title { font-size:39px; } .landing-hero-actions { flex-direction:column; align-items:stretch; } .landing-button { width:100%; } .landing-proof-grid { grid-template-columns:1fr; } .landing-flow { grid-template-columns:1fr; } .landing-flow-step:not(:last-child)::after { display:none; } .landing-flow-dot { margin-bottom:14px; } }
+/* ─────────────────────────────────────────────────────────────────────────────
+   LANDING PAGE STYLES
+   Deep dark-always identity. The landing page forces dark aesthetics
+   regardless of the user's app theme — it is a standalone brand experience.
+───────────────────────────────────────────────────────────────────────────── */
+const STYLES = `
+/* ── RESET & BASE ─────────────────────────────────────────────────────── */
+html, body { margin:0; padding:0; }
+.lp { min-height:100vh; background:#0c0d14; color:#e8eaf0;
+      font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+      overflow-x:hidden; -webkit-font-smoothing:antialiased;
+      margin:0; padding:0; position:relative; top:0; }
+.lp *, .lp *::before, .lp *::after { box-sizing:border-box; }
+.lp a { text-decoration:none; }
+.wrap { max-width:1200px; margin:0 auto; padding:0 28px; }
+.wrap-wide { max-width:1400px; margin:0 auto; padding:0 28px; }
+
+/* ── SCROLLBAR ────────────────────────────────────────────────────────── */
+.lp ::-webkit-scrollbar { width:5px; }
+.lp ::-webkit-scrollbar-track { background:transparent; }
+.lp ::-webkit-scrollbar-thumb { background:#2e3050; border-radius:3px; }
+
+/* ── BACKGROUND GRID ─────────────────────────────────────────────────── */
+.lp-bg-grid {
+  position:absolute; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(133,136,230,0.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(133,136,230,0.035) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+.lp-bg-glow-a {
+  position:absolute; top:0; left:10vw; width:600px; height:600px;
+  background:radial-gradient(circle,rgba(133,136,230,0.07) 0%,transparent 65%);
+  pointer-events:none; z-index:0;
+}
+.lp-bg-glow-b {
+  position:absolute; bottom:10%; right:5vw; width:500px; height:500px;
+  background:radial-gradient(circle,rgba(100,180,255,0.04) 0%,transparent 65%);
+  pointer-events:none; z-index:0;
+}
+.lp > *:not(.lp-bg-grid):not(.lp-bg-glow-a):not(.lp-bg-glow-b) { position:relative; z-index:1; }
+
+/* ── NAVIGATION ──────────────────────────────────────────────────────── */
+.lp-nav {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  background:rgba(12,13,20,0.85); backdrop-filter:blur(20px) saturate(1.4);
+  border-bottom:1px solid rgba(133,136,230,0.1);
+  padding:0;
+}
+.lp-nav-inner {
+  display:flex; justify-content:space-between; align-items:center;
+  height:64px;
+}
+.lp-brand {
+  display:flex; align-items:center; gap:10px;
+  font-weight:800; font-size:17px; color:#e8eaf0;
+  letter-spacing:3px; user-select:none;
+}
+.lp-nav-links {
+  display:flex; gap:36px; align-items:center;
+}
+.lp-nav-links a {
+  color:rgba(232,234,240,0.55); font-size:14px; font-weight:500;
+  letter-spacing:0.3px; transition:color 0.2s;
+}
+.lp-nav-links a:hover { color:#e8eaf0; }
+.lp-nav-actions { display:flex; gap:12px; align-items:center; }
+
+.lp-btn {
+  display:inline-flex; align-items:center; gap:7px;
+  padding:8px 18px; border-radius:7px;
+  font-size:13px; font-weight:600; letter-spacing:0.2px;
+  transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1); border:none; cursor:pointer; white-space:nowrap;
+  position:relative; overflow:hidden;
+}
+
+/* ── shimmer sweep shared keyframe ─ */
+@keyframes lp-btn-shimmer {
+  0%   { transform:translateX(-120%) skewX(-15deg); }
+  100% { transform:translateX(220%)  skewX(-15deg); }
+}
+@keyframes lp-btn-ripple {
+  0%   { transform:scale(0); opacity:0.5; }
+  100% { transform:scale(4); opacity:0; }
+}
+@keyframes lp-btn-glow-pulse {
+  0%,100% { box-shadow:0 0 0 0 rgba(133,136,230,0.0), 0 4px 20px rgba(123,127,224,0.45); }
+  50%      { box-shadow:0 0 0 6px rgba(133,136,230,0.12), 0 4px 20px rgba(123,127,224,0.45); }
+}
+
+/* ── GHOST ─────────────────────────────────────────────────────────── */
+.lp-btn-ghost {
+  background:transparent; color:rgba(232,234,240,0.65);
+  border:1px solid rgba(133,136,230,0.18);
+  transition:all 0.25s ease;
+}
+.lp-btn-ghost::after {
+  content:''; position:absolute; inset:0; border-radius:inherit;
+  background:rgba(133,136,230,0.08);
+  opacity:0; transition:opacity 0.25s;
+}
+.lp-btn-ghost:hover { color:#e8eaf0; border-color:rgba(133,136,230,0.5); transform:translateY(-2px); }
+.lp-btn-ghost:hover::after { opacity:1; }
+.lp-btn-ghost:active { transform:translateY(0) scale(0.97); }
+
+/* ── PRIMARY (nav) ─────────────────────────────────────────────────── */
+.lp-btn-primary {
+  background:linear-gradient(135deg,#7b7fe0 0%,#5e5bc1 100%);
+  color:#fff; box-shadow:0 2px 12px rgba(123,127,224,0.3);
+  border:1px solid rgba(133,136,230,0.4);
+}
+.lp-btn-primary::before {
+  content:''; position:absolute;
+  top:0; left:0; width:45%; height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);
+  transform:translateX(-120%) skewX(-15deg);
+  transition:none;
+}
+.lp-btn-primary:hover {
+  background:linear-gradient(135deg,#9195e8 0%,#5e5bc1 100%);
+  box-shadow:0 4px 22px rgba(123,127,224,0.55);
+  transform:translateY(-2px) scale(1.03);
+}
+.lp-btn-primary:hover::before { animation:lp-btn-shimmer 0.55s ease forwards; }
+.lp-btn-primary:active { transform:translateY(0) scale(0.97); }
+
+/* ── OUTLINE ────────────────────────────────────────────────────────── */
+.lp-btn-outline {
+  background:transparent; color:#e8eaf0;
+  border:1px solid rgba(232,234,240,0.2);
+  transition:all 0.25s ease;
+}
+.lp-btn-outline:hover {
+  background:rgba(232,234,240,0.07); border-color:rgba(232,234,240,0.5);
+  transform:translateY(-2px); box-shadow:0 4px 16px rgba(0,0,0,0.25);
+}
+.lp-btn-outline:active { transform:translateY(0) scale(0.97); }
+
+/* ── HERO PRIMARY ───────────────────────────────────────────────────── */
+.lp-btn-hero-primary {
+  display:inline-flex; align-items:center; gap:8px;
+  background:linear-gradient(135deg,#7b7fe0 0%,#5e5bc1 100%);
+  color:#fff; box-shadow:0 4px 20px rgba(123,127,224,0.35);
+  border:1px solid rgba(133,136,230,0.4);
+  padding:11px 26px; font-size:14px; font-weight:600; border-radius:8px;
+  cursor:pointer; text-decoration:none; white-space:nowrap;
+  position:relative; overflow:hidden;
+  transition:all 0.28s cubic-bezier(0.34,1.56,0.64,1);
+}
+.lp-btn-hero-primary::before {
+  content:''; position:absolute;
+  top:0; left:0; width:50%; height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.22),transparent);
+  transform:translateX(-120%) skewX(-15deg);
+}
+.lp-btn-hero-primary::after {
+  content:''; position:absolute; inset:0; border-radius:inherit;
+  background:radial-gradient(circle at 50% 50%, rgba(255,255,255,0.15) 0%, transparent 70%);
+  opacity:0; transition:opacity 0.3s;
+}
+.lp-btn-hero-primary:hover {
+  background:linear-gradient(135deg,#9ea2ef 0%,#7370d8 100%);
+  box-shadow:0 8px 32px rgba(123,127,224,0.6), 0 0 0 1px rgba(133,136,230,0.5);
+  transform:translateY(-3px) scale(1.04);
+}
+.lp-btn-hero-primary:hover::before { animation:lp-btn-shimmer 0.6s ease forwards; }
+.lp-btn-hero-primary:hover::after { opacity:1; }
+.lp-btn-hero-primary:active { transform:translateY(-1px) scale(0.98); box-shadow:0 4px 16px rgba(123,127,224,0.4); }
+
+/* ── HERO SECONDARY ─────────────────────────────────────────────────── */
+.lp-btn-hero-secondary {
+  display:inline-flex; align-items:center; gap:8px;
+  background:transparent; color:rgba(232,234,240,0.65);
+  border:1px solid rgba(232,234,240,0.15);
+  padding:11px 22px; font-size:14px; font-weight:500; border-radius:8px;
+  cursor:pointer; text-decoration:none; white-space:nowrap;
+  position:relative; overflow:hidden;
+  transition:all 0.28s cubic-bezier(0.34,1.56,0.64,1);
+}
+.lp-btn-hero-secondary::after {
+  content:''; position:absolute; inset:0; border-radius:inherit;
+  background:linear-gradient(135deg, rgba(133,136,230,0.08) 0%, rgba(232,234,240,0.04) 100%);
+  opacity:0; transition:opacity 0.25s;
+}
+.lp-btn-hero-secondary:hover {
+  color:#e8eaf0; border-color:rgba(133,136,230,0.4);
+  transform:translateY(-3px) scale(1.03);
+  box-shadow:0 6px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.lp-btn-hero-secondary:hover::after { opacity:1; }
+.lp-btn-hero-secondary:active { transform:translateY(-1px) scale(0.98); }
+
+.lp-mobile-btn { display:none; background:none; border:none; color:#e8eaf0; cursor:pointer; padding:6px; }
+.lp-mobile-menu {
+  background:rgba(15,16,24,0.97); border:1px solid rgba(133,136,230,0.15);
+  border-radius:14px; padding:20px; margin:0 12px 12px;
+  display:flex; flex-direction:column; gap:4px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.6);
+}
+.lp-mobile-menu a, .lp-mobile-menu button {
+  display:block; padding:12px 16px; border-radius:8px; color:rgba(232,234,240,0.75);
+  font-size:15px; font-weight:500; transition:all 0.15s;
+  text-decoration:none; background:none; border:none; cursor:pointer; text-align:left;
+}
+.lp-mobile-menu a:hover { background:rgba(133,136,230,0.1); color:#e8eaf0; }
+.lp-mobile-menu .lp-mm-divider { height:1px; background:rgba(133,136,230,0.12); margin:8px 0; }
+.lp-mobile-menu .lp-mm-primary {
+  background:linear-gradient(135deg,#7b7fe0,#5e5bc1);
+  color:#fff; text-align:center; border-radius:8px;
+  padding:12px 16px; font-weight:700;
+}
+
+/* ── SECTION LABELS ──────────────────────────────────────────────────── */
+.lp-eyebrow {
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:11px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase;
+  color:#8588e6; margin-bottom:20px;
+}
+.lp-eyebrow::before {
+  content:''; display:block; width:20px; height:1px; background:#8588e6;
+}
+
+/* ── SECTION REVEAL ──────────────────────────────────────────────────── */
+.lp-reveal {
+  opacity:0; transform:translateY(32px);
+  transition:opacity 0.7s ease, transform 0.7s ease;
+}
+.lp-reveal.lp-visible { opacity:1; transform:translateY(0); }
+.lp-reveal-d1 { transition-delay:0.1s; }
+.lp-reveal-d2 { transition-delay:0.2s; }
+.lp-reveal-d3 { transition-delay:0.3s; }
+.lp-reveal-d4 { transition-delay:0.4s; }
+
+/* ── HERO OFFSET for fixed nav ───────────────────────────────────────── */
+.lp-page-body { padding-top:64px; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   HERO
+══════════════════════════════════════════════════════════════════════ */
+.lp-hero {
+  display:grid; grid-template-columns:1fr 1fr;
+  align-items:center; gap:60px;
+  padding:72px 0 80px;
+}
+.lp-hero-left { padding-right:20px; }
+.lp-hero-tag {
+  display:inline-flex; align-items:center; gap:8px;
+  background:rgba(133,136,230,0.1); border:1px solid rgba(133,136,230,0.25);
+  border-radius:100px; padding:6px 14px 6px 8px;
+  font-size:12px; font-weight:600; color:#a5a8f4; margin-bottom:32px;
+}
+.lp-hero-tag-dot {
+  width:6px; height:6px; background:#8588e6; border-radius:50%;
+  animation:lp-hero-pulse 2s infinite;
+}
+.lp-hero h1 {
+  font-size:clamp(44px,5.5vw,72px); font-weight:800; line-height:1.05;
+  letter-spacing:-2px; margin:0 0 28px; color:#f0f1f8;
+}
+.lp-hero h1 .lp-h1-accent {
+  background:linear-gradient(135deg,#a5a8f4 0%,#8588e6 50%,#6366c8 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.lp-hero-sub {
+  font-size:18px; line-height:1.7; color:rgba(232,234,240,0.6);
+  max-width:480px; margin:0 0 40px;
+}
+.lp-hero-ctas { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:52px; }
+.lp-hero-trust {
+  display:flex; gap:20px; flex-wrap:wrap;
+}
+.lp-hero-trust-item {
+  display:flex; align-items:center; gap:7px;
+  font-size:13px; color:rgba(232,234,240,0.45); font-weight:500;
+}
+.lp-hero-trust-item svg { color:#4ade80; flex-shrink:0; }
+
+/* ── 3D ORB — proper sphere shading ─────────────────────────────────── */
+.lp-orb-scene {
+  position:relative; display:flex; justify-content:center; align-items:center;
+  height:540px; user-select:none;
+}
+.lp-orb-stage {
+  position:relative; width:320px; height:320px;
+  transform-style:preserve-3d;
+  transition:transform 0.08s ease-out;
+}
+/* The sphere itself — multiple stacked gradients for 3D depth */
+.lp-orb-core {
+  position:absolute; inset:0; border-radius:50%;
+  /* Base sphere: dark at bottom-right, light at top-left (light source) */
+  background:
+    /* specular glint — tiny bright spot */
+    radial-gradient(circle at 32% 26%, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 18%),
+    /* primary lit hemisphere */
+    radial-gradient(circle at 38% 34%, rgba(180,183,255,0.45) 0%, rgba(133,136,230,0.28) 25%, rgba(80,84,200,0.15) 50%, transparent 72%),
+    /* fill light from opposite side (subtle) */
+    radial-gradient(circle at 72% 74%, rgba(60,64,180,0.18) 0%, transparent 45%),
+    /* base sphere colour */
+    radial-gradient(circle at 50% 50%, #1c1e3e 0%, #0d0e1e 100%);
+  border:1px solid rgba(133,136,230,0.3);
+  /* Drop shadow below + subtle glow halo */
+  box-shadow:
+    0 30px 60px rgba(0,0,0,0.55),
+    0 8px 24px rgba(0,0,0,0.4),
+    0 0 0 1px rgba(133,136,230,0.12),
+    0 0 50px rgba(133,136,230,0.14);
+  animation:lp-orb-breathe 7s ease-in-out infinite;
+  overflow:hidden;
+}
+/* Rim light — a crescent of pale blue on the lower-left edge */
+.lp-orb-core::before {
+  content:''; position:absolute; inset:0; border-radius:50%;
+  background:radial-gradient(circle at 18% 78%, rgba(120,140,255,0.22) 0%, transparent 38%);
+}
+/* Atmospheric inner atmosphere tint */
+.lp-orb-core::after {
+  content:''; position:absolute; inset:0; border-radius:50%;
+  background:radial-gradient(circle at 50% 50%, transparent 45%, rgba(8,8,20,0.45) 100%);
+}
+/* ── ORB EYES ────────────────────────────────────────────────────────── */
+.lp-orb-face {
+  position:absolute; inset:0; border-radius:50%;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  z-index:3; pointer-events:none; gap:0;
+  padding-top:18px; /* push content down so brows have room above */
+}
+.lp-orb-eyes-row {
+  display:flex; gap:34px; align-items:center;
+  margin-bottom:6px;
+}
+.lp-orb-eye-wrap {
+  position:relative; width:38px; height:38px;
+  border-radius:50%;
+  background:rgba(8,8,24,0.85);
+  border:1.5px solid rgba(133,136,230,0.35);
+  overflow:hidden;
+  box-shadow:0 0 10px rgba(133,136,230,0.2), inset 0 2px 4px rgba(0,0,0,0.5);
+  transition:height 0.25s ease, border-radius 0.25s ease;
+}
+/* squint — eye becomes shorter vertically */
+.lp-orb-eye-wrap.squint { height:22px; border-radius:50%/40%; }
+/* wide — eye becomes taller */
+.lp-orb-eye-wrap.wide   { height:44px; }
+/* sleepy — eye half-closed */
+.lp-orb-eye-wrap.sleepy { height:18px; border-radius:50%/35%; }
+/* alert — eye stays round but pupil shrinks */
+.lp-orb-eye-wrap.alert  { height:42px; }
+
+.lp-orb-pupil {
+  position:absolute;
+  width:16px; height:16px; border-radius:50%;
+  background:#ffffff;
+  box-shadow:0 0 8px rgba(255,255,255,0.9), 0 0 16px rgba(255,255,255,0.4);
+  transition:transform 0.06s linear;
+  /* centre default */
+  top:50%; left:50%;
+  margin-top:-8px; margin-left:-8px;
+}
+/* pupil shrinks when alert */
+.lp-orb-eye-wrap.alert  .lp-orb-pupil { width:12px; height:12px; margin-top:-6px; margin-left:-6px; }
+/* pupil bigger when happy */
+.lp-orb-eye-wrap.happy  .lp-orb-pupil { width:18px; height:18px; margin-top:-9px; margin-left:-9px; }
+
+/* eyelid overlay — slides down for sleepy/squint */
+.lp-orb-eyelid {
+  position:absolute; top:0; left:0; right:0;
+  height:0; background:rgba(12,13,26,0.95);
+  border-radius:0 0 50% 50%;
+  transition:height 0.3s ease;
+}
+.lp-orb-eye-wrap.sleepy .lp-orb-eyelid { height:55%; }
+.lp-orb-eye-wrap.squint .lp-orb-eyelid { height:30%; }
+
+/* eyebrows — absolutely placed above each eye, relative to orb-core */
+.lp-orb-brows {
+  position:absolute;
+  top:calc(50% - 78px);
+  left:50%; transform:translateX(-50%);
+  width:136px; height:22px;
+  overflow:visible; pointer-events:none; z-index:4;
+}
+
+/* logo mouth area */
+.lp-orb-mouth {
+  margin-top:4px;
+  transition:transform 0.3s ease, opacity 0.3s ease;
+}
+.lp-orb-mouth.grin   { transform:scale(1.08) translateY(-2px); }
+.lp-orb-mouth.flat   { transform:scale(0.95) translateY(2px); opacity:0.8; }
+.lp-orb-mouth.open   { transform:scale(1.12) translateY(-3px); }
+.lp-orb-mouth.sleepy { transform:scale(0.9) translateY(3px); opacity:0.6; }
+.lp-orb-ring {
+  position:absolute; border-radius:50%;
+  border:1px solid rgba(133,136,230,0.18);
+  pointer-events:none;
+}
+.lp-orb-ring-1 {
+  inset:-30px; animation:lp-ring-spin-1 18s linear infinite;
+  border-style:dashed; border-color:rgba(133,136,230,0.12);
+}
+.lp-orb-ring-2 {
+  inset:-60px; animation:lp-ring-spin-2 28s linear infinite reverse;
+  border-color:rgba(133,136,230,0.08);
+}
+.lp-orb-ring-3 {
+  inset:-95px; animation:lp-ring-spin-3 40s linear infinite;
+  border-style:dashed; border-color:rgba(100,140,255,0.06);
+}
+.lp-orb-dot {
+  position:absolute; width:5px; height:5px; border-radius:50%;
+  background:#8588e6; box-shadow:0 0 8px rgba(133,136,230,0.8);
+}
+
+/* ── EVE-STYLE HANDS ─────────────────────────────────────────────────── */
+.lp-orb-hand {
+  position:absolute;
+  top:calc(50% + 18px);
+  pointer-events:none; z-index:5;
+  filter:drop-shadow(0 6px 14px rgba(0,0,0,0.65));
+}
+.lp-orb-hand-left {
+  right:calc(100% - 16px);
+  transform:translateY(-50%);
+  animation:lp-hand-left-float 5s ease-in-out infinite;
+  transform-origin:82px 22px;
+  transform-box:fill-box;
+  transition:transform 0.12s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.lp-orb-hand-right {
+  left:calc(100% - 16px);
+  transform:translateY(-50%);
+  animation:lp-hand-right-float 5.4s ease-in-out infinite;
+  transform-origin:18px 22px;
+  transform-box:fill-box;
+  transition:transform 0.12s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+
+/* ── SIGNAL NODES around orb ─────────────────────────────────────────── */
+.lp-signal {
+  position:absolute; display:flex; flex-direction:column; align-items:center; gap:6px;
+  animation:lp-float var(--float-dur,5s) ease-in-out infinite;
+  animation-delay:var(--float-delay,0s);
+}
+.lp-signal-chip {
+  display:flex; align-items:center; gap:8px;
+  background:rgba(18,19,32,0.85); border:1px solid rgba(133,136,230,0.2);
+  border-radius:10px; padding:8px 12px;
+  backdrop-filter:blur(12px);
+  font-size:11px; font-weight:600; color:rgba(232,234,240,0.7);
+  letter-spacing:0.5px; white-space:nowrap;
+  box-shadow:0 4px 20px rgba(0,0,0,0.3);
+  transition:border-color 0.3s;
+}
+.lp-signal-chip:hover { border-color:rgba(133,136,230,0.45); }
+.lp-signal-icon {
+  width:20px; height:20px; border-radius:5px;
+  background:rgba(133,136,230,0.15);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.lp-signal-trail {
+  width:1px; height:var(--trail-h,40px);
+  background:linear-gradient(to bottom,rgba(133,136,230,0.4),transparent);
+}
+.lp-signal-trail-up {
+  background:linear-gradient(to top,rgba(133,136,230,0.4),transparent);
+}
+
+/* signal positions */
+.lp-sig-order   { top:4%;  left:12%; --float-dur:5.2s; --float-delay:0s;    --trail-h:50px; }
+.lp-sig-customer{ top:18%; right:6%; --float-dur:6.1s; --float-delay:0.7s;  --trail-h:60px; }
+.lp-sig-payment { bottom:22%; right:4%; --float-dur:5.5s; --float-delay:1.4s; --trail-h:45px; }
+.lp-sig-location{ bottom:8%; left:16%; --float-dur:6.4s; --float-delay:0.4s; --trail-h:55px; }
+.lp-sig-history { top:48%;  left:2%;  --float-dur:5.8s; --float-delay:1.1s;  --trail-h:40px; }
+
+/* ── ORDER MICRO CARDS ────────────────────────────────────────────────── */
+.lp-order-card {
+  position:absolute;
+  background:rgba(15,16,26,0.92); border-radius:14px;
+  border:1px solid rgba(133,136,230,0.2);
+  padding:14px 16px; min-width:190px;
+  backdrop-filter:blur(16px);
+  box-shadow:0 8px 40px rgba(0,0,0,0.4);
+  animation:lp-float var(--oc-dur,7s) ease-in-out infinite;
+  animation-delay:var(--oc-delay,0s);
+}
+.lp-order-card-top {
+  display:flex; justify-content:space-between; align-items:flex-start;
+  margin-bottom:8px;
+}
+.lp-order-num { font-size:11px; color:rgba(232,234,240,0.35); font-weight:600; letter-spacing:0.5px; }
+.lp-order-amt { font-size:17px; font-weight:800; color:#e8eaf0; }
+.lp-order-note { font-size:11px; color:rgba(232,234,240,0.45); margin-bottom:10px; line-height:1.4; }
+.lp-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:11px; font-weight:700; letter-spacing:0.8px;
+  padding:4px 10px; border-radius:6px; text-transform:uppercase;
+}
+.lp-badge-safe   { background:rgba(74,222,128,0.12); color:#4ade80; border:1px solid rgba(74,222,128,0.25); }
+.lp-badge-review { background:rgba(251,191,36,0.12); color:#fbbf24; border:1px solid rgba(251,191,36,0.25); }
+.lp-badge-blocked{ background:rgba(248,113,113,0.12); color:#f87171; border:1px solid rgba(248,113,113,0.25); }
+.lp-badge-dot { width:5px; height:5px; border-radius:50%; background:currentColor; }
+
+.lp-oc-review { top:8%;   right:-5%; --oc-dur:7.2s; --oc-delay:0.5s; }
+.lp-oc-safe   { bottom:5%; right:1%; --oc-dur:8s;   --oc-delay:2s;   }
+
+/* ── TRUST BAR ───────────────────────────────────────────────────────── */
+.lp-trust {
+  border-top:1px solid rgba(133,136,230,0.08);
+  border-bottom:1px solid rgba(133,136,230,0.08);
+  background:rgba(133,136,230,0.03);
+  padding:28px 0;
+}
+.lp-trust-inner { display:flex; justify-content:center; gap:60px; flex-wrap:wrap; }
+.lp-trust-item {
+  display:flex; align-items:center; gap:10px;
+  font-size:13px; font-weight:600; color:rgba(232,234,240,0.5);
+  letter-spacing:0.3px;
+}
+.lp-trust-icon {
+  width:32px; height:32px; border-radius:8px;
+  background:rgba(133,136,230,0.1); border:1px solid rgba(133,136,230,0.18);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  color:#8588e6;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   PROBLEM SECTION
+══════════════════════════════════════════════════════════════════════ */
+.lp-problem { padding:120px 0; }
+.lp-problem-header { max-width:640px; margin:0 auto 80px; text-align:center; }
+.lp-section-h2 {
+  font-size:clamp(32px,3.5vw,50px); font-weight:800; line-height:1.1;
+  letter-spacing:-1px; color:#f0f1f8; margin:0 0 20px;
+}
+.lp-section-sub {
+  font-size:18px; line-height:1.65; color:rgba(232,234,240,0.5); margin:0;
+}
+.lp-problem-layout {
+  display:grid; grid-template-columns:1fr 1.1fr; gap:80px; align-items:center;
+}
+.lp-problem-items { display:flex; flex-direction:column; gap:36px; }
+.lp-problem-item { display:flex; gap:20px; align-items:flex-start; }
+.lp-problem-icon-wrap {
+  width:44px; height:44px; border-radius:11px; flex-shrink:0; margin-top:2px;
+  display:flex; align-items:center; justify-content:center; font-size:19px;
+  background:rgba(133,136,230,0.07); border:1px solid rgba(133,136,230,0.15);
+}
+.lp-problem-text h3 { font-size:17px; font-weight:700; color:#e8eaf0; margin:0 0 7px; }
+.lp-problem-text p { font-size:14px; line-height:1.65; color:rgba(232,234,240,0.45); margin:0; }
+
+/* ── ORDERS FLOW VISUAL ──────────────────────────────────────────────── */
+.lp-orders-flow {
+  position:relative; background:rgba(15,16,26,0.6);
+  border:1px solid rgba(133,136,230,0.15); border-radius:20px;
+  padding:28px; overflow:hidden;
+}
+.lp-orders-flow::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(133,136,230,0.3),transparent);
+}
+.lp-flow-label {
+  font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+  color:rgba(232,234,240,0.3); margin-bottom:20px; display:flex; align-items:center; gap:8px;
+}
+.lp-flow-label::after {
+  content:''; flex:1; height:1px; background:rgba(133,136,230,0.1);
+}
+.lp-flow-orders { display:flex; flex-direction:column; gap:10px; }
+.lp-flow-order {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:12px 16px; border-radius:10px;
+  border:1px solid rgba(133,136,230,0.12);
+  background:rgba(20,21,34,0.8);
+  animation:lp-slide-in 0.6s ease both;
+}
+.lp-flow-order:nth-child(1) { animation-delay:0.1s; }
+.lp-flow-order:nth-child(2) { animation-delay:0.3s; }
+.lp-flow-order:nth-child(3) { animation-delay:0.5s; }
+.lp-flow-order:nth-child(4) { animation-delay:0.7s; }
+.lp-flow-order:nth-child(5) { animation-delay:0.9s; }
+.lp-flow-left { display:flex; flex-direction:column; gap:3px; }
+.lp-flow-order-id { font-size:11px; color:rgba(232,234,240,0.3); font-weight:600; letter-spacing:0.5px; }
+.lp-flow-order-amt { font-size:15px; font-weight:700; color:#e8eaf0; }
+.lp-flow-order-hint { font-size:11px; color:rgba(232,234,240,0.4); margin-top:1px; }
+
+/* watching indicator */
+.lp-flow-watching {
+  margin-top:18px; display:flex; align-items:center; gap:10px;
+  padding:10px 16px; border-radius:10px;
+  background:rgba(133,136,230,0.06); border:1px solid rgba(133,136,230,0.12);
+}
+.lp-flow-watching-dot {
+  width:8px; height:8px; border-radius:50%; background:#8588e6;
+  animation:lp-hero-pulse 2s infinite; flex-shrink:0;
+}
+.lp-flow-watching span { font-size:12px; color:rgba(232,234,240,0.4); font-weight:500; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   HOW IT WORKS
+══════════════════════════════════════════════════════════════════════ */
+.lp-hiw { padding:120px 0; background:rgba(133,136,230,0.02); }
+.lp-hiw-header { max-width:600px; margin:0 auto 80px; text-align:center; }
+.lp-hiw-steps {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:2px;
+  background:rgba(133,136,230,0.08); border-radius:20px; overflow:hidden;
+  border:1px solid rgba(133,136,230,0.12);
+}
+.lp-hiw-step {
+  background:#0e0f1c; padding:40px 28px;
+  position:relative; transition:background 0.3s;
+}
+.lp-hiw-step:hover { background:rgba(133,136,230,0.06); }
+.lp-hiw-step-num {
+  font-size:11px; font-weight:800; letter-spacing:2px; color:rgba(133,136,230,0.4);
+  margin-bottom:24px;
+}
+.lp-hiw-step-icon {
+  width:48px; height:48px; border-radius:12px;
+  background:rgba(133,136,230,0.1); border:1px solid rgba(133,136,230,0.2);
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px; margin-bottom:20px;
+}
+.lp-hiw-step h3 { font-size:16px; font-weight:700; color:#e8eaf0; margin:0 0 10px; }
+.lp-hiw-step p { font-size:13px; line-height:1.65; color:rgba(232,234,240,0.45); margin:0; }
+.lp-hiw-connector {
+  position:absolute; right:-1px; top:50%; transform:translateY(-50%);
+  width:2px; height:40px; background:linear-gradient(to bottom,transparent,rgba(133,136,230,0.3),transparent);
+  z-index:2;
+}
+
+/* ── ORDER JOURNEY ───────────────────────────────────────────────────── */
+.lp-journey { margin-top:64px; }
+.lp-journey-label { text-align:center; font-size:12px; font-weight:600; letter-spacing:2px;
+  text-transform:uppercase; color:rgba(232,234,240,0.25); margin-bottom:28px; }
+.lp-journey-track {
+  position:relative; display:flex; gap:0; align-items:stretch;
+  background:rgba(15,16,26,0.7); border:1px solid rgba(133,136,230,0.12);
+  border-radius:16px; overflow:hidden;
+}
+.lp-journey-track::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(133,136,230,0.25),transparent);
+}
+.lp-journey-stage {
+  flex:1; padding:24px 20px; position:relative;
+  border-right:1px solid rgba(133,136,230,0.08);
+}
+.lp-journey-stage:last-child { border-right:none; }
+.lp-journey-stage-label {
+  font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+  color:rgba(232,234,240,0.25); margin-bottom:16px;
+}
+.lp-journey-card {
+  background:rgba(20,21,36,0.9); border:1px solid rgba(133,136,230,0.15);
+  border-radius:10px; padding:12px 14px; margin-bottom:8px;
+}
+.lp-journey-card-amt { font-size:15px; font-weight:700; color:#e8eaf0; }
+.lp-journey-card-hint { font-size:11px; color:rgba(232,234,240,0.4); margin-top:3px; }
+.lp-journey-card-result { margin-top:8px; }
+.lp-journey-arrow {
+  display:flex; align-items:center; justify-content:center;
+  padding:0 8px; color:rgba(133,136,230,0.3); font-size:18px;
+  border-right:1px solid rgba(133,136,230,0.08); flex-shrink:0; min-width:36px;
+  align-self:stretch;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   PRODUCT SHOWCASE
+══════════════════════════════════════════════════════════════════════ */
+.lp-product { padding:120px 0; }
+.lp-product-layout { display:grid; grid-template-columns:1fr 1.15fr; gap:80px; align-items:start; }
+.lp-product-copy { padding-top:20px; }
+.lp-product-copy h2 { font-size:clamp(28px,3vw,44px); font-weight:800; letter-spacing:-0.8px; color:#f0f1f8; margin:0 0 18px; line-height:1.1; }
+.lp-product-copy p { font-size:17px; line-height:1.7; color:rgba(232,234,240,0.5); margin:0 0 36px; }
+.lp-product-checks { display:flex; flex-direction:column; gap:14px; }
+.lp-product-check { display:flex; align-items:center; gap:12px; font-size:14px; color:rgba(232,234,240,0.6); }
+.lp-product-check-icon { width:20px; height:20px; border-radius:50%; background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.3); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#4ade80; font-size:10px; font-weight:800; }
+
+/* ── DASHBOARD MOCKUP ────────────────────────────────────────────────── */
+.lp-dash {
+  background:rgba(12,13,22,0.95); border:1px solid rgba(133,136,230,0.2);
+  border-radius:18px; overflow:hidden;
+  box-shadow:0 24px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(133,136,230,0.08);
+}
+.lp-dash-topbar {
+  display:flex; gap:6px; padding:14px 18px;
+  background:rgba(133,136,230,0.04); border-bottom:1px solid rgba(133,136,230,0.1);
+}
+.lp-dash-dot { width:10px; height:10px; border-radius:50%; }
+.lp-dash-title { margin-left:auto; font-size:12px; color:rgba(232,234,240,0.25); font-weight:500; }
+.lp-dash-body { padding:20px; }
+.lp-dash-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:18px; }
+.lp-dash-stat {
+  background:rgba(133,136,230,0.06); border:1px solid rgba(133,136,230,0.1);
+  border-radius:10px; padding:14px 16px;
+}
+.lp-dash-stat-label { font-size:10px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:rgba(232,234,240,0.3); margin-bottom:6px; }
+.lp-dash-stat-val { font-size:20px; font-weight:800; }
+.lp-dash-stat-val.green { color:#4ade80; }
+.lp-dash-stat-val.amber { color:#fbbf24; }
+.lp-dash-stat-val.red   { color:#f87171; }
+.lp-dash-orders-label { font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:rgba(232,234,240,0.25); margin-bottom:10px; }
+.lp-dash-order-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:11px 14px; border-radius:8px; margin-bottom:6px;
+  background:rgba(20,21,34,0.8); border:1px solid rgba(133,136,230,0.08);
+  transition:border-color 0.2s;
+}
+.lp-dash-order-row:hover { border-color:rgba(133,136,230,0.2); }
+.lp-dash-order-info { display:flex; flex-direction:column; gap:2px; }
+.lp-dash-order-id { font-size:12px; font-weight:600; color:#e8eaf0; }
+.lp-dash-order-meta { font-size:11px; color:rgba(232,234,240,0.35); }
+.lp-dash-order-right { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+.lp-dash-order-amt { font-size:13px; font-weight:700; color:#e8eaf0; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   EXPLAINABLE DECISIONS
+══════════════════════════════════════════════════════════════════════ */
+.lp-explain { padding:120px 0; background:rgba(133,136,230,0.02); }
+.lp-explain-layout { display:grid; grid-template-columns:1.1fr 1fr; gap:80px; align-items:center; }
+.lp-explain-copy h2 { font-size:clamp(28px,3vw,46px); font-weight:800; letter-spacing:-0.8px; color:#f0f1f8; margin:0 0 18px; line-height:1.1; }
+.lp-explain-copy p { font-size:17px; line-height:1.7; color:rgba(232,234,240,0.5); margin:0 0 32px; }
+.lp-explain-tagline {
+  font-size:14px; color:rgba(232,234,240,0.55); line-height:1.6;
+  padding:16px 20px; border-radius:10px;
+  border-left:2px solid #8588e6;
+  background:rgba(133,136,230,0.06);
+}
+
+/* ── REASON CARD ──────────────────────────────────────────────────────── */
+.lp-reason-card {
+  background:rgba(12,13,22,0.95); border:1px solid rgba(133,136,230,0.2);
+  border-radius:18px; overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,0.4);
+}
+.lp-reason-top {
+  padding:20px 22px;
+  background:rgba(133,136,230,0.04); border-bottom:1px solid rgba(133,136,230,0.1);
+  display:flex; justify-content:space-between; align-items:center;
+}
+.lp-reason-order { display:flex; flex-direction:column; gap:3px; }
+.lp-reason-order-num { font-size:11px; color:rgba(232,234,240,0.35); font-weight:600; letter-spacing:0.5px; }
+.lp-reason-order-amt { font-size:22px; font-weight:800; color:#f0f1f8; }
+.lp-reason-body { padding:22px; }
+.lp-reason-why-label {
+  font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+  color:rgba(232,234,240,0.25); margin-bottom:16px;
+}
+.lp-reason-items { display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
+.lp-reason-item {
+  display:flex; align-items:center; gap:12px; padding:12px 14px;
+  border-radius:8px; background:rgba(251,191,36,0.06); border:1px solid rgba(251,191,36,0.15);
+}
+.lp-reason-item-dot { width:6px; height:6px; border-radius:50%; background:#fbbf24; flex-shrink:0; }
+.lp-reason-item span { font-size:13px; color:rgba(232,234,240,0.65); }
+.lp-reason-action {
+  display:flex; align-items:center; gap:8px; padding:12px 14px;
+  border-radius:8px; background:rgba(133,136,230,0.08); border:1px solid rgba(133,136,230,0.2);
+  font-size:13px; color:#a5a8f4; font-weight:600;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   BENTO FEATURES
+══════════════════════════════════════════════════════════════════════ */
+.lp-features { padding:120px 0; }
+.lp-features-header { max-width:560px; margin:0 auto 64px; text-align:center; }
+.lp-bento {
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  grid-template-rows:auto auto;
+  gap:12px;
+}
+.lp-bento-cell {
+  background:rgba(14,15,26,0.9); border:1px solid rgba(133,136,230,0.12);
+  border-radius:16px; padding:28px; position:relative; overflow:hidden;
+  transition:border-color 0.3s, transform 0.25s;
+}
+.lp-bento-cell:hover { border-color:rgba(133,136,230,0.28); transform:translateY(-3px); }
+.lp-bento-cell::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(133,136,230,0.15),transparent);
+  opacity:0; transition:opacity 0.3s;
+}
+.lp-bento-cell:hover::before { opacity:1; }
+.lp-bento-icon {
+  width:44px; height:44px; border-radius:11px;
+  background:rgba(133,136,230,0.1); border:1px solid rgba(133,136,230,0.2);
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; margin-bottom:18px;
+}
+.lp-bento-cell h3 { font-size:15px; font-weight:700; color:#e8eaf0; margin:0 0 8px; }
+.lp-bento-cell p { font-size:13px; line-height:1.65; color:rgba(232,234,240,0.45); margin:0; }
+
+/* Span definitions */
+.lp-bento-a { grid-column:span 5; }
+.lp-bento-b { grid-column:span 4; }
+.lp-bento-c { grid-column:span 3; }
+.lp-bento-d { grid-column:span 4; }
+.lp-bento-e { grid-column:span 4; }
+.lp-bento-f { grid-column:span 4; }
+
+/* ── bento accent visuals ─────────────────────────────────────────────── */
+.lp-mini-order-list { margin-top:20px; display:flex; flex-direction:column; gap:7px; }
+.lp-mini-order-row { display:flex; justify-content:space-between; align-items:center;
+  padding:8px 12px; border-radius:7px; background:rgba(133,136,230,0.05); border:1px solid rgba(133,136,230,0.08); }
+.lp-mini-order-row span { font-size:12px; color:rgba(232,234,240,0.5); }
+
+.lp-memory-dots { margin-top:20px; display:flex; gap:8px; flex-wrap:wrap; }
+.lp-memory-dot { width:9px; height:9px; border-radius:50%; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   SECURITY
+══════════════════════════════════════════════════════════════════════ */
+.lp-security { padding:120px 0; }
+.lp-security-inner { display:grid; grid-template-columns:1fr 1.5fr; gap:40px; align-items:start; }
+.lp-security-copy h2 { font-size:clamp(28px,3vw,46px); font-weight:800; letter-spacing:-0.8px; color:#f0f1f8; margin:0 0 18px; line-height:1.1; }
+.lp-security-copy p { font-size:17px; line-height:1.7; color:rgba(232,234,240,0.5); margin:0 0 40px; }
+.lp-sec-items { display:flex; flex-direction:column; gap:20px; }
+.lp-sec-item { display:flex; gap:16px; align-items:flex-start; }
+.lp-sec-item-icon { width:36px; height:36px; border-radius:9px; background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:15px; }
+.lp-sec-item-text h4 { font-size:15px; font-weight:700; color:#e8eaf0; margin:0 0 5px; }
+.lp-sec-item-text p { font-size:13px; color:rgba(232,234,240,0.45); margin:0; line-height:1.5; }
+
+/* ── 3D SECURITY ORB ──────────────────────────────────────────────────── */
+.lp-sec-viz-wrap {
+  position:relative; width:100%; height:900px;
+  display:flex; justify-content:center; align-items:center;
+  margin:-60px 0;
+}
+.lp-sec-viz {
+  width:100%; height:100%; max-width:960px;
+  overflow:visible;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   BEFORE / AFTER
+══════════════════════════════════════════════════════════════════════ */
+.lp-results { padding:120px 0; background:rgba(133,136,230,0.02); }
+.lp-results-header { max-width:580px; margin:0 auto 64px; text-align:center; }
+.lp-ba-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; max-width:860px; margin:0 auto; }
+.lp-ba-card {
+  border-radius:18px; padding:36px;
+  border:1px solid rgba(133,136,230,0.12);
+}
+.lp-ba-before { background:rgba(248,113,113,0.04); border-color:rgba(248,113,113,0.15); }
+.lp-ba-after  { background:rgba(74,222,128,0.04); border-color:rgba(74,222,128,0.15); }
+.lp-ba-header { font-size:11px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; margin-bottom:24px; display:flex; align-items:center; gap:8px; }
+.lp-ba-before .lp-ba-header { color:rgba(248,113,113,0.6); }
+.lp-ba-after  .lp-ba-header { color:rgba(74,222,128,0.7); }
+.lp-ba-list { display:flex; flex-direction:column; gap:14px; }
+.lp-ba-item { display:flex; align-items:flex-start; gap:12px; font-size:14px; line-height:1.5; color:rgba(232,234,240,0.6); }
+.lp-ba-item-icon { font-size:14px; margin-top:1px; flex-shrink:0; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   TESTIMONIALS
+══════════════════════════════════════════════════════════════════════ */
+.lp-testi { padding:120px 0; }
+.lp-testi-header { max-width:560px; margin:0 auto 64px; text-align:center; }
+.lp-testi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.lp-testi-card {
+  background:rgba(14,15,26,0.9); border:1px solid rgba(133,136,230,0.12);
+  border-radius:18px; padding:32px;
+  display:flex; flex-direction:column;
+  transition:border-color 0.3s, transform 0.25s;
+}
+.lp-testi-card:hover { border-color:rgba(133,136,230,0.28); transform:translateY(-4px); }
+.lp-testi-quote {
+  font-size:32px; line-height:1; color:rgba(133,136,230,0.3); margin-bottom:16px;
+  font-family:Georgia,serif;
+}
+.lp-testi-text {
+  font-size:15px; line-height:1.7; color:rgba(232,234,240,0.65);
+  flex:1; margin-bottom:28px;
+}
+.lp-testi-author { display:flex; align-items:center; gap:12px; }
+.lp-testi-avatar {
+  width:40px; height:40px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:15px; font-weight:800; color:#fff; flex-shrink:0;
+}
+.lp-testi-name { font-size:14px; font-weight:700; color:#e8eaf0; display:block; margin-bottom:2px; }
+.lp-testi-store { font-size:12px; color:rgba(232,234,240,0.35); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   FINAL CTA
+══════════════════════════════════════════════════════════════════════ */
+.lp-cta { padding:120px 0; }
+.lp-cta-inner {
+  position:relative; border-radius:24px; padding:80px 60px;
+  background:rgba(14,15,26,0.95);
+  border:1px solid rgba(133,136,230,0.2);
+  text-align:center; overflow:hidden;
+}
+.lp-cta-inner::before {
+  content:''; position:absolute; top:-60%; left:50%; transform:translateX(-50%);
+  width:600px; height:600px;
+  background:radial-gradient(circle,rgba(133,136,230,0.08) 0%,transparent 60%);
+  pointer-events:none;
+}
+.lp-cta-inner::after {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(133,136,230,0.4),transparent);
+}
+.lp-cta-orb-wrap {
+  position:absolute; inset:0; display:flex; justify-content:center; align-items:center;
+  pointer-events:none; opacity:0.5;
+}
+.lp-cta-orb {
+  width:300px; height:300px; border-radius:50%;
+  background:radial-gradient(circle,rgba(133,136,230,0.08) 0%,transparent 70%);
+  border:1px solid rgba(133,136,230,0.08);
+  animation:lp-orb-breathe 6s ease-in-out infinite;
+}
+.lp-cta-content { position:relative; z-index:2; }
+.lp-cta-content h2 { font-size:clamp(32px,4vw,54px); font-weight:800; letter-spacing:-1px; color:#f0f1f8; margin:0 0 20px; line-height:1.1; }
+.lp-cta-content p { font-size:18px; color:rgba(232,234,240,0.5); margin:0 auto 40px; max-width:500px; line-height:1.6; }
+.lp-cta-actions { display:flex; justify-content:center; gap:16px; flex-wrap:wrap; margin-bottom:24px; }
+.lp-cta-reassurance { font-size:13px; color:rgba(232,234,240,0.3); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   FOOTER
+══════════════════════════════════════════════════════════════════════ */
+.lp-footer {
+  border-top:1px solid rgba(133,136,230,0.08);
+  padding:48px 0 32px;
+}
+.lp-footer-inner {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  gap:40px; flex-wrap:wrap;
+}
+.lp-footer-left { display:flex; flex-direction:column; align-items:center; gap:24px; flex:1; min-width:260px; }
+.lp-footer-brand { display:flex; align-items:center; gap:10px; font-weight:800; font-size:16px; color:#e8eaf0; letter-spacing:2.5px; }
+.lp-footer-nav { display:flex; flex-wrap:wrap; gap:6px 28px; justify-content:center; }
+.lp-footer-nav a { font-size:13px; color:rgba(232,234,240,0.35); transition:color 0.2s; }
+.lp-footer-nav a:hover { color:rgba(232,234,240,0.7); }
+.lp-footer-legal { display:flex; flex-wrap:wrap; gap:6px 16px; justify-content:center; }
+.lp-footer-legal a { font-size:12px; color:rgba(232,234,240,0.2); transition:color 0.2s; }
+.lp-footer-legal a:hover { color:rgba(232,234,240,0.45); }
+.lp-footer-copy { font-size:12px; color:rgba(232,234,240,0.2); text-align:center; }
+.lp-footer-dot { color:rgba(133,136,230,0.3); margin:0 4px; }
+
+/* ── CONNECT CARD (footer right) ──────────────────────────────────── */
+.lp-footer-connect { display:flex; flex-direction:column; gap:14px; min-width:220px; }
+.lp-footer-connect-title {
+  font-size:13px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;
+  color:#e8eaf0; display:flex; align-items:center; gap:6px;
+}
+.lp-footer-connect-title::after {
+  content:''; display:inline-block; width:6px; height:6px; border-radius:50%;
+  background:#8588e6; box-shadow:0 0 8px rgba(133,136,230,0.8);
+  animation:lp-hero-pulse 2s infinite;
+}
+.lp-footer-social-row { display:flex; gap:10px; }
+.lp-footer-social-btn {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 14px; border-radius:8px;
+  background:rgba(133,136,230,0.08); border:1px solid rgba(133,136,230,0.18);
+  font-size:13px; font-weight:600; color:rgba(232,234,240,0.7);
+  text-decoration:none; transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  white-space:nowrap; position:relative; overflow:hidden;
+}
+.lp-footer-social-btn svg { flex-shrink:0; }
+.lp-footer-social-btn:hover {
+  background:rgba(133,136,230,0.16); border-color:rgba(133,136,230,0.45);
+  color:#e8eaf0; transform:translateY(-2px) scale(1.04);
+  box-shadow:0 6px 20px rgba(0,0,0,0.3);
+}
+.lp-footer-social-btn:active { transform:translateY(0) scale(0.97); }
+
+.lp-footer-profile {
+  display:flex; align-items:center; gap:12px;
+  padding:11px 14px; border-radius:12px;
+  background:rgba(133,136,230,0.06); border:1px solid rgba(133,136,230,0.15);
+  transition:border-color 0.25s, background 0.25s;
+}
+.lp-footer-profile:hover { border-color:rgba(133,136,230,0.35); background:rgba(133,136,230,0.1); }
+.lp-footer-avatar {
+  width:40px; height:40px; border-radius:50%; object-fit:cover; flex-shrink:0;
+  border:2px solid rgba(133,136,230,0.35);
+  box-shadow:0 0 0 3px rgba(133,136,230,0.1);
+}
+.lp-footer-profile-info { display:flex; flex-direction:column; gap:2px; }
+.lp-footer-profile-name { font-size:14px; font-weight:700; color:#e8eaf0; }
+.lp-footer-profile-role { font-size:11px; color:rgba(232,234,240,0.4); font-weight:500; }
+
+@media (max-width:768px) {
+  .lp-footer-inner { flex-direction:column; align-items:center; }
+  .lp-footer-left { width:100%; }
+  .lp-footer-connect { align-items:center; width:100%; }
+  .lp-footer-social-row { justify-content:center; }
+  .lp-footer-profile { width:100%; max-width:300px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   KEYFRAMES
+══════════════════════════════════════════════════════════════════════ */
+@keyframes lp-hero-pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50% { opacity:0.4; transform:scale(0.75); }
+}
+@keyframes lp-orb-breathe {
+  0%,100% {
+    transform:scale(1);
+    box-shadow:0 30px 60px rgba(0,0,0,0.55),0 8px 24px rgba(0,0,0,0.4),0 0 0 1px rgba(133,136,230,0.12),0 0 50px rgba(133,136,230,0.14);
+  }
+  50% {
+    transform:scale(1.025);
+    box-shadow:0 36px 70px rgba(0,0,0,0.5),0 10px 28px rgba(0,0,0,0.35),0 0 0 1px rgba(133,136,230,0.18),0 0 70px rgba(133,136,230,0.2);
+  }
+}
+@keyframes lp-ring-spin-1 { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+@keyframes lp-ring-spin-2 { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+@keyframes lp-ring-spin-3 { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+@keyframes lp-hand-left-float {
+  0%,100% { transform:translateY(-50%) rotate(-6deg); }
+  35%      { transform:translateY(calc(-50% - 9px)) rotate(-12deg); }
+  65%      { transform:translateY(calc(-50% + 5px)) rotate(-2deg); }
+}
+@keyframes lp-hand-right-float {
+  0%,100% { transform:translateY(-50%) rotate(6deg); }
+  35%      { transform:translateY(calc(-50% + 5px)) rotate(2deg); }
+  65%      { transform:translateY(calc(-50% - 9px)) rotate(12deg); }
+}
+@keyframes lp-float {
+  0%,100% { transform:translateY(0); }
+  50% { transform:translateY(-10px); }
+}
+@keyframes lp-slide-in {
+  from { opacity:0; transform:translateX(-12px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+@keyframes lp-particle-drift {
+  0%   { transform:translate(0,0); opacity:0.6; }
+  33%  { transform:translate(8px,-14px); opacity:0.3; }
+  66%  { transform:translate(-6px,-22px); opacity:0.5; }
+  100% { transform:translate(4px,-36px); opacity:0; }
+}
+
+/* ── PARTICLES ────────────────────────────────────────────────────────── */
+.lp-particle {
+  position:absolute; border-radius:50%;
+  background:rgba(133,136,230,0.5);
+  animation:lp-particle-drift var(--pd,8s) linear var(--pda,0s) infinite;
+  pointer-events:none;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   REDUCED MOTION
+══════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion:reduce) {
+  .lp-reveal, .lp-orb-core, .lp-orb-ring, .lp-orb-ring-1, .lp-orb-ring-2,
+  .lp-orb-ring-3, .lp-signal, .lp-order-card, .lp-particle,
+  .lp-flow-order, .lp-sec-orb-core, .lp-sec-orb-ring, .lp-sec-node,
+  .lp-hero-tag-dot, .lp-flow-watching-dot, .lp-orb-hand {
+    animation:none !important;
+    transition:opacity 0.2s, color 0.2s, border-color 0.2s, background 0.2s !important;
+    opacity:1 !important; transform:none !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════════════════════════════ */
+@media (max-width:1024px) {
+  .lp-hero { grid-template-columns:1fr; padding:52px 0 60px; }
+  .lp-hero-left { padding-right:0; }
+  .lp-orb-scene { height:420px; }
+  .lp-product-layout, .lp-explain-layout, .lp-security-inner { grid-template-columns:1fr; gap:52px; }
+  .lp-problem-layout { grid-template-columns:1fr; gap:52px; }
+  .lp-hiw-steps { grid-template-columns:1fr 1fr; }
+  .lp-hiw-connector { display:none; }
+  .lp-ba-grid { grid-template-columns:1fr; max-width:480px; }
+  .lp-testi-grid { grid-template-columns:1fr; }
+}
+@media (max-width:768px) {
+  .wrap, .wrap-wide { padding:0 20px; }
+  .lp-nav-links, .lp-nav-actions .lp-btn-ghost { display:none; }
+  .lp-mobile-btn { display:flex; align-items:center; }
+  .lp-orb-scene { height:340px; }
+  .lp-orb-stage { width:240px; height:240px; }
+  .lp-sig-customer, .lp-sig-history { display:none; }
+  .lp-trust-inner { gap:24px; }
+  .lp-hiw-steps { grid-template-columns:1fr; }
+  .lp-journey-track { flex-direction:column; }
+  .lp-journey-arrow { display:none; }
+  .lp-bento { grid-template-columns:1fr; }
+  .lp-bento-a, .lp-bento-b, .lp-bento-c, .lp-bento-d, .lp-bento-e, .lp-bento-f { grid-column:span 1; }
+  .lp-testi-grid { grid-template-columns:1fr; }
+  .lp-cta-inner { padding:52px 28px; }
+  .lp-hero-ctas { flex-direction:column; }
+  .lp-hero-ctas .lp-btn-hero-primary, .lp-hero-ctas .lp-btn-hero-secondary { width:100%; justify-content:center; }
+}
+@media (max-width:480px) {
+  .lp-hero h1 { letter-spacing:-1.5px; }
+  .lp-hero-trust { flex-direction:column; gap:10px; }
+  .lp-orb-scene { height:280px; }
+  .lp-orb-stage { width:190px; height:190px; }
+  .lp-oc-review, .lp-oc-safe { display:none; }
+  .lp-sig-order, .lp-sig-payment, .lp-sig-location { display:none; }
+}
 `;
 
-const capabilities = [
-  { icon: Activity, title: 'Transaction risk scoring', copy: 'Prioritize review using risk assessments attached to every transaction.' },
-  { icon: Fingerprint, title: 'Behavioral analysis', copy: 'Surface device, IP, velocity, and amount-similarity signals that merit attention.' },
-  { icon: Network, title: 'Pattern detection', copy: 'Connect suspicious activity into clusters that are difficult to spot one transaction at a time.' },
-  { icon: Eye, title: 'Explainable signals', copy: 'Give analysts a clear trail of the indicators behind a risk outcome.' },
-  { icon: FileSearch, title: 'Investigation workflow', copy: 'Move from detection to a structured queue for human review and resolution.' },
-  { icon: TrendingUp, title: 'Evaluation visibility', copy: 'Measure signal performance to continuously improve operational decision-making.' },
-];
+/* ─────────────────────────────────────────────────────────────────────────────
+   HOOKS
+───────────────────────────────────────────────────────────────────────────── */
+function useRevealOnScroll() {
+  useEffect(() => {
+    const els = document.querySelectorAll('.lp-reveal');
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('lp-visible'); io.unobserve(e.target); }
+      }),
+      { threshold: 0.12 }
+    );
+    els.forEach(el => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+}
 
+function useMouseParallax(ref: React.RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const mm = window.matchMedia('(prefers-reduced-motion:reduce)');
+    if (mm.matches) return;
+
+    let rafId = 0;
+    let tx = 0, ty = 0;
+
+    const onMove = (e: MouseEvent) => {
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = (e.clientX - cx) / rect.width;
+      const dy = (e.clientY - cy) / rect.height;
+      tx = dx * 10;
+      ty = dy * 6;
+    };
+
+    const tick = () => {
+      el.style.transform = `perspective(900px) rotateY(${tx}deg) rotateX(${-ty}deg)`;
+      rafId = requestAnimationFrame(tick);
+    };
+
+    document.addEventListener('mousemove', onMove);
+    rafId = requestAnimationFrame(tick);
+    return () => {
+      document.removeEventListener('mousemove', onMove);
+      cancelAnimationFrame(rafId);
+    };
+  }, [ref]);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SUB-COMPONENTS
+───────────────────────────────────────────────────────────────────────────── */
+
+/* ── NIRO ORB (hero 3D centerpiece) ─────────────────────────────────────── */
+function NiroOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
+  const stageRef   = useRef<HTMLDivElement>(null);
+  const sceneRef   = useRef<HTMLDivElement>(null);
+  useMouseParallax(stageRef);
+
+  // Eye tracking state
+  const [eyeOffset, setEyeOffset]   = useState({ x: 0, y: 0 });
+  const [expression, setExpression] = useState<'idle'|'happy'|'squint'|'alert'|'sleepy'|'wide'>('idle');
+  const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Arm tracking — direct DOM writes for zero-lag full-range pointing
+  const armIdleTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const leftArmRef    = useRef<SVGSVGElement>(null);
+  const rightArmRef   = useRef<SVGSVGElement>(null);
+
+  useEffect(() => {
+    const mm = window.matchMedia('(prefers-reduced-motion:reduce)');
+    if (mm.matches) return;
+
+    let lastMove = Date.now();
+
+    const onMove = (e: MouseEvent) => {
+      const scene = sceneRef.current;
+      if (!scene) return;
+      const rect = scene.getBoundingClientRect();
+      // Centre of the orb (roughly in the middle of the scene)
+      const cx = rect.left + rect.width  * 0.5;
+      const cy = rect.top  + rect.height * 0.48;
+      const dx = e.clientX - cx;
+      const dy = e.clientY - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const maxR = rect.width * 0.38;
+
+      // Normalise — pupil travels max 9px inside the socket
+      const travel = 9;
+      const nx = (dx / maxR) * travel;
+      const ny = (dy / maxR) * travel;
+      setEyeOffset({
+        x: Math.max(-travel, Math.min(travel, nx)),
+        y: Math.max(-travel, Math.min(travel, ny)),
+      });
+
+      // ── Arm tracking — write directly to DOM for zero-lag full-range pointing ──
+      // natural angle = atan2 from shoulder to paddle tip in SVG space:
+      //   left:  shoulder(82,22) → tip(18,120) → atan2(98,-64) ≈ 123°
+      //   right: shoulder(18,22) → tip(82,120) → atan2(98, 64) ≈  57°
+      const applyArm = (
+        svgEl: SVGSVGElement | null,
+        shoulderFracX: number,
+        shoulderFracY: number,
+        naturalAngle: number,
+      ) => {
+        if (!svgEl) return;
+        const r = svgEl.getBoundingClientRect();
+        const sx = r.left + r.width  * shoulderFracX;
+        const sy = r.top  + r.height * shoulderFracY;
+        const cursorAngle = Math.atan2(e.clientY - sy, e.clientX - sx) * (180 / Math.PI);
+        svgEl.style.animation = 'none';
+        svgEl.style.transform = `translateY(-50%) rotate(${cursorAngle - naturalAngle}deg)`;
+      };
+
+      applyArm(leftArmRef.current,  82 / 100, 22 / 130, 123);
+      applyArm(rightArmRef.current, 18 / 100, 22 / 130,  57);
+
+      if (armIdleTimer.current) clearTimeout(armIdleTimer.current);
+      armIdleTimer.current = setTimeout(() => {
+        if (leftArmRef.current)  { leftArmRef.current.style.animation  = ''; leftArmRef.current.style.transform  = ''; }
+        if (rightArmRef.current) { rightArmRef.current.style.animation = ''; rightArmRef.current.style.transform = ''; }
+      }, 2000);
+
+      // Expression based on cursor position relative to orb
+      const normDist = dist / maxR;
+      const aboveRatio = -dy / (rect.height * 0.4);
+      const sideRatio  = Math.abs(dx) / (rect.width  * 0.4);
+
+      if (normDist < 0.3) {
+        setExpression('wide');          // cursor very close — wide-eyed
+      } else if (normDist < 0.65) {
+        setExpression('happy');         // cursor nearby — happy
+      } else if (aboveRatio > 0.6) {
+        setExpression('alert');         // cursor high above — alert/raised brows
+      } else if (sideRatio > 0.85) {
+        setExpression('squint');        // cursor far to the side — suspicious squint
+      } else {
+        setExpression('idle');
+      }
+
+      lastMove = Date.now();
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+      idleTimer.current = setTimeout(() => {
+        const elapsed = Date.now() - lastMove;
+        if (elapsed >= 2800) setExpression('sleepy');
+      }, 3000);
+    };
+
+    window.addEventListener('mousemove', onMove);
+    // Start sleepy after 3s of no movement
+    idleTimer.current = setTimeout(() => setExpression('sleepy'), 3000);
+
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+      if (armIdleTimer.current) clearTimeout(armIdleTimer.current);
+    };
+  }, []);
+
+  // Eyebrow SVG paths per expression
+  // ViewBox is 136w. Left eye centre ~x=33, right eye centre ~x=103
+  // Each brow spans ~28px wide, 12px tall arc above eye
+  const browPaths = {
+    idle:   { L: 'M 14,16 Q 33,6  52,16',  R: 'M 84,16 Q 103,6  122,16' },
+    happy:  { L: 'M 14,18 Q 33,4  52,16',  R: 'M 84,16 Q 103,4  122,18' },
+    squint: { L: 'M 14,12 Q 33,18 52,14',  R: 'M 84,14 Q 103,18 122,12' },
+    alert:  { L: 'M 14,20 Q 33,2  52,14',  R: 'M 84,14 Q 103,2  122,20' },
+    sleepy: { L: 'M 14,14 Q 33,14 52,18',  R: 'M 84,18 Q 103,14 122,14' },
+    wide:   { L: 'M 14,20 Q 33,2  52,12',  R: 'M 84,12 Q 103,2  122,20' },
+  };
+  const brows = browPaths[expression] ?? browPaths.idle;
+
+  // Eye class per expression
+  const eyeClass = (expression === 'idle') ? '' : expression;
+
+  // Mouth class
+  const mouthClass =
+    expression === 'happy' || expression === 'wide'  ? 'grin'  :
+    expression === 'squint'                           ? 'flat'  :
+    expression === 'alert'                            ? 'open'  :
+    expression === 'sleepy'                           ? 'sleepy': '';
+
+  const dots: Array<{ style: React.CSSProperties }> = [
+    { style: { top: '-3px', left: '50%', transform: 'translateX(-50%)' } },
+    { style: { bottom: '-3px', right: '20%' } },
+  ];
+
+  return (
+    <div className="lp-orb-scene" ref={sceneRef}>
+      {/* Background particles */}
+      {[
+        { size:3,  top:'15%', left:'18%', pd:'9s',  pda:'0s' },
+        { size:2,  top:'72%', left:'25%', pd:'11s', pda:'1.2s' },
+        { size:2.5,top:'30%', right:'14%',pd:'8s',  pda:'2.5s' },
+        { size:2,  top:'60%', right:'20%',pd:'12s', pda:'0.7s' },
+        { size:1.5,top:'88%', right:'35%',pd:'10s', pda:'3.1s' },
+        { size:2,  top:'8%',  right:'30%',pd:'7s',  pda:'1.8s' },
+      ].map((p, i) => (
+        <div key={i} className="lp-particle" style={{
+          width:p.size, height:p.size,
+          top:p.top, left:p.left, right:(p as {right?:string}).right,
+          ['--pd' as string]:p.pd, ['--pda' as string]:p.pda,
+        }} />
+      ))}
+
+      {/* Signal chips */}
+      <div className="lp-signal lp-sig-order">
+        <div className="lp-signal-chip">
+          <div className="lp-signal-icon">
+            <img src="/orders.svg" width={12} height={12} alt="" style={{opacity:0.7}} />
+          </div>
+          ORDER
+        </div>
+        <div className="lp-signal-trail" />
+      </div>
+      <div className="lp-signal lp-sig-customer" style={{flexDirection:'column-reverse'}}>
+        <div className="lp-signal-trail lp-signal-trail-up" />
+        <div className="lp-signal-chip">
+          <div className="lp-signal-icon">
+            <img src="/profile-users.svg" width={12} height={12} alt="" style={{opacity:0.7}} />
+          </div>
+          CUSTOMER
+        </div>
+      </div>
+      <div className="lp-signal lp-sig-payment" style={{flexDirection:'column-reverse'}}>
+        <div className="lp-signal-trail lp-signal-trail-up" />
+        <div className="lp-signal-chip">
+          <div className="lp-signal-icon">
+            <img src="/wallet.svg" width={12} height={12} alt="" style={{opacity:0.7}} />
+          </div>
+          PAYMENT
+        </div>
+      </div>
+      <div className="lp-signal lp-sig-location">
+        <div className="lp-signal-chip">
+          <div className="lp-signal-icon">
+            <img src="/store.svg" width={12} height={12} alt="" style={{opacity:0.7}} />
+          </div>
+          LOCATION
+        </div>
+        <div className="lp-signal-trail" />
+      </div>
+      <div className="lp-signal lp-sig-history">
+        <div className="lp-signal-chip">
+          <div className="lp-signal-icon">
+            <img src="/network.svg" width={12} height={12} alt="" style={{opacity:0.7}} />
+          </div>
+          PAST PURCHASE
+        </div>
+        <div className="lp-signal-trail" />
+      </div>
+
+      {/* Orb stage — mouse tilt */}
+      <div className="lp-orb-stage" ref={stageRef}>
+
+        {/* ── Left arm (EVE-style: shoulder stub + tapered arm + flat paddle) ── */}
+        <svg
+          ref={leftArmRef}
+          className="lp-orb-hand lp-orb-hand-left"
+          width="100" height="130"
+          viewBox="0 0 100 130"
+          fill="none"
+          aria-hidden="true"
+        >
+          <defs>
+            {/* Dark navy base matching the orb */}
+            <linearGradient id="arm-l-grad" x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%"   stopColor="#2a2d52" />
+              <stop offset="50%"  stopColor="#1a1c3a" />
+              <stop offset="100%" stopColor="#0f1024" />
+            </linearGradient>
+            {/* Top-left specular matching orb light source */}
+            <radialGradient id="arm-l-spec" cx="30%" cy="20%" r="45%">
+              <stop offset="0%"  stopColor="rgba(180,184,255,0.28)" />
+              <stop offset="100%" stopColor="rgba(180,184,255,0)" />
+            </radialGradient>
+            {/* Rim light bottom-right edge */}
+            <radialGradient id="arm-l-rim" cx="75%" cy="80%" r="40%">
+              <stop offset="0%"  stopColor="rgba(100,108,220,0.22)" />
+              <stop offset="100%" stopColor="rgba(100,108,220,0)" />
+            </radialGradient>
+            <filter id="arm-l-drop" x="-30%" y="-15%" width="160%" height="140%">
+              <feDropShadow dx="2" dy="8" stdDeviation="7" floodColor="#000" floodOpacity="0.55" />
+            </filter>
+          </defs>
+          {/*
+            Arm shape: shoulder ball top-right, tapers into a wide flat paddle pointing down-left.
+            The arm attaches to the orb on the right side; paddle is the wide flat end bottom-left.
+            Path: start at shoulder, taper down-left, flare into paddle, round bottom, back up.
+          */}
+          {/* Shoulder joint — small circle where it connects to orb */}
+          <circle cx="82" cy="22" r="14" fill="url(#arm-l-grad)" filter="url(#arm-l-drop)" />
+          <circle cx="82" cy="22" r="14" fill="url(#arm-l-spec)" />
+          <circle cx="82" cy="22" r="14" fill="url(#arm-l-rim)" />
+          <circle cx="82" cy="22" r="14" stroke="rgba(133,136,230,0.22)" strokeWidth="1" fill="none" />
+
+          {/* Arm body — tapered rectangle angled down-left */}
+          <path
+            d="
+              M 76 32
+              C 68 44, 46 66, 30 88
+              C 22 100, 14 112, 18 120
+              C 22 128, 40 130, 58 124
+              C 74 118, 84 106, 88 92
+              C 92 76, 90 56, 86 40
+              Z
+            "
+            fill="url(#arm-l-grad)"
+            filter="url(#arm-l-drop)"
+          />
+          <path
+            d="
+              M 76 32
+              C 68 44, 46 66, 30 88
+              C 22 100, 14 112, 18 120
+              C 22 128, 40 130, 58 124
+              C 74 118, 84 106, 88 92
+              C 92 76, 90 56, 86 40
+              Z
+            "
+            fill="url(#arm-l-spec)"
+          />
+          <path
+            d="
+              M 76 32
+              C 68 44, 46 66, 30 88
+              C 22 100, 14 112, 18 120
+              C 22 128, 40 130, 58 124
+              C 74 118, 84 106, 88 92
+              C 92 76, 90 56, 86 40
+              Z
+            "
+            fill="url(#arm-l-rim)"
+          />
+          {/* Edge outline */}
+          <path
+            d="
+              M 76 32
+              C 68 44, 46 66, 30 88
+              C 22 100, 14 112, 18 120
+              C 22 128, 40 130, 58 124
+              C 74 118, 84 106, 88 92
+              C 92 76, 90 56, 86 40
+              Z
+            "
+            stroke="rgba(133,136,230,0.2)" strokeWidth="1" fill="none"
+          />
+          {/* Subtle centre-line crease for depth */}
+          <path d="M 78 38 C 64 60, 44 82, 36 108"
+            stroke="rgba(255,255,255,0.07)" strokeWidth="2" fill="none" strokeLinecap="round" />
+        </svg>
+
+        {/* ── Right arm (EVE-style: mirror of left) ── */}
+        <svg
+          ref={rightArmRef}
+          className="lp-orb-hand lp-orb-hand-right"
+          width="100" height="130"
+          viewBox="0 0 100 130"
+          fill="none"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient id="arm-r-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   stopColor="#2a2d52" />
+              <stop offset="50%"  stopColor="#1a1c3a" />
+              <stop offset="100%" stopColor="#0f1024" />
+            </linearGradient>
+            <radialGradient id="arm-r-spec" cx="70%" cy="20%" r="45%">
+              <stop offset="0%"  stopColor="rgba(180,184,255,0.28)" />
+              <stop offset="100%" stopColor="rgba(180,184,255,0)" />
+            </radialGradient>
+            <radialGradient id="arm-r-rim" cx="25%" cy="80%" r="40%">
+              <stop offset="0%"  stopColor="rgba(100,108,220,0.22)" />
+              <stop offset="100%" stopColor="rgba(100,108,220,0)" />
+            </radialGradient>
+            <filter id="arm-r-drop" x="-30%" y="-15%" width="160%" height="140%">
+              <feDropShadow dx="-2" dy="8" stdDeviation="7" floodColor="#000" floodOpacity="0.55" />
+            </filter>
+          </defs>
+          {/* Shoulder joint */}
+          <circle cx="18" cy="22" r="14" fill="url(#arm-r-grad)" filter="url(#arm-r-drop)" />
+          <circle cx="18" cy="22" r="14" fill="url(#arm-r-spec)" />
+          <circle cx="18" cy="22" r="14" fill="url(#arm-r-rim)" />
+          <circle cx="18" cy="22" r="14" stroke="rgba(133,136,230,0.22)" strokeWidth="1" fill="none" />
+
+          {/* Arm body — mirrored */}
+          <path
+            d="
+              M 24 32
+              C 32 44, 54 66, 70 88
+              C 78 100, 86 112, 82 120
+              C 78 128, 60 130, 42 124
+              C 26 118, 16 106, 12 92
+              C 8 76, 10 56, 14 40
+              Z
+            "
+            fill="url(#arm-r-grad)"
+            filter="url(#arm-r-drop)"
+          />
+          <path
+            d="
+              M 24 32
+              C 32 44, 54 66, 70 88
+              C 78 100, 86 112, 82 120
+              C 78 128, 60 130, 42 124
+              C 26 118, 16 106, 12 92
+              C 8 76, 10 56, 14 40
+              Z
+            "
+            fill="url(#arm-r-spec)"
+          />
+          <path
+            d="
+              M 24 32
+              C 32 44, 54 66, 70 88
+              C 78 100, 86 112, 82 120
+              C 78 128, 60 130, 42 124
+              C 26 118, 16 106, 12 92
+              C 8 76, 10 56, 14 40
+              Z
+            "
+            fill="url(#arm-r-rim)"
+          />
+          <path
+            d="
+              M 24 32
+              C 32 44, 54 66, 70 88
+              C 78 100, 86 112, 82 120
+              C 78 128, 60 130, 42 124
+              C 26 118, 16 106, 12 92
+              C 8 76, 10 56, 14 40
+              Z
+            "
+            stroke="rgba(133,136,230,0.2)" strokeWidth="1" fill="none"
+          />
+          <path d="M 22 38 C 36 60, 56 82, 64 108"
+            stroke="rgba(255,255,255,0.07)" strokeWidth="2" fill="none" strokeLinecap="round" />
+        </svg>
+
+        <div className="lp-orb-ring lp-orb-ring-1">
+          {dots.map((d, i) => (
+            <div key={i} className="lp-orb-dot" style={d.style} />
+          ))}
+        </div>
+        <div className="lp-orb-ring lp-orb-ring-2" />
+        <div className="lp-orb-ring lp-orb-ring-3" />
+        <div className="lp-orb-core">
+          {/* Eyebrows — absolute, above the eyes, outside face flex flow */}
+          <svg
+            className="lp-orb-brows"
+            viewBox="0 0 136 22"
+            fill="none"
+            aria-hidden="true"
+            style={{overflow:'visible'}}
+          >
+            {/* Left brow — arcs over left eye (centred ~x=33) */}
+            <path
+              d={brows.L}
+              stroke="rgba(165,168,244,0.8)"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              style={{transition:'d 0.35s ease'}}
+            />
+            {/* Right brow — arcs over right eye (centred ~x=103) */}
+            <path
+              d={brows.R}
+              stroke="rgba(165,168,244,0.8)"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              style={{transition:'d 0.35s ease'}}
+            />
+          </svg>
+
+          {/* ── FACE ── */}
+          <div className="lp-orb-face">
+
+            {/* Eyes row */}
+            <div className="lp-orb-eyes-row">
+              {/* Left eye */}
+              <div className={`lp-orb-eye-wrap ${eyeClass}`}>
+                <div className="lp-orb-eyelid" />
+                <div
+                  className="lp-orb-pupil"
+                  style={{ transform: `translate(${eyeOffset.x}px, ${eyeOffset.y}px)` }}
+                />
+              </div>
+              {/* Right eye */}
+              <div className={`lp-orb-eye-wrap ${eyeClass}`}>
+                <div className="lp-orb-eyelid" />
+                <div
+                  className="lp-orb-pupil"
+                  style={{ transform: `translate(${eyeOffset.x}px, ${eyeOffset.y}px)` }}
+                />
+              </div>
+            </div>
+
+            {/* Logo as mouth */}
+            <div className={`lp-orb-mouth ${mouthClass}`}>
+              <NiroLogo height={52} forceVariant={logoVariant} />
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      {/* Order micro-story cards */}
+      <div className="lp-order-card lp-oc-review">
+        <div className="lp-order-card-top">
+          <span className="lp-order-num">ORDER #1042</span>
+        </div>
+        <div className="lp-order-amt">$1,499</div>
+        <div className="lp-order-note">"Something looks unusual."</div>
+        <div className="lp-badge lp-badge-review">
+          <span className="lp-badge-dot" />
+          REVIEW
+        </div>
+      </div>
+
+      <div className="lp-order-card lp-oc-safe">
+        <div className="lp-order-card-top">
+          <span className="lp-order-num">ORDER #1043</span>
+        </div>
+        <div className="lp-order-amt">$129</div>
+        <div className="lp-order-note">"Looks good."</div>
+        <div className="lp-badge lp-badge-safe">
+          <span className="lp-badge-dot" />
+          SAFE ✓
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── ORDERS FLOW VISUAL (problem section) ────────────────────────────────── */
+function OrdersFlowVisual() {
+  const orders = [
+    { id:'#2041', amt:'$129',    hint:'Returning customer',      badge:'safe'    },
+    { id:'#2042', amt:'$1,499',  hint:'New account, high value', badge:'review'  },
+    { id:'#2043', amt:'$89',     hint:'Trusted buyer',           badge:'safe'    },
+    { id:'#2044', amt:'$3,200',  hint:'Unusual shipping',        badge:'blocked' },
+    { id:'#2045', amt:'$245',    hint:'Regular order',           badge:'safe'    },
+  ];
+
+  return (
+    <div className="lp-orders-flow">
+      <div className="lp-flow-label">Incoming orders</div>
+      <div className="lp-flow-orders">
+        {orders.map(o => (
+          <div className="lp-flow-order" key={o.id}>
+            <div className="lp-flow-left">
+              <span className="lp-flow-order-id">{o.id}</span>
+              <span className="lp-flow-order-amt">{o.amt}</span>
+              <span className="lp-flow-order-hint">{o.hint}</span>
+            </div>
+            <div className={`lp-badge lp-badge-${o.badge}`}>
+              <span className="lp-badge-dot" />
+              {o.badge === 'safe' ? 'SAFE ✓' : o.badge === 'review' ? 'REVIEW' : 'BLOCKED ✗'}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="lp-flow-watching">
+        <div className="lp-flow-watching-dot" />
+        <span>Niro is watching every order</span>
+      </div>
+    </div>
+  );
+}
+
+/* ── DASHBOARD MOCKUP ─────────────────────────────────────────────────────── */
+function DashboardMockup() {
+  const rows = [
+    { id:'#1048', name:'Sarah K.',  hint:'2 orders before',   amt:'$149', badge:'safe' },
+    { id:'#1049', name:'Unknown',   hint:'Unusual activity',  amt:'$1,249', badge:'review' },
+    { id:'#1050', name:'Tom R.',    hint:'Loyal customer',    amt:'$89',  badge:'safe' },
+    { id:'#1051', name:'M. Garcia', hint:'Flagged address',   amt:'$2,100', badge:'blocked' },
+    { id:'#1052', name:'Anna W.',   hint:'First order',       amt:'$320', badge:'review' },
+  ];
+  return (
+    <div className="lp-dash">
+      <div className="lp-dash-topbar">
+        <div className="lp-dash-dot" style={{background:'#f87171'}} />
+        <div className="lp-dash-dot" style={{background:'#fbbf24'}} />
+        <div className="lp-dash-dot" style={{background:'#4ade80'}} />
+        <span className="lp-dash-title">Niro — Today's Orders</span>
+      </div>
+      <div className="lp-dash-body">
+        <div className="lp-dash-stats">
+          <div className="lp-dash-stat">
+            <div className="lp-dash-stat-label">Safe</div>
+            <div className="lp-dash-stat-val green">47</div>
+          </div>
+          <div className="lp-dash-stat">
+            <div className="lp-dash-stat-label">Review</div>
+            <div className="lp-dash-stat-val amber">3</div>
+          </div>
+          <div className="lp-dash-stat">
+            <div className="lp-dash-stat-label">Blocked</div>
+            <div className="lp-dash-stat-val red">2</div>
+          </div>
+        </div>
+        <div className="lp-dash-orders-label">Recent orders</div>
+        {rows.map(r => (
+          <div className="lp-dash-order-row" key={r.id}>
+            <div className="lp-dash-order-info">
+              <span className="lp-dash-order-id">{r.id} · {r.name}</span>
+              <span className="lp-dash-order-meta">{r.hint}</span>
+            </div>
+            <div className="lp-dash-order-right">
+              <span className="lp-dash-order-amt">{r.amt}</span>
+              <div className={`lp-badge lp-badge-${r.badge}`} style={{fontSize:'10px',padding:'3px 8px'}}>
+                {r.badge === 'safe' ? 'SAFE ✓' : r.badge === 'review' ? 'REVIEW' : 'BLOCKED'}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── REASON CARD ──────────────────────────────────────────────────────────── */
+function ReasonCard() {
+  return (
+    <div className="lp-reason-card">
+      <div className="lp-reason-top">
+        <div className="lp-reason-order">
+          <span className="lp-reason-order-num">ORDER #1048</span>
+          <span className="lp-reason-order-amt">$1,249</span>
+        </div>
+        <div className="lp-badge lp-badge-review" style={{fontSize:'12px'}}>
+          <span className="lp-badge-dot" />
+          REVIEW
+        </div>
+      </div>
+      <div className="lp-reason-body">
+        <div className="lp-reason-why-label">Why Niro flagged this</div>
+        <div className="lp-reason-items">
+          <div className="lp-reason-item">
+            <div className="lp-reason-item-dot" />
+            <span>New customer — first order on this account</span>
+          </div>
+          <div className="lp-reason-item">
+            <div className="lp-reason-item-dot" />
+            <span>Unusually large order for this product category</span>
+          </div>
+          <div className="lp-reason-item">
+            <div className="lp-reason-item-dot" />
+            <span>Shipping address doesn't match billing details</span>
+          </div>
+        </div>
+        <div className="lp-reason-action">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a5a8f4" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Now you know what to check before you ship.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── SECURITY ORB (3D CSS) ────────────────────────────────────────────────── */
+/* ── SECURITY ORB — uses the same NiroVisualization from login/register ─────── */
+function SecurityOrb() {
+  return (
+    <div className="lp-sec-viz-wrap">
+      <NiroVisualization
+        isDark={true}
+        className="lp-sec-viz"
+      />
+    </div>
+  );
+}
+
+/* ── NAV ──────────────────────────────────────────────────────────────────── */
+function Nav({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
+  const [open, setOpen] = useState(false);
+  const close = useCallback(() => setOpen(false), []);
+
+  const links = [
+    { href:'#features',      label:'Features' },
+    { href:'#how-it-works',  label:'How It Works' },
+    { href:'#security',      label:'Security' },
+    { href:'#testimonials',  label:'Testimonials' },
+  ];
+
+  return (
+    <nav className="lp-nav">
+      <div className="wrap lp-nav-inner">
+        <Link to="/" className="lp-brand" onClick={close}>
+          <NiroLogo height={28} forceVariant={logoVariant} />
+          NIRO
+        </Link>
+
+        <div className="lp-nav-links">
+          {links.map(l => (
+            <a key={l.href} href={l.href}>{l.label}</a>
+          ))}
+        </div>
+
+        <div className="lp-nav-actions">
+          <Link to="/login" className="lp-btn lp-btn-ghost">Log In</Link>
+          <Link to="/register" className="lp-btn lp-btn-primary">Get Started</Link>
+        </div>
+
+        <button
+          className="lp-mobile-btn"
+          onClick={() => setOpen(o => !o)}
+          aria-label={open ? 'Close menu' : 'Open menu'}
+          aria-expanded={open}
+        >
+          {open ? <X size={22} /> : <Menu size={22} />}
+        </button>
+      </div>
+
+      {open && (
+        <div className="lp-mobile-menu">
+          {links.map(l => (
+            <a key={l.href} href={l.href} onClick={close}>{l.label}</a>
+          ))}
+          <div className="lp-mm-divider" />
+          <Link to="/login" onClick={close}>Log In</Link>
+          <Link to="/register" onClick={close} className="lp-mm-primary">Get Started →</Link>
+        </div>
+      )}
+    </nav>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MAIN LANDING PAGE EXPORT
+───────────────────────────────────────────────────────────────────────────── */
 export function Landing() {
-  const { resolvedTheme } = useTheme();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const navItems = ['Product', 'How it works', 'Risk Intelligence', 'Security'];
+  useTheme(); // keeps ThemeProvider context alive; landing always renders in dark style
+  useRevealOnScroll();
+
+  // Force body to match the landing dark background — prevents any gap or flash
+  useEffect(() => {
+    const prev = document.body.style.cssText;
+    document.body.style.margin = '0';
+    document.body.style.padding = '0';
+    document.body.style.background = '#0c0d14';
+    document.body.style.overflow = 'auto';
+    return () => { document.body.style.cssText = prev; };
+  }, []);
+
+  const logoVariant = 'dark'; // landing is always dark
 
   return (
     <>
-      <style>{LANDING_STYLES}</style>
-      <div className="landing">
-        <header className="landing-shell landing-nav">
-          <Link to="/" className="landing-brand" aria-label="Niro home"><NiroLogo height={34} forceVariant={resolvedTheme} /><span>NIRO</span></Link>
-          <nav className="landing-nav-links" aria-label="Main navigation">
-            {navItems.map((item) => <a key={item} href={`#${item.toLowerCase().replaceAll(' ', '-')}`}>{item}</a>)}
-          </nav>
-          <div className="landing-nav-actions"><Link className="landing-login" to="/login">Log in</Link><Link className="landing-button landing-button--primary" to="/register">Get Started <ArrowRight size={15} /></Link></div>
-          <button className="landing-menu" aria-label="Toggle menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <Menu />}</button>
-          {menuOpen && <nav className="landing-mobile-panel" aria-label="Mobile navigation">{navItems.map((item) => <a onClick={() => setMenuOpen(false)} key={item} href={`#${item.toLowerCase().replaceAll(' ', '-')}`}>{item}</a>)}<Link onClick={() => setMenuOpen(false)} to="/login">Log in</Link><Link className="landing-button landing-button--primary" to="/register">Get Started <ArrowRight size={15} /></Link></nav>}
-        </header>
+      <style>{STYLES}</style>
+      <div className="lp">
 
-        <main>
-          <section className="landing-hero landing-shell" id="product">
-            <div className="landing-hero-grid">
-              <div className="landing-hero-copy">
-                <div className="landing-eyebrow"><span /> Risk intelligence for merchants</div>
-                <h1 className="landing-title">Know the risk before it becomes a <em>loss.</em></h1>
-                <p className="landing-copy">Niro turns transaction activity into clear, explainable risk intelligence—so your team can spot suspicious patterns, investigate with context, and make confident decisions in real time.</p>
-                <div className="landing-hero-actions"><Link className="landing-button landing-button--primary" to="/register">Get Started <ArrowRight size={16} /></Link><a className="landing-button landing-button--secondary" href="#how-it-works">See how it works <ChevronDown size={16} /></a></div>
-                <div className="landing-hero-note"><ShieldCheck size={17} /> Built for merchant risk operations—not generic alerts.</div>
+        {/* ── subtle background grid + glows ─────────────────────────── */}
+        <div className="lp-bg-grid" aria-hidden="true" />
+        <div className="lp-bg-glow-a" aria-hidden="true" />
+        <div className="lp-bg-glow-b" aria-hidden="true" />
+
+        {/* ══════════════════════════════════════════════════════════════
+            NAV
+        ══════════════════════════════════════════════════════════════ */}
+        <Nav logoVariant={logoVariant} />
+
+        {/* All page content below the fixed nav */}
+        <div className="lp-page-body">
+
+        {/* ══════════════════════════════════════════════════════════════
+            HERO
+        ══════════════════════════════════════════════════════════════ */}
+        <section aria-label="Hero">
+          <div className="wrap">
+            <div className="lp-hero">
+
+              {/* LEFT — copy */}
+              <div className="lp-hero-left">
+                <div className="lp-hero-tag">
+                  <span className="lp-hero-tag-dot" />
+                  Watching your store, right now
+                </div>
+
+                <h1>
+                  Stop bad orders<br />
+                  <span className="lp-h1-accent">before they cost you.</span>
+                </h1>
+
+                <p className="lp-hero-sub">
+                  Niro watches your store around the clock, spots suspicious
+                  orders, and tells you what to do — before you lose money.
+                </p>
+
+                <div className="lp-hero-ctas">
+                  <Link to="/register" className="lp-btn-hero-primary">
+                    Protect My Store <ArrowRight size={16} />
+                  </Link>
+                  <a href="#how-it-works" className="lp-btn-hero-secondary">
+                    See How It Works
+                  </a>
+                </div>
+
+                <div className="lp-hero-trust">
+                  {[
+                    'No technical skills needed',
+                    'Quick setup',
+                    'You always decide',
+                  ].map(t => (
+                    <div className="lp-hero-trust-item" key={t}>
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                        <circle cx="7" cy="7" r="7" fill="rgba(74,222,128,0.15)" />
+                        <path d="M4 7l2 2 4-4" stroke="#4ade80" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      {t}
+                    </div>
+                  ))}
+                </div>
               </div>
-              <ProductConsole />
+
+              {/* RIGHT — 3D orb */}
+              <NiroOrb logoVariant={logoVariant} />
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section className="landing-proof"><div className="landing-shell landing-proof-grid">
-            <Proof icon={Zap} text="Real-time risk analysis" /><Proof icon={Eye} text="Explainable decisions" /><Proof icon={ShieldCheck} text="Secure architecture" /><Proof icon={Network} text="Merchant-focused intelligence" />
-          </div></section>
+        {/* ══════════════════════════════════════════════════════════════
+            TRUST BAR
+        ══════════════════════════════════════════════════════════════ */}
+        <div className="lp-trust" aria-label="Trust signals">
+          <div className="wrap lp-trust-inner">
+            {[
+              { icon: (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              ), label: '24/7 Protection' },
+              { icon: (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              ), label: 'Fast Decisions' },
+              { icon: (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              ), label: 'Simple to Use' },
+              { icon: (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+              ), label: 'Built for Growing Stores' },
+            ].map(item => (
+              <div className="lp-trust-item" key={item.label}>
+                <div className="lp-trust-icon" aria-hidden="true">{item.icon}</div>
+                {item.label}
+              </div>
+            ))}
+          </div>
+        </div>
 
-          <section className="landing-section landing-shell" id="risk-intelligence">
-            <div className="landing-problem-grid"><div className="landing-section-heading"><div className="landing-eyebrow"><span /> The operational gap</div><h2>More transactions. Less clarity.</h2><p>As payment activity grows, the signals that matter get buried. Static rules cannot keep up with behavior that changes by the minute.</p></div>
-            <div className="landing-problem-list">
-              <Problem number="01" title="Volume hides the signal" copy="High transaction throughput makes suspicious behavior difficult to isolate." />
-              <Problem number="02" title="Rules age quickly" copy="Evolving patterns can move beyond fixed thresholds and one-dimensional checks." />
-              <Problem number="03" title="Investigation is expensive" copy="Analysts lose time reconstructing context across customers, payments, devices, and IPs." />
-              <Problem number="04" title="Alerts are not answers" copy="Teams need an evidence trail that explains why attention is warranted." />
-            </div></div>
-          </section>
-
-          <section className="landing-section landing-section--soft" id="how-it-works"><div className="landing-shell">
-            <div className="landing-section-heading"><div className="landing-eyebrow"><span /> How Niro works</div><h2>From transaction to informed action.</h2><p>A practical intelligence layer designed around the flow of real merchant risk operations.</p></div>
-            <div className="landing-flow">
-              <Flow icon={Activity} title="Transaction" copy="Activity enters the risk workflow with its payment and identity context." />
-              <Flow icon={Cpu} title="Risk analysis" copy="Signals such as velocity, reuse, and similarity are evaluated." />
-              <Flow icon={Network} title="Intelligence" copy="Connected behavior and suspicious clusters are surfaced for review." />
-              <Flow icon={Check} title="Decision" copy="Analysts receive a clear recommendation and evidence to act on." />
+        {/* ══════════════════════════════════════════════════════════════
+            PROBLEM SECTION
+        ══════════════════════════════════════════════════════════════ */}
+        <section className="lp-problem" id="features" aria-label="The problem">
+          <div className="wrap">
+            <div className="lp-problem-header lp-reveal">
+              <div className="lp-eyebrow">The problem</div>
+              <h2 className="lp-section-h2">Running your store<br />is hard enough.</h2>
+              <p className="lp-section-sub">
+                You shouldn't have to wonder which orders are real.
+              </p>
             </div>
-          </div></section>
 
-          <section className="landing-section landing-shell"><div className="landing-section-heading"><div className="landing-eyebrow"><span /> Intelligence, made operational</div><h2>See more than an alert.</h2><p>Niro’s product capabilities map to the work risk teams actually need to do: understand, investigate, and improve.</p></div>
-          <div className="landing-capabilities">{capabilities.map(({ icon: Icon, title, copy }) => <article className="landing-capability" key={title}><div className="landing-capability-icon"><Icon size={19} /></div><h3>{title}</h3><p>{copy}</p></article>)}</div></section>
+            <div className="lp-problem-layout">
+              {/* left — 4 pain points */}
+              <div className="lp-problem-items">
+                {[
+                  {
+                    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>,
+                    title: 'Fake Orders',
+                    desc: 'Orders that look real but leave you with the bill and nothing to show for it.',
+                    delay: 'lp-reveal-d1',
+                  },
+                  {
+                    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+                    title: 'Wasted Time',
+                    desc: 'Hours spent checking orders one by one, pulling you away from running your store.',
+                    delay: 'lp-reveal-d2',
+                  },
+                  {
+                    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>,
+                    title: 'Good Customers Blocked',
+                    desc: 'Too many rules can turn away real buyers and hurt your sales.',
+                    delay: 'lp-reveal-d3',
+                  },
+                  {
+                    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
+                    title: 'Uncertainty',
+                    desc: "An alert shouldn't leave you wondering what to do next.",
+                    delay: 'lp-reveal-d4',
+                  },
+                ].map(item => (
+                  <div className={`lp-problem-item lp-reveal ${item.delay}`} key={item.title}>
+                    <div className="lp-problem-icon-wrap" aria-hidden="true">{item.icon}</div>
+                    <div className="lp-problem-text">
+                      <h3>{item.title}</h3>
+                      <p>{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-          <section className="landing-section landing-section--soft"><div className="landing-shell landing-showcase">
-            <div className="landing-showcase-window"><div className="landing-showcase-top"><b>Investigation queue</b><span>Priority view</span></div><div className="landing-showcase-body">
-              <ShowcaseRow icon={CircleAlert} name="Payment #TXN-8842" sub="Device reuse · Rapid retries" risk="High risk" />
-              <ShowcaseRow icon={Network} name="Cluster CL-184" sub="Connected account activity" risk="Critical" />
-              <ShowcaseRow icon={Timer} name="Payment #TXN-8711" sub="Unusual transaction velocity" risk="High risk" />
-              <div className="landing-callout"><h3>Evidence, not just escalation.</h3><p>Surface the signals behind a decision before an analyst begins an investigation.</p></div>
-            </div></div>
-            <div className="landing-section-heading"><div className="landing-eyebrow"><span /> Risk intelligence, not just alerts</div><h2>Give every decision its context.</h2><p>Rather than a disconnected stream of flags, Niro brings together risk signals, relationships, and investigation workflow in one operating view.</p><div className="landing-hero-actions"><Link className="landing-button landing-button--secondary" to="/login">Explore the workspace <ArrowRight size={16} /></Link></div></div>
-          </div></section>
+              {/* right — live orders flow visual */}
+              <div className="lp-reveal lp-reveal-d2">
+                <OrdersFlowVisual />
+              </div>
+            </div>
+          </div>
+        </section>
 
-          <section className="landing-section landing-shell" id="security"><div className="landing-security"><div className="landing-section-heading"><div className="landing-eyebrow"><span /> Built with restraint</div><h2>Trust starts with visibility.</h2><p>Niro is designed to support controlled risk operations with a focused application surface and auditable activity.</p></div><div className="landing-security-lines">
-            <Security icon={ShieldCheck} title="Authenticated workspace access" text="Protected application routes keep operational views within the authenticated product experience." />
-            <Security icon={FileSearch} title="Audit trail" text="The product includes an audit view to support visibility into operational activity." />
-            <Security icon={Eye} title="Explainable intelligence" text="Risk signals are made available as context for analysts—not hidden behind a black-box outcome." />
-          </div></div></section>
+        {/* ══════════════════════════════════════════════════════════════
+            HOW NIRO WORKS
+        ══════════════════════════════════════════════════════════════ */}
+        <section className="lp-hiw" id="how-it-works" aria-label="How Niro works">
+          <div className="wrap">
+            <div className="lp-hiw-header lp-reveal">
+              <div className="lp-eyebrow">How it works</div>
+              <h2 className="lp-section-h2">How Niro protects<br />your store</h2>
+              <p className="lp-section-sub">Simple for you. Powerful behind the scenes.</p>
+            </div>
 
-          <section className="landing-shell landing-cta"><div className="landing-eyebrow"><span /> Make risk actionable</div><h2>Turn transaction data into confident decisions.</h2><p>Bring clarity to the signals your team already sees—and turn them into a smarter risk operation.</p><Link className="landing-button landing-button--primary" to="/register">Get Started <ArrowRight size={16} /></Link></section>
-        </main>
-        <footer className="landing-footer"><div className="landing-shell landing-footer-inner"><Link to="/" className="landing-brand"><NiroLogo height={28} forceVariant={resolvedTheme} /><span>NIRO</span></Link><div className="landing-footer-links"><a href="#product">Product</a><a href="#how-it-works">How it works</a><a href="#security">Security</a><Link to="/login">Log in</Link></div><span className="landing-footer-copy">© {new Date().getFullYear()} Niro</span></div></footer>
+            <div className="lp-hiw-steps lp-reveal lp-reveal-d1">
+              {[
+                {
+                  num: '01',
+                  icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>,
+                  title: 'Connect',
+                  desc: 'Connect your store in a few clicks. No coding, no setup headaches.',
+                },
+                {
+                  num: '02',
+                  icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+                  title: 'Watch',
+                  desc: 'Niro checks every order the moment it comes in — automatically.',
+                },
+                {
+                  num: '03',
+                  icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
+                  title: 'Understand',
+                  desc: "You see what's safe and what needs a closer look, in plain language.",
+                },
+                {
+                  num: '04',
+                  icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+                  title: 'Decide',
+                  desc: 'You always make the final call. Niro recommends. You decide.',
+                },
+              ].map((step, i, arr) => (
+                <div className="lp-hiw-step" key={step.num}>
+                  <div className="lp-hiw-step-num">{step.num}</div>
+                  <div className="lp-hiw-step-icon" aria-hidden="true">{step.icon}</div>
+                  <h3>{step.title}</h3>
+                  <p>{step.desc}</p>
+                  {i < arr.length - 1 && <div className="lp-hiw-connector" aria-hidden="true" />}
+                </div>
+              ))}
+            </div>
+
+            {/* Order journey track */}
+            <div className="lp-journey lp-reveal lp-reveal-d2">
+              <div className="lp-journey-label">Watch an order move through Niro</div>
+              <div className="lp-journey-track">
+
+                <div className="lp-journey-stage">
+                  <div className="lp-journey-stage-label">Incoming</div>
+                  <div className="lp-journey-card">
+                    <div className="lp-journey-card-amt">$129</div>
+                    <div className="lp-journey-card-hint">Sarah M. · returning buyer</div>
+                  </div>
+                  <div className="lp-journey-card">
+                    <div className="lp-journey-card-amt">$890</div>
+                    <div className="lp-journey-card-hint">New account · first order</div>
+                  </div>
+                  <div className="lp-journey-card">
+                    <div className="lp-journey-card-amt">$1,499</div>
+                    <div className="lp-journey-card-hint">Unknown · unusual shipping</div>
+                  </div>
+                </div>
+
+                <div className="lp-journey-arrow" aria-hidden="true">→</div>
+
+                <div className="lp-journey-stage">
+                  <div className="lp-journey-stage-label">Niro checks it</div>
+                  <div className="lp-journey-card">
+                    <div className="lp-journey-card-amt">$129</div>
+                    <div className="lp-journey-card-hint">Order history ✓  ·  Matching info ✓</div>
+                  </div>
+                  <div className="lp-journey-card">
+                    <div className="lp-journey-card-amt">$890</div>
+                    <div className="lp-journey-card-hint">New customer ·  High value</div>
+                  </div>
+                  <div className="lp-journey-card">
+                    <div className="lp-journey-card-amt">$1,499</div>
+                    <div className="lp-journey-card-hint">No history ·  Address mismatch</div>
+                  </div>
+                </div>
+
+                <div className="lp-journey-arrow" aria-hidden="true">→</div>
+
+                <div className="lp-journey-stage">
+                  <div className="lp-journey-stage-label">Niro explains it</div>
+                  <div className="lp-journey-card">
+                    <div className="lp-journey-card-amt">$129</div>
+                    <div className="lp-journey-card-hint">"Trusted customer, all good."</div>
+                  </div>
+                  <div className="lp-journey-card">
+                    <div className="lp-journey-card-amt">$890</div>
+                    <div className="lp-journey-card-hint">"Large first order — worth a check."</div>
+                  </div>
+                  <div className="lp-journey-card">
+                    <div className="lp-journey-card-amt">$1,499</div>
+                    <div className="lp-journey-card-hint">"Looks suspicious. Don't ship yet."</div>
+                  </div>
+                </div>
+
+                <div className="lp-journey-arrow" aria-hidden="true">→</div>
+
+                <div className="lp-journey-stage">
+                  <div className="lp-journey-stage-label">You decide</div>
+                  <div className="lp-journey-card">
+                    <div className="lp-journey-card-result">
+                      <div className="lp-badge lp-badge-safe"><span className="lp-badge-dot"/>SAFE ✓</div>
+                    </div>
+                  </div>
+                  <div className="lp-journey-card">
+                    <div className="lp-journey-card-result">
+                      <div className="lp-badge lp-badge-review"><span className="lp-badge-dot"/>REVIEW</div>
+                    </div>
+                  </div>
+                  <div className="lp-journey-card">
+                    <div className="lp-journey-card-result">
+                      <div className="lp-badge lp-badge-blocked"><span className="lp-badge-dot"/>BLOCKED ✗</div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════════════════════
+            PRODUCT SHOWCASE
+        ══════════════════════════════════════════════════════════════ */}
+        <section className="lp-product" aria-label="Product showcase">
+          <div className="wrap">
+            <div className="lp-product-layout">
+
+              <div className="lp-product-copy lp-reveal">
+                <div className="lp-eyebrow">The dashboard</div>
+                <h2>Know what's happening<br />in your store.</h2>
+                <p>
+                  One simple view of the orders that matter.
+                  At a glance you see what's safe, what to check,
+                  and what's been stopped.
+                </p>
+                <div className="lp-product-checks">
+                  {[
+                    "Today's safe, review, and blocked orders",
+                    'See who is buying and why Niro flagged an order',
+                    'A short list of orders that need your attention',
+                    'No confusing charts — just clear answers',
+                  ].map(c => (
+                    <div className="lp-product-check" key={c}>
+                      <div className="lp-product-check-icon">✓</div>
+                      {c}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="lp-reveal lp-reveal-d1">
+                <DashboardMockup />
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════════════════════
+            EXPLAINABLE DECISIONS
+        ══════════════════════════════════════════════════════════════ */}
+        <section className="lp-explain" aria-label="Explainable decisions">
+          <div className="wrap">
+            <div className="lp-explain-layout">
+
+              <div className="lp-reveal lp-reveal-d1">
+                <ReasonCard />
+              </div>
+
+              <div className="lp-explain-copy lp-reveal">
+                <div className="lp-eyebrow">Clear answers</div>
+                <h2>Don't just get an alert.<br />Know why.</h2>
+                <p>
+                  When Niro flags an order, it tells you exactly what
+                  to look at — in plain language, not confusing numbers.
+                </p>
+                <div className="lp-explain-tagline">
+                  "Is the shipping address different from the billing address?
+                  Is this a new customer placing an unusually large order?
+                  Niro points it out so you can check before you ship."
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════════════════════
+            BENTO FEATURES
+        ══════════════════════════════════════════════════════════════ */}
+        <section className="lp-features" id="features-grid" aria-label="Features">
+          <div className="wrap">
+            <div className="lp-features-header lp-reveal">
+              <div className="lp-eyebrow">Features</div>
+              <h2 className="lp-section-h2">Everything you need.<br />Nothing confusing.</h2>
+            </div>
+
+            <div className="lp-bento lp-reveal lp-reveal-d1">
+
+              {/* Cell A — Check orders instantly (wide) */}
+              <div className="lp-bento-cell lp-bento-a">
+                <div className="lp-bento-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8588e6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </div>
+                <h3>Check Orders Instantly</h3>
+                <p>Know whether an order looks safe before you ship it.</p>
+                <div className="lp-mini-order-list">
+                  <div className="lp-mini-order-row">
+                    <span>Order #1060 · $149</span>
+                    <div className="lp-badge lp-badge-safe" style={{fontSize:'10px',padding:'3px 8px'}}>SAFE ✓</div>
+                  </div>
+                  <div className="lp-mini-order-row">
+                    <span>Order #1061 · $1,299</span>
+                    <div className="lp-badge lp-badge-review" style={{fontSize:'10px',padding:'3px 8px'}}>REVIEW</div>
+                  </div>
+                  <div className="lp-mini-order-row">
+                    <span>Order #1062 · $89</span>
+                    <div className="lp-badge lp-badge-safe" style={{fontSize:'10px',padding:'3px 8px'}}>SAFE ✓</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cell B — Clear answers */}
+              <div className="lp-bento-cell lp-bento-b">
+                <div className="lp-bento-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8588e6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <h3>Clear Answers</h3>
+                <p>No confusing scores. Just simple recommendations you can act on immediately.</p>
+              </div>
+
+              {/* Cell C — Know your customers */}
+              <div className="lp-bento-cell lp-bento-c">
+                <div className="lp-bento-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8588e6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <h3>Know Your Customers</h3>
+                <p>See who's buying and whether they've ordered from you before.</p>
+              </div>
+
+              {/* Cell D — Spot repeat problems */}
+              <div className="lp-bento-cell lp-bento-d">
+                <div className="lp-bento-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8588e6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+                </div>
+                <h3>Spot Repeat Problems</h3>
+                <p>Niro remembers suspicious activity so you don't have to.</p>
+                <div className="lp-memory-dots" aria-hidden="true">
+                  {[
+                    '#f87171','#f87171','#fbbf24',
+                    '#fbbf24','#f87171','#4ade80',
+                    '#4ade80','#4ade80','#fbbf24',
+                    '#f87171',
+                  ].map((c, i) => (
+                    <div key={i} className="lp-memory-dot" style={{background:c, opacity: 0.7}} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Cell E — Short review list */}
+              <div className="lp-bento-cell lp-bento-e">
+                <div className="lp-bento-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8588e6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                </div>
+                <h3>A Short Review List</h3>
+                <p>See the few orders that actually need your attention — not hundreds of false alarms.</p>
+              </div>
+
+              {/* Cell F — Data protection */}
+              <div className="lp-bento-cell lp-bento-f">
+                <div className="lp-bento-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8588e6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <h3>Keep Customer Data Safe</h3>
+                <p>Your store's information stays protected. We never share it.</p>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════════════════════
+            SECURITY
+        ══════════════════════════════════════════════════════════════ */}
+        <section className="lp-security" id="security" aria-label="Security">
+          <div className="wrap lp-security-inner">
+
+            <div className="lp-security-copy lp-reveal">
+              <div className="lp-eyebrow">Security</div>
+              <h2>Your store deserves<br />serious protection.</h2>
+              <p>
+                Niro keeps your information protected while quietly
+                watching over your orders — every hour of every day.
+              </p>
+              <div className="lp-sec-items">
+                {[
+                  {
+                    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+                    title: 'Everything is kept safe',
+                    desc: 'Your store data and customer information are protected at all times.',
+                  },
+                  {
+                    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
+                    title: 'Your data is yours',
+                    desc: 'We never sell or share your information. Ever.',
+                  },
+                  {
+                    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+                    title: 'Always watching',
+                    desc: 'Niro monitors your orders around the clock, even when you sleep.',
+                  },
+                ].map(item => (
+                  <div className="lp-sec-item" key={item.title}>
+                    <div className="lp-sec-item-icon" aria-hidden="true">{item.icon}</div>
+                    <div className="lp-sec-item-text">
+                      <h4>{item.title}</h4>
+                      <p>{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={{marginTop:'28px',display:'flex',flexDirection:'column',gap:'10px'}}>
+                {['Protected','Monitoring active','Your data stays private'].map(label => (
+                  <div key={label} style={{display:'flex',alignItems:'center',gap:'10px',fontSize:'13px',color:'rgba(232,234,240,0.5)',fontWeight:500}}>
+                    <div style={{width:'18px',height:'18px',borderRadius:'50%',background:'rgba(74,222,128,0.15)',border:'1px solid rgba(74,222,128,0.3)',display:'flex',alignItems:'center',justifyContent:'center',color:'#4ade80',fontSize:'9px',fontWeight:800,flexShrink:0}}>✓</div>
+                    {label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="lp-reveal lp-reveal-d2">
+              <SecurityOrb />
+            </div>
+
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════════════════════
+            BEFORE / AFTER
+        ══════════════════════════════════════════════════════════════ */}
+        <section className="lp-results" aria-label="What changes with Niro">
+          <div className="wrap">
+            <div className="lp-results-header lp-reveal">
+              <div className="lp-eyebrow">The difference</div>
+              <h2 className="lp-section-h2">What changes<br />with Niro</h2>
+            </div>
+
+            <div className="lp-ba-grid lp-reveal lp-reveal-d1">
+
+              <div className="lp-ba-card lp-ba-before">
+                <div className="lp-ba-header">
+                  <span>✗</span>
+                  Without Niro
+                </div>
+                <div className="lp-ba-list">
+                  {[
+                    'Hours spent checking orders one by one',
+                    'No way to tell real orders from fake ones',
+                    'Suspicious orders slip through unnoticed',
+                    'Good customers accidentally blocked',
+                    'Confusing alerts with no explanation',
+                  ].map(item => (
+                    <div className="lp-ba-item" key={item}>
+                      <span className="lp-ba-item-icon">✗</span>
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="lp-ba-card lp-ba-after">
+                <div className="lp-ba-header">
+                  <span>✓</span>
+                  With Niro
+                </div>
+                <div className="lp-ba-list">
+                  {[
+                    'Clear recommendations on every order',
+                    'Spend less time manually checking',
+                    'Suspicious orders caught before you ship',
+                    'More confidence, fewer wrong calls',
+                    'Plain-language explanations for every flag',
+                  ].map(item => (
+                    <div className="lp-ba-item" key={item}>
+                      <span className="lp-ba-item-icon">✓</span>
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════════════════════
+            TESTIMONIALS
+        ══════════════════════════════════════════════════════════════ */}
+        <section className="lp-testi" id="testimonials" aria-label="Testimonials">
+          <div className="wrap">
+            <div className="lp-testi-header lp-reveal">
+              <div className="lp-eyebrow">Merchants</div>
+              <h2 className="lp-section-h2">Merchants sleep better<br />with Niro.</h2>
+              <p className="lp-section-sub">
+                Because they know someone is watching the orders.
+              </p>
+            </div>
+
+            <div className="lp-testi-grid">
+              {[
+                {
+                  quote: 'I used to spend hours checking suspicious orders. Now Niro tells me which ones actually need my attention. I get that time back every single day.',
+                  name: 'Priya Sharma',
+                  store: 'Boutique Owner',
+                  color: '#8588e6',
+                  delay: 'lp-reveal-d1',
+                },
+                {
+                  quote: "We were losing money to bad orders without even realising it. Niro started catching them straight away. The explanation it gives is what I love most — I finally understand why.",
+                  name: 'Marcus Obi',
+                  store: 'Electronics Retailer',
+                  color: '#4ade80',
+                  delay: 'lp-reveal-d2',
+                },
+                {
+                  quote: "The best part is how simple it is. I'm not a tech person at all. I just see a green, yellow, or red on each order. That's all I need.",
+                  name: 'Li Wei',
+                  store: 'Apparel Brand',
+                  color: '#fbbf24',
+                  delay: 'lp-reveal-d3',
+                },
+              ].map(t => (
+                <div className={`lp-testi-card lp-reveal ${t.delay}`} key={t.name}>
+                  <div className="lp-testi-quote" aria-hidden="true">"</div>
+                  <p className="lp-testi-text">{t.quote}</p>
+                  <div className="lp-testi-author">
+                    <div
+                      className="lp-testi-avatar"
+                      style={{background:t.color}}
+                      aria-hidden="true"
+                    >
+                      {t.name.charAt(0)}
+                    </div>
+                    <div>
+                      <span className="lp-testi-name">{t.name}</span>
+                      <span className="lp-testi-store">{t.store}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════════════════════
+            FINAL CTA
+        ══════════════════════════════════════════════════════════════ */}
+        <section className="lp-cta" aria-label="Get started">
+          <div className="wrap">
+            <div className="lp-cta-inner lp-reveal">
+              <div className="lp-cta-orb-wrap" aria-hidden="true">
+                <div className="lp-cta-orb" />
+              </div>
+              <div className="lp-cta-content">
+                <div className="lp-eyebrow" style={{justifyContent:'center'}}>Get started</div>
+                <h2>Spend less time worrying<br />about orders.</h2>
+                <p>
+                  Let Niro watch the risk while you focus on
+                  growing your store.
+                </p>
+                <div className="lp-cta-actions">
+                  <Link to="/register" className="lp-btn-hero-primary">
+                    Start Protecting My Store <ArrowRight size={16} />
+                  </Link>
+                  <Link to="/login" className="lp-btn-hero-secondary">
+                    Log In
+                  </Link>
+                </div>
+                <p className="lp-cta-reassurance">Quick setup. No technical skills needed.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════════════════════
+            FOOTER
+        ══════════════════════════════════════════════════════════════ */}
+        <footer className="lp-footer" aria-label="Footer">
+          <div className="wrap">
+            <div className="lp-footer-inner">
+
+              {/* ── Left: brand + nav + legal ── */}
+              <div className="lp-footer-left">
+                <div className="lp-footer-brand">
+                  <NiroLogo height={24} forceVariant={logoVariant} />
+                  NIRO
+                </div>
+                <nav className="lp-footer-nav" aria-label="Footer navigation">
+                  <a href="#how-it-works">How It Works</a>
+                  <a href="#features">Features</a>
+                  <a href="#security">Security</a>
+                  <a href="#testimonials">Testimonials</a>
+                  <Link to="/login">Log In</Link>
+                  <Link to="/register" style={{color:'#8588e6',fontWeight:600}}>Get Started</Link>
+                </nav>
+                <div className="lp-footer-legal">
+                  <a href="#">Privacy Policy</a>
+                  <span className="lp-footer-dot">·</span>
+                  <a href="#">Terms of Service</a>
+                </div>
+                <p className="lp-footer-copy">
+                  © {new Date().getFullYear()} Niro.
+                  <span className="lp-footer-dot">·</span>
+                  Protecting merchants worldwide.
+                </p>
+              </div>
+
+              {/* ── Right: Connect card ── */}
+              <div className="lp-footer-connect">
+                <div className="lp-footer-connect-title">Connect</div>
+
+                <div className="lp-footer-social-row">
+                  {/* GitHub */}
+                  <a
+                    href="https://github.com/Rayan-Mohammed-Rafeeq"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="lp-footer-social-btn"
+                    aria-label="GitHub"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M12 2C6.477 2 2 6.484 2 12.021c0 4.428 2.865 8.184 6.839 9.504.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.021C22 6.484 17.522 2 12 2z"/>
+                    </svg>
+                    GitHub
+                  </a>
+
+                  {/* LinkedIn */}
+                  <a
+                    href="https://www.linkedin.com/in/rayan-mohammed-rafeeq"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="lp-footer-social-btn"
+                    aria-label="LinkedIn"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                    LinkedIn
+                  </a>
+                </div>
+
+                {/* Profile card */}
+                <div className="lp-footer-profile">
+                  <img
+                    src="/pic.png"
+                    alt="Rayan Mohammed Rafeeq"
+                    className="lp-footer-avatar"
+                  />
+                  <div className="lp-footer-profile-info">
+                    <span className="lp-footer-profile-name">Rayan Mohammed Rafeeq</span>
+                    <span className="lp-footer-profile-role">Developer</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </footer>
+
+        </div>{/* end lp-page-body */}
+
       </div>
     </>
   );
 }
-
-function ProductConsole() { const bars = [28, 34, 26, 42, 84, 61, 47, 31]; return <div className="landing-console" aria-label="Niro risk intelligence preview"><div className="landing-console-bar"><span>Risk assessment · #TXN-8842</span><span className="landing-live"><i /> Live analysis</span></div><div className="landing-console-main"><section className="landing-panel"><div className="landing-transaction-head"><div><div className="landing-panel-kicker">Transaction risk</div><div className="landing-transaction-id">Payment review</div></div><div className="landing-score">78</div></div><div className="landing-transaction-details"><Detail label="Amount" value="$842.00" /><Detail label="Status" value="Review" /><Detail label="Merchant" value="ACME Store" /><Detail label="Method" value="Card" /></div><div className="landing-decision"><CircleAlert size={20} /><div><strong>Recommend review</strong>High-confidence risk signals detected.</div></div></section><section className="landing-panel landing-signals"><div><div className="landing-panel-kicker">Intelligence</div><h3>Why it needs attention</h3></div><Signal icon={Fingerprint} title="Device reuse" stat="3 accounts" /><Signal icon={Timer} title="Payment velocity" stat="Elevated" /><Signal icon={Network} title="Connected activity" stat="Clustered" /><div className="landing-signal-chart" aria-hidden="true">{bars.map((height, i) => <span key={i} style={{ height: `${height}%` }} />)}</div></section></div></div> }
-function Detail({ label, value }: {label:string; value:string}) { return <div className="landing-detail"><label>{label}</label><b>{value}</b></div> }
-function Signal({ icon: Icon, title, stat }: {icon: typeof Activity; title:string; stat:string}) { return <div className="landing-signal"><span><Icon size={14} /></span><div><b>{title}</b><small>{stat}</small></div></div> }
-function Proof({ icon: Icon, text }: {icon: typeof Activity; text:string}) { return <div className="landing-proof-item"><Icon /><span>{text}</span></div> }
-function Problem({ number, title, copy }: {number:string; title:string; copy:string}) { return <article className="landing-problem"><span className="landing-problem-number">{number}</span><div><h3>{title}</h3><p>{copy}</p></div></article> }
-function Flow({ icon: Icon, title, copy }: {icon: typeof Activity; title:string; copy:string}) { return <article className="landing-flow-step"><div className="landing-flow-dot" /><Icon size={20} /><h3>{title}</h3><p>{copy}</p></article> }
-function ShowcaseRow({ icon: Icon, name, sub, risk }: {icon: typeof Activity; name:string; sub:string; risk:string}) { return <div className="landing-showcase-row"><span><Icon size={17} /></span><div><b>{name}</b><small>{sub}</small></div><em className="landing-risk-chip">{risk}</em></div> }
-function Security({ icon: Icon, title, text }: {icon: typeof Activity; title:string; text:string}) { return <article className="landing-security-line"><Icon size={19} /><div><b>{title}</b><p>{text}</p></div></article> }

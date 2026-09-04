@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { evaluationApi } from '@/services/api';
+import { evaluationApi, monitoringApi } from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
 import { formatNumber, formatPercent, formatCurrency } from '@/lib/utils';
-import { AlertTriangle, Target, TrendingUp, BarChart3 } from 'lucide-react';
+import { AlertTriangle, Target, TrendingUp, BarChart3, Activity, CheckCircle, XCircle } from 'lucide-react';
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -49,6 +49,11 @@ export function Evaluation() {
   const { data: metrics }  = useQuery({ queryKey: ['evaluation-metrics'],  queryFn: evaluationApi.getMetrics });
   const { data: signals }  = useQuery({ queryKey: ['signal-performance'],  queryFn: evaluationApi.getSignalPerformance });
   const { data: fps }      = useQuery({ queryKey: ['false-positives'],     queryFn: evaluationApi.getFalsePositives });
+  const { data: monitoring } = useQuery({
+    queryKey: ['monitoring-health'],
+    queryFn:  monitoringApi.getHealth,
+    refetchInterval: 30_000,  // refresh every 30 s
+  });
 
   const radarData = signals?.map((s) => ({
     signal:    s.signalType.split(' ')[0],
@@ -319,6 +324,128 @@ export function Evaluation() {
               ))}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+
+      {/* ── Model Monitoring ──────────────────────────────────────────── */}
+      <div>
+        <h2 className="text-lg font-bold mb-1" style={{ color: 'var(--fg)' }}>Model Monitoring</h2>
+        <p className="text-sm mb-4" style={{ color: 'var(--fg-muted)' }}>
+          Live prediction distribution and drift indicators from the ML service.
+        </p>
+      </div>
+
+      {/* Monitoring disclaimer */}
+      {monitoring?.disclaimer && (
+        <div className="flex items-start gap-3 px-4 py-3 rounded-xl text-xs"
+          style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--fg-subtle)' }}>
+          <Activity className="h-4 w-4 mt-0.5 shrink-0" style={{ color: 'var(--fg-subtle)' }} />
+          <span>{monitoring.disclaimer}</span>
+        </div>
+      )}
+
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+        {/* Overall status */}
+        {[
+          {
+            label: 'Model Health',
+            value: monitoring?.overallStatus ?? '—',
+            color: monitoring?.overallStatus === 'HEALTHY' ? 'var(--success)'
+                 : monitoring?.overallStatus === 'DEGRADED' ? 'var(--warning)'
+                 : monitoring?.overallStatus === 'CRITICAL' ? 'var(--risk-critical)'
+                 : 'var(--fg-subtle)',
+            icon: monitoring?.overallStatus === 'HEALTHY' ? CheckCircle : monitoring?.overallStatus === 'UNAVAILABLE' ? XCircle : AlertTriangle,
+          },
+          {
+            label: 'Prediction Drift',
+            value: monitoring?.predictionDriftLevel ?? 'UNKNOWN',
+            color: monitoring?.predictionDriftLevel === 'LOW' ? 'var(--success)'
+                 : monitoring?.predictionDriftLevel === 'MEDIUM' ? 'var(--warning)'
+                 : monitoring?.predictionDriftLevel === 'HIGH' ? 'var(--risk-critical)'
+                 : 'var(--fg-subtle)',
+            icon: Activity,
+          },
+          {
+            label: 'Data Quality',
+            value: monitoring?.dataQuality ?? 'UNKNOWN',
+            color: monitoring?.dataQuality === 'GOOD' ? 'var(--success)'
+                 : monitoring?.dataQuality === 'DEGRADED' ? 'var(--warning)'
+                 : monitoring?.dataQuality === 'POOR' ? 'var(--risk-critical)'
+                 : 'var(--fg-subtle)',
+            icon: BarChart3,
+          },
+          {
+            label: 'Recent Predictions',
+            value: monitoring !== undefined ? formatNumber(monitoring.nRecentPredictions) : '—',
+            color: 'var(--fg)',
+            icon: Target,
+          },
+        ].map(({ label, value, color, icon: Icon }) => (
+          <Card key={label}>
+            <CardContent className="pt-5">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="text-xs uppercase tracking-wider mb-2"
+                    style={{ color: 'var(--fg-subtle)' }}>{label}</div>
+                  <div className="text-xl font-bold" style={{ color }}>{value}</div>
+                </div>
+                <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ background: 'var(--surface-2)' }}>
+                  <Icon className="h-4 w-4" style={{ color }} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Prediction distribution stats */}
+      {monitoring && monitoring.nRecentPredictions > 0 && (
+        <Card>
+          <CardHeader><CardTitle>Prediction Distribution (Recent)</CardTitle></CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              {[
+                { label: 'Mean Fraud Probability', val: monitoring.predMean !== null ? formatPercent(monitoring.predMean) : '—' },
+                { label: 'Std Dev',                val: monitoring.predStd  !== null ? monitoring.predStd.toFixed(4) : '—' },
+                { label: 'High-Risk Fraction',     val: monitoring.highRiskFraction !== null ? formatPercent(monitoring.highRiskFraction) : '—' },
+              ].map(({ label, val }) => (
+                <div key={label} className="rounded-xl p-4" style={{ background: 'var(--surface-2)' }}>
+                  <div className="text-xs uppercase tracking-wider mb-1"
+                    style={{ color: 'var(--fg-subtle)' }}>{label}</div>
+                  <div className="text-2xl font-bold" style={{ color: 'var(--fg)' }}>{val}</div>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs mt-3 px-3 py-2 rounded-lg"
+              style={{ background: 'var(--warning-bg)', color: 'var(--warning)' }}>
+              [MODEL ESTIMATE] Distribution tracked in-memory since last service restart.
+              These are not calibrated production statistics.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Service status */}
+      <Card>
+        <CardHeader><CardTitle>ML Service Status</CardTitle></CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            {[
+              { label: 'ML Service Enabled',   val: monitoring?.mlServiceEnabled   ? 'Yes' : 'No',
+                color: monitoring?.mlServiceEnabled   ? 'var(--success)' : 'var(--fg-subtle)' },
+              { label: 'ML Service Reachable',  val: monitoring?.mlServiceReachable ? 'Yes' : 'No',
+                color: monitoring?.mlServiceReachable ? 'var(--success)' : 'var(--risk-high)' },
+              { label: 'Model Version',         val: monitoring?.modelVersion  ?? '—', color: 'var(--fg)' },
+              { label: 'Feature Version',       val: monitoring?.featureVersion ?? '—', color: 'var(--fg)' },
+            ].map(({ label, val, color }) => (
+              <div key={label} className="flex items-center justify-between px-3 py-2 rounded-lg"
+                style={{ background: 'var(--surface-2)' }}>
+                <span style={{ color: 'var(--fg-subtle)' }}>{label}</span>
+                <span className="font-semibold" style={{ color }}>{val}</span>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>

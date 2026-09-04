@@ -5,6 +5,7 @@ import { transactionApi } from '@/services/api';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
+import { PaginationBar } from '@/components/ui/Pagination';
 import { formatCurrency, formatRelativeTime } from '@/lib/utils';
 import { Search, Filter, Receipt } from 'lucide-react';
 
@@ -19,10 +20,12 @@ const STATUS_COLORS: Record<string, string> = {
 export function Transactions() {
   const [search, setSearch]   = useState('');
   const [riskFilter, setRisk] = useState('ALL');
+  const [page, setPage]       = useState(1);
+  const PAGE_SIZE = 20;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['transactions', { search, riskLevel: riskFilter }],
-    queryFn:  () => transactionApi.getTransactions({ search, riskLevel: riskFilter }),
+    queryKey: ['transactions', { search, riskLevel: riskFilter, page }],
+    queryFn:  () => transactionApi.getTransactions({ search, riskLevel: riskFilter, page, pageSize: PAGE_SIZE }),
   });
 
   return (
@@ -106,9 +109,11 @@ export function Transactions() {
                   {data.data.map((txn) => (
                     <TableRow key={txn.id}>
                       <TableCell className="pl-6">
-                        <span className="font-mono text-xs font-medium" style={{ color: 'var(--fg)' }}>
+                        <Link to={`/transactions/${txn.transactionId}`}
+                          className="font-mono text-xs font-medium hover:underline"
+                          style={{ color: 'var(--accent)' }}>
                           {txn.transactionId}
-                        </span>
+                        </Link>
                       </TableCell>
                       <TableCell>
                         <Link to={`/customers/${txn.customerId}`}
@@ -158,11 +163,12 @@ export function Transactions() {
                   ))}
                 </TableBody>
               </Table>
-              <div className="px-6 py-3 border-t flex items-center justify-between text-xs"
-                style={{ borderColor: 'var(--border)', color: 'var(--fg-subtle)' }}>
-                <span>Showing {data.data.length} of {data.total} transactions</span>
-                <span>Page {data.page}</span>
-              </div>
+              <PaginationBar
+                page={page} pageSize={PAGE_SIZE} total={data.total}
+                onPrev={() => setPage(p => Math.max(1, p - 1))}
+                onNext={() => setPage(p => p + 1)}
+                label="transactions"
+              />
             </>
           )}
         </CardContent>

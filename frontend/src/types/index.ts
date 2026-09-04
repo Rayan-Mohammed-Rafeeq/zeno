@@ -272,12 +272,28 @@ export interface DashboardStats {
   detectionRecall?: number;
 }
 
+export interface ModelMonitoringHealth {
+  overallStatus:        'HEALTHY' | 'DEGRADED' | 'CRITICAL' | 'UNAVAILABLE';
+  modelStatus:          string;
+  modelVersion:         string | null;
+  featureVersion:       string | null;
+  nRecentPredictions:   number;
+  predMean:             number | null;
+  predStd:              number | null;
+  highRiskFraction:     number | null;
+  predictionDriftLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'UNKNOWN';
+  dataQuality:          'GOOD' | 'DEGRADED' | 'POOR' | 'UNKNOWN';
+  featureDriftLevel:    'LOW' | 'MEDIUM' | 'HIGH' | 'UNKNOWN';
+  mlServiceEnabled:     boolean;
+  mlServiceReachable:   boolean;
+  disclaimer:           string;
+}
+
 // API Response types
 export interface ApiResponse<T> {
   data: T;
   message?: string;
 }
-
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;

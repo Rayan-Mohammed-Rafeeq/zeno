@@ -13,18 +13,20 @@ import { VerifyEmail }    from '@/pages/auth/VerifyEmail';
 import { ResetPassword }  from '@/pages/auth/ResetPassword';
 
 // App pages
-import { Dashboard }      from '@/pages/Dashboard';
-import { Customers }      from '@/pages/Customers';
-import { CustomerDetail } from '@/pages/CustomerDetail';
-import { Transactions }   from '@/pages/Transactions';
-import { Clusters }       from '@/pages/Clusters';
-import { ClusterDetail }  from '@/pages/ClusterDetail';
-import { Investigations } from '@/pages/Investigations';
-import { Evaluation }     from '@/pages/Evaluation';
-import { AuditTrail }     from '@/pages/AuditTrail';
-import { Dataset }        from '@/pages/Dataset';
-import { Settings }       from '@/pages/Settings';
-import { Landing }        from '@/pages/Landing';
+import { Dashboard }           from '@/pages/Dashboard';
+import { Customers }            from '@/pages/Customers';
+import { CustomerDetail }       from '@/pages/CustomerDetail';
+import { Transactions }         from '@/pages/Transactions';
+import { TransactionDetail }    from '@/pages/TransactionDetail';
+import { Clusters }             from '@/pages/Clusters';
+import { ClusterDetail }        from '@/pages/ClusterDetail';
+import { Investigations }       from '@/pages/Investigations';
+import { InvestigationDetail }  from '@/pages/InvestigationDetail';
+import { Evaluation }           from '@/pages/Evaluation';
+import { AuditTrail }           from '@/pages/AuditTrail';
+import { Dataset }              from '@/pages/Dataset';
+import { Settings }             from '@/pages/Settings';
+import { Landing }              from '@/pages/Landing';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,10 +62,12 @@ function App() {
                         <Route path="/dashboard"              element={<Dashboard />}      />
                         <Route path="/customers"              element={<Customers />}      />
                         <Route path="/customers/:id"          element={<CustomerDetail />} />
-                        <Route path="/transactions"           element={<Transactions />}   />
-                        <Route path="/clusters"               element={<Clusters />}       />
-                        <Route path="/clusters/:id"           element={<ClusterDetail />}  />
-                        <Route path="/investigations"         element={<Investigations />} />
+                        <Route path="/transactions"           element={<Transactions />}         />
+                        <Route path="/transactions/:id"       element={<TransactionDetail />}     />
+                        <Route path="/clusters"               element={<Clusters />}              />
+                        <Route path="/clusters/:id"           element={<ClusterDetail />}         />
+                        <Route path="/investigations"         element={<Investigations />}        />
+                        <Route path="/investigations/:id"     element={<InvestigationDetail />}   />
                         <Route path="/evaluation"             element={<Evaluation />}     />
                         <Route path="/audit"                  element={<AuditTrail />}     />
                         <Route path="/dataset"                element={<Dataset />}        />

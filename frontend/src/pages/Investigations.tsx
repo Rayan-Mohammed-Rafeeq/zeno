@@ -5,6 +5,7 @@ import { investigationApi } from '@/services/api';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
+import { PaginationBar } from '@/components/ui/Pagination';
 import { formatRelativeTime } from '@/lib/utils';
 import { FileSearch, ArrowRight } from 'lucide-react';
 
@@ -18,10 +19,17 @@ const STATUS_STYLE: Record<string, React.CSSProperties> = {
 
 export function Investigations() {
   const [status, setStatus] = useState('ALL');
+  const [page, setPage]     = useState(1);
+  const PAGE_SIZE = 20;
+
+  const handleStatusChange = (s: string) => {
+    setStatus(s);
+    setPage(1);
+  };
 
   const { data, isLoading } = useQuery({
-    queryKey: ['investigations', { status }],
-    queryFn:  () => investigationApi.getInvestigations({ status }),
+    queryKey: ['investigations', { status, page }],
+    queryFn:  () => investigationApi.getInvestigations({ status, page, pageSize: PAGE_SIZE }),
   });
 
   return (
@@ -44,7 +52,7 @@ export function Investigations() {
         {['OPEN', 'REVIEWING', 'ESCALATED', 'RESOLVED'].map((s) => {
           const count = data?.data.filter((i) => i.status === s).length ?? 0;
           return (
-            <button key={s} onClick={() => setStatus(s === status ? 'ALL' : s)}
+            <button key={s} onClick={() => handleStatusChange(s === status ? 'ALL' : s)}
               className="text-left rounded-xl p-4 border transition-all"
               style={{
                 background: status === s ? 'var(--accent-muted)' : 'var(--surface)',
@@ -66,7 +74,7 @@ export function Investigations() {
       {/* Filter pills */}
       <div className="flex items-center gap-2 flex-wrap">
         {STATUSES.map((s) => (
-          <button key={s} onClick={() => setStatus(s)}
+          <button key={s} onClick={() => handleStatusChange(s)}
             className="px-3 h-8 rounded-lg text-xs font-semibold transition-all"
             style={status === s
               ? { background: 'var(--accent)', color: 'var(--accent-fg)' }
@@ -90,64 +98,72 @@ export function Investigations() {
               <p className="text-sm" style={{ color: 'var(--fg-muted)' }}>No investigations currently require review</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="pl-6">Investigation ID</TableHead>
-                  <TableHead>Subject</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Risk</TableHead>
-                  <TableHead>Assigned</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.data.map((inv) => (
-                  <TableRow key={inv.id}>
-                    <TableCell className="pl-6">
-                      <span className="font-mono text-xs font-semibold" style={{ color: 'var(--fg)' }}>
-                        {inv.investigationId}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div style={{ color: 'var(--fg)' }} className="font-medium text-sm">{inv.subject}</div>
-                      <div className="text-xs mt-0.5" style={{ color: 'var(--fg-subtle)' }}>
-                        {inv.subjectType} · {inv.subjectId}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-xs" style={{ color: 'var(--fg-muted)' }}>
-                        {inv.type.replace(/_/g, ' ')}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="risk" riskLevel={inv.riskLevel}>{inv.riskLevel}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm" style={{ color: 'var(--fg-muted)' }}>
-                        {inv.assignedToName ?? '—'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-md"
-                        style={STATUS_STYLE[inv.status] ?? {}}>
-                        {inv.status}
-                      </span>
-                    </TableCell>
-                    <TableCell>{formatRelativeTime(inv.createdAt)}</TableCell>
-                    <TableCell>
-                      <Link to={`/investigations/${inv.investigationId}`}
-                        className="flex items-center gap-1 text-xs hover:underline"
-                        style={{ color: 'var(--accent)' }}>
-                        View <ArrowRight className="h-3 w-3" />
-                      </Link>
-                    </TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pl-6">Investigation ID</TableHead>
+                    <TableHead>Subject</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Risk</TableHead>
+                    <TableHead>Assigned</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead></TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {data.data.map((inv) => (
+                    <TableRow key={inv.id}>
+                      <TableCell className="pl-6">
+                        <span className="font-mono text-xs font-semibold" style={{ color: 'var(--fg)' }}>
+                          {inv.investigationId}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div style={{ color: 'var(--fg)' }} className="font-medium text-sm">{inv.subject}</div>
+                        <div className="text-xs mt-0.5" style={{ color: 'var(--fg-subtle)' }}>
+                          {inv.subjectType} · {inv.subjectId}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-xs" style={{ color: 'var(--fg-muted)' }}>
+                          {inv.type.replace(/_/g, ' ')}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="risk" riskLevel={inv.riskLevel}>{inv.riskLevel}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm" style={{ color: 'var(--fg-muted)' }}>
+                          {inv.assignedToName ?? '—'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-md"
+                          style={STATUS_STYLE[inv.status] ?? {}}>
+                          {inv.status}
+                        </span>
+                      </TableCell>
+                      <TableCell>{formatRelativeTime(inv.createdAt)}</TableCell>
+                      <TableCell>
+                        <Link to={`/investigations/${inv.investigationId}`}
+                          className="flex items-center gap-1 text-xs hover:underline"
+                          style={{ color: 'var(--accent)' }}>
+                          View <ArrowRight className="h-3 w-3" />
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <PaginationBar
+                page={page} pageSize={PAGE_SIZE} total={data.total ?? data.data.length}
+                onPrev={() => setPage(p => Math.max(1, p - 1))}
+                onNext={() => setPage(p => p + 1)}
+                label="investigations"
+              />
+            </>
           )}
         </CardContent>
       </Card>

@@ -89,4 +89,18 @@ export const customerApi = {
     
     return apiRequest<RiskAssessment>(`/customers/${id}/risk-assessment`);
   },
+
+  async getCustomerTransactions(customerId: string, params?: { page?: number; pageSize?: number }): Promise<import('@/types').PaginatedResponse<import('@/types').Transaction>> {
+    if (MOCK_API_ENABLED) {
+      await delay();
+      const { mockTransactions } = await import('./mockData');
+      const filtered = mockTransactions.filter(t => t.customerId === customerId);
+      const page = params?.page ?? 1;
+      const pageSize = params?.pageSize ?? 10;
+      const start = (page - 1) * pageSize;
+      return { data: filtered.slice(start, start + pageSize), total: filtered.length, page, pageSize };
+    }
+    const qs = new URLSearchParams({ customerId, page: String(params?.page ?? 1), pageSize: String(params?.pageSize ?? 10) }).toString();
+    return apiRequest<import('@/types').PaginatedResponse<import('@/types').Transaction>>(`/payments?${qs}`);
+  },
 };
