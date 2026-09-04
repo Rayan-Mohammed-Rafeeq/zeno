@@ -42,7 +42,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from niro_ml.features.base import ALL_FEATURE_COLUMNS
+from zeno_ml.features.base import ALL_FEATURE_COLUMNS
 
 
 # ── Shared fixtures ────────────────────────────────────────────────────────
@@ -85,7 +85,7 @@ def train_val_test(small_binary_dataset):
 class TestXGBoostFraudModel:
 
     def test_fit_produces_val_metrics(self, train_val_test):
-        from niro_ml.models.xgboost_model import XGBoostFraudModel
+        from zeno_ml.models.xgboost_model import XGBoostFraudModel
         X_tr, y_tr, X_va, y_va, X_te, y_te = train_val_test
         m = XGBoostFraudModel()
         m.fit(X_tr, y_tr, X_va, y_va)
@@ -94,7 +94,7 @@ class TestXGBoostFraudModel:
         assert 0.0 <= m.val_metrics.roc_auc <= 1.0
 
     def test_fraud_probabilities_in_unit_interval(self, train_val_test):
-        from niro_ml.models.xgboost_model import XGBoostFraudModel
+        from zeno_ml.models.xgboost_model import XGBoostFraudModel
         X_tr, y_tr, X_va, y_va, X_te, y_te = train_val_test
         m = XGBoostFraudModel()
         m.fit(X_tr, y_tr, X_va, y_va)
@@ -104,7 +104,7 @@ class TestXGBoostFraudModel:
         assert np.all(probs <= 1.0)
 
     def test_threshold_set_from_validation(self, train_val_test):
-        from niro_ml.models.xgboost_model import XGBoostFraudModel
+        from zeno_ml.models.xgboost_model import XGBoostFraudModel
         X_tr, y_tr, X_va, y_va, _, _ = train_val_test
         m = XGBoostFraudModel()
         m.fit(X_tr, y_tr, X_va, y_va)
@@ -115,7 +115,7 @@ class TestXGBoostFraudModel:
         assert m.val_metrics is not None
 
     def test_evaluate_test_uses_frozen_threshold(self, train_val_test):
-        from niro_ml.models.xgboost_model import XGBoostFraudModel
+        from zeno_ml.models.xgboost_model import XGBoostFraudModel
         X_tr, y_tr, X_va, y_va, X_te, y_te = train_val_test
         m = XGBoostFraudModel()
         m.fit(X_tr, y_tr, X_va, y_va)
@@ -126,21 +126,21 @@ class TestXGBoostFraudModel:
         )
 
     def test_evaluate_test_not_called_before_fit(self, train_val_test):
-        from niro_ml.models.xgboost_model import XGBoostFraudModel
+        from zeno_ml.models.xgboost_model import XGBoostFraudModel
         _, _, _, _, X_te, y_te = train_val_test
         m = XGBoostFraudModel()
         with pytest.raises(RuntimeError, match="not trained"):
             m.evaluate_test(X_te, y_te)
 
     def test_predict_proba_before_fit_raises(self, train_val_test):
-        from niro_ml.models.xgboost_model import XGBoostFraudModel
+        from zeno_ml.models.xgboost_model import XGBoostFraudModel
         X_te = train_val_test[4]
         m = XGBoostFraudModel()
         with pytest.raises(RuntimeError, match="not trained"):
             m.predict_proba(X_te)
 
     def test_save_load_roundtrip(self, train_val_test, tmp_path):
-        from niro_ml.models.xgboost_model import XGBoostFraudModel
+        from zeno_ml.models.xgboost_model import XGBoostFraudModel
         X_tr, y_tr, X_va, y_va, X_te, _ = train_val_test
         m = XGBoostFraudModel()
         m.fit(X_tr, y_tr, X_va, y_va)
@@ -152,7 +152,7 @@ class TestXGBoostFraudModel:
         assert m2.threshold == pytest.approx(m.threshold, abs=1e-6)
 
     def test_feature_importances_returns_named_dict(self, train_val_test):
-        from niro_ml.models.xgboost_model import XGBoostFraudModel
+        from zeno_ml.models.xgboost_model import XGBoostFraudModel
         X_tr, y_tr, X_va, y_va, _, _ = train_val_test
         m = XGBoostFraudModel()
         m.fit(X_tr, y_tr, X_va, y_va)
@@ -170,7 +170,7 @@ class TestXGBoostFraudModel:
         but we can verify the model trains without error even when val has
         a very different fraud rate.
         """
-        from niro_ml.models.xgboost_model import XGBoostFraudModel
+        from zeno_ml.models.xgboost_model import XGBoostFraudModel
         X_tr, y_tr, X_va, y_va, _, _ = train_val_test
         # Artificially set val to all-negative to test robustness
         y_va_all_neg = np.zeros(len(y_va), dtype=bool)
@@ -189,7 +189,7 @@ class TestXGBoostFraudModel:
 class TestAnomalyDetector:
 
     def test_fit_and_score_shape(self, train_val_test):
-        from niro_ml.models.isolation_forest import AnomalyDetector
+        from zeno_ml.models.isolation_forest import AnomalyDetector
         X_tr, y_tr, X_va, y_va, _, _ = train_val_test
         det = AnomalyDetector()
         det.fit(X_tr, y_tr, feature_names=ALL_FEATURE_COLUMNS)
@@ -197,7 +197,7 @@ class TestAnomalyDetector:
         assert scores.shape == (len(X_va),), "score() must return one value per row."
 
     def test_scores_are_finite(self, train_val_test):
-        from niro_ml.models.isolation_forest import AnomalyDetector
+        from zeno_ml.models.isolation_forest import AnomalyDetector
         X_tr, y_tr, X_va, y_va, _, _ = train_val_test
         det = AnomalyDetector()
         det.fit(X_tr, y_tr, feature_names=ALL_FEATURE_COLUMNS)
@@ -205,7 +205,7 @@ class TestAnomalyDetector:
         assert np.all(np.isfinite(scores)), "IF scores must all be finite."
 
     def test_score_single_returns_scalar(self, train_val_test):
-        from niro_ml.models.isolation_forest import AnomalyDetector
+        from zeno_ml.models.isolation_forest import AnomalyDetector
         X_tr, y_tr, X_va, _, _, _ = train_val_test
         det = AnomalyDetector()
         det.fit(X_tr, y_tr, feature_names=ALL_FEATURE_COLUMNS)
@@ -213,7 +213,7 @@ class TestAnomalyDetector:
         assert isinstance(s, float)
 
     def test_validate_returns_expected_keys(self, train_val_test):
-        from niro_ml.models.isolation_forest import AnomalyDetector
+        from zeno_ml.models.isolation_forest import AnomalyDetector
         X_tr, y_tr, X_va, y_va, _, _ = train_val_test
         det = AnomalyDetector()
         det.fit(X_tr, y_tr, feature_names=ALL_FEATURE_COLUMNS)
@@ -226,7 +226,7 @@ class TestAnomalyDetector:
         IF is unsupervised. Passing all-zero labels must still produce a
         valid model (contamination defaults to fraud_rate=0 → clamped to 0.001).
         """
-        from niro_ml.models.isolation_forest import AnomalyDetector
+        from zeno_ml.models.isolation_forest import AnomalyDetector
         X_tr, _, X_va, _, _, _ = train_val_test
         y_zero = np.zeros(len(X_tr), dtype=bool)
         det = AnomalyDetector()
@@ -235,7 +235,7 @@ class TestAnomalyDetector:
         assert len(scores) == len(X_va)
 
     def test_save_load_roundtrip(self, train_val_test, tmp_path):
-        from niro_ml.models.isolation_forest import AnomalyDetector
+        from zeno_ml.models.isolation_forest import AnomalyDetector
         X_tr, y_tr, X_va, _, _, _ = train_val_test
         det = AnomalyDetector()
         det.fit(X_tr, y_tr, feature_names=ALL_FEATURE_COLUMNS)
@@ -247,8 +247,8 @@ class TestAnomalyDetector:
 
     def test_anomaly_score_normalized_range(self, train_val_test):
         """Normalized anomaly score (via aggregator) must be in [0,1]."""
-        from niro_ml.models.isolation_forest import AnomalyDetector
-        from niro_ml.inference.aggregator import normalize_anomaly_score
+        from zeno_ml.models.isolation_forest import AnomalyDetector
+        from zeno_ml.inference.aggregator import normalize_anomaly_score
         X_tr, y_tr, X_va, _, _, _ = train_val_test
         det = AnomalyDetector()
         det.fit(X_tr, y_tr, feature_names=ALL_FEATURE_COLUMNS)
@@ -275,7 +275,7 @@ class TestCalibration:
         return y, probs
 
     def test_evaluate_calibration_returns_result(self, cal_data):
-        from niro_ml.models.calibration import evaluate_calibration
+        from zeno_ml.models.calibration import evaluate_calibration
         y, probs = cal_data
         result = evaluate_calibration(y, probs)
         assert result is not None
@@ -284,20 +284,20 @@ class TestCalibration:
         assert hasattr(result, "method")
 
     def test_ece_in_unit_interval(self, cal_data):
-        from niro_ml.models.calibration import evaluate_calibration
+        from zeno_ml.models.calibration import evaluate_calibration
         y, probs = cal_data
         result = evaluate_calibration(y, probs)
         assert 0.0 <= result.before_ece <= 1.0
         assert 0.0 <= result.after_ece  <= 1.0
 
     def test_calibration_method_is_valid(self, cal_data):
-        from niro_ml.models.calibration import evaluate_calibration
+        from zeno_ml.models.calibration import evaluate_calibration
         y, probs = cal_data
         result = evaluate_calibration(y, probs)
         assert result.method in ("sigmoid", "isotonic", "none")
 
     def test_calibrated_probs_in_unit_interval(self, cal_data):
-        from niro_ml.models.calibration import evaluate_calibration, apply_calibration
+        from zeno_ml.models.calibration import evaluate_calibration, apply_calibration
         y, probs = cal_data
         result = evaluate_calibration(y, probs)
         if result.calibrator is not None:
@@ -307,7 +307,7 @@ class TestCalibration:
 
     def test_none_calibrator_passthrough(self, cal_data):
         """apply_calibration(None, probs) must return probs unchanged."""
-        from niro_ml.models.calibration import apply_calibration
+        from zeno_ml.models.calibration import apply_calibration
         _, probs = cal_data
         result = apply_calibration(None, probs)
         np.testing.assert_array_equal(result, probs)
@@ -317,7 +317,7 @@ class TestCalibration:
         Calibration should not make ECE significantly worse on intentionally
         overconfident probabilities (they should have calibration to improve).
         """
-        from niro_ml.models.calibration import evaluate_calibration
+        from zeno_ml.models.calibration import evaluate_calibration
         y, probs = cal_data
         result = evaluate_calibration(y, probs)
         # After should be <= before + small tolerance
@@ -327,7 +327,7 @@ class TestCalibration:
         )
 
     def test_save_load_calibrator(self, cal_data, tmp_path):
-        from niro_ml.models.calibration import (
+        from zeno_ml.models.calibration import (
             evaluate_calibration, save_calibrator,
             load_calibrator, apply_calibration,
         )
@@ -351,14 +351,14 @@ class TestSHAPExplainer:
 
     @pytest.fixture
     def trained_xgb(self, train_val_test):
-        from niro_ml.models.xgboost_model import XGBoostFraudModel
+        from zeno_ml.models.xgboost_model import XGBoostFraudModel
         X_tr, y_tr, X_va, y_va, _, _ = train_val_test
         m = XGBoostFraudModel()
         m.fit(X_tr, y_tr, X_va, y_va)
         return m
 
     def test_explainer_initialises(self, trained_xgb):
-        from niro_ml.inference.explainer import SHAPExplainer
+        from zeno_ml.inference.explainer import SHAPExplainer
         exp = SHAPExplainer(
             model=trained_xgb.model,
             feature_names=ALL_FEATURE_COLUMNS,
@@ -367,7 +367,7 @@ class TestSHAPExplainer:
         assert exp is not None
 
     def test_explain_single_returns_result(self, trained_xgb, train_val_test):
-        from niro_ml.inference.explainer import SHAPExplainer
+        from zeno_ml.inference.explainer import SHAPExplainer
         X_te = train_val_test[4]
         exp  = SHAPExplainer(
             model=trained_xgb.model,
@@ -381,7 +381,7 @@ class TestSHAPExplainer:
         assert res.fraud_probability == pytest.approx(fp, abs=1e-5)
 
     def test_contributions_sorted_by_abs_shap(self, trained_xgb, train_val_test):
-        from niro_ml.inference.explainer import SHAPExplainer
+        from zeno_ml.inference.explainer import SHAPExplainer
         X_te = train_val_test[4]
         exp  = SHAPExplainer(
             model=trained_xgb.model,
@@ -399,7 +399,7 @@ class TestSHAPExplainer:
         )
 
     def test_contributions_have_disclaimer(self, trained_xgb, train_val_test):
-        from niro_ml.inference.explainer import SHAPExplainer
+        from zeno_ml.inference.explainer import SHAPExplainer
         X_te = train_val_test[4]
         exp  = SHAPExplainer(
             model=trained_xgb.model,
@@ -416,7 +416,7 @@ class TestSHAPExplainer:
 
     def test_empty_result_when_shap_unavailable(self, trained_xgb, train_val_test):
         """When SHAP fails, explain_single() must return empty contributions, not raise."""
-        from niro_ml.inference.explainer import SHAPExplainer
+        from zeno_ml.inference.explainer import SHAPExplainer
         X_te = train_val_test[4]
         exp  = SHAPExplainer(
             model=None,   # invalid model — forces SHAP init failure
@@ -426,7 +426,7 @@ class TestSHAPExplainer:
         assert res.all_contributions == []
 
     def test_rank_assigned_correctly(self, trained_xgb, train_val_test):
-        from niro_ml.inference.explainer import SHAPExplainer
+        from zeno_ml.inference.explainer import SHAPExplainer
         X_te = train_val_test[4]
         exp  = SHAPExplainer(
             model=trained_xgb.model,
@@ -445,7 +445,7 @@ class TestSHAPExplainer:
         )
 
     def test_direction_consistent_with_shap_sign(self, trained_xgb, train_val_test):
-        from niro_ml.inference.explainer import SHAPExplainer
+        from zeno_ml.inference.explainer import SHAPExplainer
         X_te = train_val_test[4]
         exp  = SHAPExplainer(
             model=trained_xgb.model,

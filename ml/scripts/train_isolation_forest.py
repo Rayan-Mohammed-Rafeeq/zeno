@@ -24,10 +24,10 @@ sys.path.insert(0, str(ROOT / "src"))
 import mlflow
 import pandas as pd
 
-from niro_ml.features.base import ALL_FEATURE_COLUMNS
-from niro_ml.models.isolation_forest import AnomalyDetector
-from niro_ml.models.splits import temporal_split, temporal_split_labels
-from niro_ml.scripts_common import build_feature_matrix, load_dataset
+from zeno_ml.features.base import ALL_FEATURE_COLUMNS
+from zeno_ml.models.isolation_forest import AnomalyDetector
+from zeno_ml.models.splits import temporal_split, temporal_split_labels
+from zeno_ml.scripts_common import build_feature_matrix, load_dataset
 
 logging.basicConfig(
     level=logging.INFO,
@@ -39,7 +39,7 @@ logger = logging.getLogger("train_isolation_forest")
 def train(args: argparse.Namespace) -> None:
     mlflow_uri = f"file:///{(ROOT / 'mlruns').as_posix()}"
     mlflow.set_tracking_uri(mlflow_uri)
-    mlflow.set_experiment("niro-fraud-detection")
+    mlflow.set_experiment("zeno-fraud-detection")
 
     output_dir = Path(args.output_dir or ROOT / "data" / "artifacts" / "xgboost")
     output_dir.mkdir(parents=True, exist_ok=True)

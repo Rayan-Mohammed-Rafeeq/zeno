@@ -25,7 +25,7 @@ Primary optimisation metric: val_auprc (AUPRC on validation set).
 Secondary: val_expected_loss (for business-cost awareness).
 
 Every configuration is logged as a separate MLflow run under the
-'niro-fraud-detection' experiment.  The best run is identified by
+'zeno-fraud-detection' experiment.  The best run is identified by
 val_auprc and its parameters are written to data/artifacts/best_params.pkl.
 
 Usage
@@ -53,11 +53,11 @@ import mlflow
 import numpy as np
 import pandas as pd
 
-from niro_ml.evaluation.metrics import sweep_thresholds
-from niro_ml.features.base import FEATURE_VERSION
-from niro_ml.models.splits import compute_fraud_rates, temporal_split, temporal_split_labels
-from niro_ml.models.xgboost_model import XGBoostFraudModel
-from niro_ml.scripts_common import build_feature_matrix, load_dataset
+from zeno_ml.evaluation.metrics import sweep_thresholds
+from zeno_ml.features.base import FEATURE_VERSION
+from zeno_ml.models.splits import compute_fraud_rates, temporal_split, temporal_split_labels
+from zeno_ml.models.xgboost_model import XGBoostFraudModel
+from zeno_ml.scripts_common import build_feature_matrix, load_dataset
 
 logging.basicConfig(
     level=logging.INFO,
@@ -117,7 +117,7 @@ def _grid_configs(grid: dict[str, list], max_configs: int) -> list[dict[str, Any
 def tune(args: argparse.Namespace) -> None:
     mlflow_uri = f"file:///{(ROOT / 'mlruns').as_posix()}"
     mlflow.set_tracking_uri(mlflow_uri)
-    mlflow.set_experiment("niro-fraud-detection")
+    mlflow.set_experiment("zeno-fraud-detection")
 
     artifacts_dir = ROOT / "data" / "artifacts"
     artifacts_dir.mkdir(parents=True, exist_ok=True)

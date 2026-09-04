@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:niro_test;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    url: jdbc:h2:mem:zeno_test;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
     username: sa
     password:
     driver-class-name: org.h2.Driver
@@ -16,14 +16,14 @@ spring:
   flyway:
     enabled: false
 
-niro:
+zeno:
   jwt:
     secret: test-secret-for-unit-tests-must-be-at-least-256-bits-long-here
     access-token-expiry-minutes: 60
   frontend-url: http://localhost:5173
   resend:
     api-key: test-key
-    from-address: test@niro.app
+    from-address: test@zeno.app
   ai:
     enabled: false
     api-key: test-key
@@ -46,5 +46,5 @@ niro:
 
 logging:
   level:
-    com.niro: WARN
+    com.zeno: WARN
     org.springframework.security: WARN

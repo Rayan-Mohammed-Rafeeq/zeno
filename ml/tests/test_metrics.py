@@ -20,7 +20,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from niro_ml.evaluation.metrics import (
+from zeno_ml.evaluation.metrics import (
     DEFAULT_FP_COST,
     DEFAULT_FN_COST,
     EvaluationMetrics,

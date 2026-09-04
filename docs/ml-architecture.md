@@ -1,8 +1,8 @@
-# Niro ML Architecture
+# Zeno ML Architecture
 
 ## Overview
 
-Niro is a multi-tenant merchant fraud detection and risk intelligence platform.
+Zeno is a multi-tenant merchant fraud detection and risk intelligence platform.
 The ML system answers eight questions for every transaction:
 
 1. How likely is this transaction to be fraudulent? (XGBoost probability)

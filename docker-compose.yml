@@ -4,17 +4,17 @@ services:
   # ── PostgreSQL ────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
-    container_name: niro-postgres
+    container_name: zeno-postgres
     environment:
-      POSTGRES_DB: niro
-      POSTGRES_USER: niro
-      POSTGRES_PASSWORD: niro
+      POSTGRES_DB: zeno
+      POSTGRES_USER: zeno
+      POSTGRES_PASSWORD: zeno
     ports:
       - "5432:5432"
     volumes:
-      - niro_pgdata:/var/lib/postgresql/data
+      - zeno_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U niro -d niro"]
+      test: ["CMD-SHELL", "pg_isready -U zeno -d zeno"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -26,14 +26,14 @@ services:
     build:
       context: ./ml
       dockerfile: Dockerfile.ml
-    container_name: niro-ml-service
+    container_name: zeno-ml-service
     ports:
       - "8001:8001"
     volumes:
       # Mount artefacts from host so models survive container restarts
       - ./ml/data/artifacts:/app/data/artifacts:ro
     environment:
-      NIRO_MODEL_DIR: /app/data/artifacts/xgboost
+      ZENO_MODEL_DIR: /app/data/artifacts/xgboost
       ML_SERVICE_HOST: 0.0.0.0
       ML_SERVICE_PORT: "8001"
       LOG_LEVEL: INFO
@@ -53,18 +53,18 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: niro-backend
+    container_name: zeno-backend
     depends_on:
       postgres:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: dev
-      DATABASE_URL: jdbc:postgresql://postgres:5432/niro
-      DATABASE_USERNAME: niro
-      DATABASE_PASSWORD: niro
+      DATABASE_URL: jdbc:postgresql://postgres:5432/zeno
+      DATABASE_USERNAME: zeno
+      DATABASE_PASSWORD: zeno
       JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production-must-be-at-least-256-bits}
       RESEND_API_KEY: ${RESEND_API_KEY:-re_placeholder}
-      RESEND_FROM_ADDRESS: ${RESEND_FROM_ADDRESS:-noreply@niro.app}
+      RESEND_FROM_ADDRESS: ${RESEND_FROM_ADDRESS:-noreply@zeno.app}
       APP_FRONTEND_URL: ${APP_FRONTEND_URL:-http://localhost:5173}
       AI_API_KEY: ${AI_API_KEY:-placeholder}
       AI_ENABLED: ${AI_ENABLED:-false}
@@ -80,7 +80,7 @@ services:
       - full
 
 volumes:
-  niro_pgdata:
+  zeno_pgdata:
 
 # ── Usage ─────────────────────────────────────────────────────────────────
 # Start everything (requires model artefacts + Docker images):

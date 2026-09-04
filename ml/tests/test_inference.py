@@ -18,7 +18,7 @@ from httpx import AsyncClient, ASGITransport
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from niro_ml.inference.app import app
+from zeno_ml.inference.app import app
 
 
 # ── Shared transport ────────────────────────────────────────────────────────
@@ -74,7 +74,7 @@ class TestHealthEndpoint:
         async with _client() as client:
             resp = await client.get("/health")
         data = resp.json()
-        assert data.get("service") == "niro-ml"
+        assert data.get("service") == "zeno-ml"
 
     @pytest.mark.asyncio
     async def test_health_has_model_status_field(self):

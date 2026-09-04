@@ -286,7 +286,7 @@ export const mockDashboardStats: DashboardStats = {
 
 export const mockCurrentUser: User = {
   id: 'user-1',
-  email: 'analyst@niro.dev',
+  email: 'analyst@zeno.dev',
   name: 'John Smith',
   role: 'ANALYST',
   merchantId: 'merchant-1',

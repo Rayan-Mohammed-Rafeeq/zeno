@@ -1,6 +1,6 @@
 spring:
   application:
-    name: niro
+    name: zeno
 
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
@@ -57,7 +57,7 @@ springdoc:
     operationsSorter: alpha
     tagsSorter: alpha
 
-niro:
+zeno:
   jwt:
     secret: ${JWT_SECRET}
     access-token-expiry-minutes: ${JWT_ACCESS_TOKEN_EXPIRY_MINUTES:60}

@@ -29,9 +29,9 @@ export function ForgotPassword() {
 
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-10">
-          <img src="/light-logo.svg" alt="Niro" className="h-9 w-auto dark:hidden" draggable={false} />
-          <img src="/dark-logo.svg"  alt="Niro" className="h-9 w-auto hidden dark:block" draggable={false} />
-          <span className="text-xl font-bold tracking-widest" style={{ color: 'var(--fg)' }}>NIRO</span>
+          <img src="/light-logo.svg" alt="Zeno" className="h-9 w-auto dark:hidden" draggable={false} />
+          <img src="/dark-logo.svg"  alt="Zeno" className="h-9 w-auto hidden dark:block" draggable={false} />
+          <span className="text-xl font-bold tracking-widest" style={{ color: 'var(--fg)' }}>ZENO</span>
         </div>
 
         {/* Icon */}

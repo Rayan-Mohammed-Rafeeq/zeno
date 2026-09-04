@@ -10,11 +10,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.niro</groupId>
-    <artifactId>niro</artifactId>
+    <groupId>com.zeno</groupId>
+    <artifactId>zeno</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>niro</name>
-    <description>Niro - Defensive AI Risk Manager Platform</description>
+    <name>zeno</name>
+    <description>Zeno - Defensive AI Risk Manager Platform</description>
 
     <properties>
         <java.version>21</java.version>

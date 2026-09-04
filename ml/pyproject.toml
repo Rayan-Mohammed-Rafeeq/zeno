@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.backends.legacy:build"
 
 [project]
-name = "niro-ml"
+name = "zeno-ml"
 version = "0.1.0"
-description = "Niro Enterprise Fraud Risk ML Service"
+description = "Zeno Enterprise Fraud Risk ML Service"
 requires-python = ">=3.12"
 readme = "README.md"
 

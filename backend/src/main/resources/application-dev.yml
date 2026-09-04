@@ -4,7 +4,7 @@ spring:
 
 logging:
   level:
-    com.niro: DEBUG
+    com.zeno: DEBUG
     org.springframework.security: INFO
     org.flywaydb: INFO
     org.hibernate.SQL: DEBUG

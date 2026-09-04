@@ -372,7 +372,7 @@ export function Settings() {
         </CardHeader>
         <CardContent>
           <p className="text-sm mb-4" style={{ color: 'var(--fg-muted)' }}>
-            Choose how Niro looks in your browser.
+            Choose how Zeno looks in your browser.
           </p>
           <div className="grid grid-cols-3 gap-3">
             {([

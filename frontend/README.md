@@ -1,4 +1,4 @@
-# Niro - Risk Intelligence Platform (Frontend)
+# Zeno - Risk Intelligence Platform (Frontend)
 
 A production-quality fintech risk intelligence platform for detecting coordinated abuse and fraud patterns.
 
@@ -144,7 +144,7 @@ The application includes realistic mock data:
 
 ## 🎨 Brand Identity
 
-- **Product Name**: NIRO
+- **Product Name**: ZENO
 - **Primary Color**: Lavender (#8A84E6)
 - **Logo**: Geometric white/navy diagonal with vertical lavender bars
 - **Visual Identity**: Restrained, technical, trustworthy

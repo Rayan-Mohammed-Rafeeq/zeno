@@ -53,14 +53,14 @@ def _tx_df(rows: list[dict]) -> pd.DataFrame:
 class TestFraudGraphBuilder:
 
     def test_empty_df_builds_empty_graph(self):
-        from niro_ml.graph.builder import build_graph
+        from zeno_ml.graph.builder import build_graph
         df = _tx_df([])
         g  = build_graph(df, merchant_id="m1")
         assert g.n_customers() == 0
         assert g.n_edges()     == 0
 
     def test_single_customer_no_device_no_ip(self):
-        from niro_ml.graph.builder import build_graph
+        from zeno_ml.graph.builder import build_graph
         df = _tx_df([{"customer_id": "C1", "transaction_id": "T1"}])
         g  = build_graph(df, merchant_id="m1")
         assert g.n_customers() == 1
@@ -69,7 +69,7 @@ class TestFraudGraphBuilder:
         assert g.n_edges()     == 0
 
     def test_customer_with_device_creates_edge(self):
-        from niro_ml.graph.builder import build_graph
+        from zeno_ml.graph.builder import build_graph
         df = _tx_df([{"customer_id": "C1", "transaction_id": "T1", "device_id": "DEV-001"}])
         g  = build_graph(df, merchant_id="m1")
         assert g.n_customers() == 1
@@ -77,7 +77,7 @@ class TestFraudGraphBuilder:
         assert g.n_edges()     == 1
 
     def test_customer_with_ip_creates_edge(self):
-        from niro_ml.graph.builder import build_graph
+        from zeno_ml.graph.builder import build_graph
         df = _tx_df([{"customer_id": "C1", "transaction_id": "T1", "ip_address": "1.2.3.4"}])
         g  = build_graph(df, merchant_id="m1")
         assert g.n_customers() == 1
@@ -85,7 +85,7 @@ class TestFraudGraphBuilder:
         assert g.n_edges()     == 1
 
     def test_two_customers_same_device_connected(self):
-        from niro_ml.graph.builder import build_graph
+        from zeno_ml.graph.builder import build_graph
         df = _tx_df([
             {"customer_id": "C1", "transaction_id": "T1", "device_id": "DEV-SHARED"},
             {"customer_id": "C2", "transaction_id": "T2", "device_id": "DEV-SHARED"},
@@ -97,7 +97,7 @@ class TestFraudGraphBuilder:
         assert g.n_edges()     == 2
 
     def test_two_customers_different_devices_not_bridged(self):
-        from niro_ml.graph.builder import build_graph, get_customer_neighbors
+        from zeno_ml.graph.builder import build_graph, get_customer_neighbors
         df = _tx_df([
             {"customer_id": "C1", "transaction_id": "T1", "device_id": "DEV-001"},
             {"customer_id": "C2", "transaction_id": "T2", "device_id": "DEV-002"},
@@ -113,7 +113,7 @@ class TestFraudGraphBuilder:
         Same device used across two merchants must NOT create a connection.
         Each graph is built per-merchant.
         """
-        from niro_ml.graph.builder import build_graph, get_customer_neighbors
+        from zeno_ml.graph.builder import build_graph, get_customer_neighbors
         df_m1 = _tx_df([{
             "customer_id": "C_M1", "transaction_id": "T_M1",
             "device_id": "DEV-SHARED-CROSS", "merchant_id": "merchant-1",
@@ -133,7 +133,7 @@ class TestFraudGraphBuilder:
 
     def test_duplicate_transactions_no_duplicate_edges(self):
         """Same customer-device pair appearing twice must produce only one edge."""
-        from niro_ml.graph.builder import build_graph
+        from zeno_ml.graph.builder import build_graph
         df = _tx_df([
             {"customer_id": "C1", "transaction_id": "T1", "device_id": "DEV-001"},
             {"customer_id": "C1", "transaction_id": "T2", "device_id": "DEV-001"},
@@ -143,7 +143,7 @@ class TestFraudGraphBuilder:
 
     def test_get_customer_neighbors_absent_customer(self):
         """customer not in graph returns empty lists — no KeyError."""
-        from niro_ml.graph.builder import build_graph, get_customer_neighbors
+        from zeno_ml.graph.builder import build_graph, get_customer_neighbors
         df = _tx_df([{"customer_id": "C1", "transaction_id": "T1"}])
         g  = build_graph(df, merchant_id="m1")
         nb = get_customer_neighbors(g, "NONEXISTENT")
@@ -160,7 +160,7 @@ class TestFraudGraphBuilder:
 class TestCommunityDetection:
 
     def _build_cluster_graph(self, n_customers: int, shared_device: bool) -> "FraudGraph":
-        from niro_ml.graph.builder import build_graph
+        from zeno_ml.graph.builder import build_graph
         rows = []
         for i in range(n_customers):
             dev = "DEV-SHARED" if shared_device else f"DEV-{i:03d}"
@@ -173,7 +173,7 @@ class TestCommunityDetection:
 
     def test_isolated_customers_no_clusters(self):
         """Customers with unique devices produce no multi-customer clusters."""
-        from niro_ml.graph.community import detect_suspicious_clusters
+        from zeno_ml.graph.community import detect_suspicious_clusters
         g = self._build_cluster_graph(n_customers=5, shared_device=False)
         result = detect_suspicious_clusters(g, merchant_baseline_fraud_rate=0.05)
         assert result.n_suspicious == 0, (
@@ -182,7 +182,7 @@ class TestCommunityDetection:
 
     def test_shared_device_creates_cluster(self):
         """5 customers sharing one device should form a cluster."""
-        from niro_ml.graph.community import detect_suspicious_clusters
+        from zeno_ml.graph.community import detect_suspicious_clusters
         g = self._build_cluster_graph(n_customers=5, shared_device=True)
         labels = {f"C{i:03d}": True for i in range(5)}   # all fraud for testing
         result = detect_suspicious_clusters(
@@ -199,7 +199,7 @@ class TestCommunityDetection:
         Two customers sharing a device with NO fraud labels and low device
         concentration should NOT be marked suspicious.
         """
-        from niro_ml.graph.community import detect_suspicious_clusters, MIN_CLUSTER_SIZE
+        from zeno_ml.graph.community import detect_suspicious_clusters, MIN_CLUSTER_SIZE
         g = self._build_cluster_graph(n_customers=2, shared_device=True)
         labels = {f"C{i:03d}": False for i in range(2)}
         result = detect_suspicious_clusters(
@@ -215,7 +215,7 @@ class TestCommunityDetection:
 
     def test_high_fraud_rate_cluster_is_suspicious(self):
         """Cluster with fraud_rate > 2× baseline should be suspicious."""
-        from niro_ml.graph.community import detect_suspicious_clusters
+        from zeno_ml.graph.community import detect_suspicious_clusters
         g = self._build_cluster_graph(n_customers=4, shared_device=True)
         labels = {f"C{i:03d}": True for i in range(4)}  # all fraud
         result = detect_suspicious_clusters(
@@ -229,7 +229,7 @@ class TestCommunityDetection:
 
     def test_cluster_risk_score_in_unit_interval(self):
         """cluster_risk_score must be in [0,1]."""
-        from niro_ml.graph.community import detect_suspicious_clusters
+        from zeno_ml.graph.community import detect_suspicious_clusters
         g = self._build_cluster_graph(n_customers=6, shared_device=True)
         labels = {f"C{i:03d}": i % 2 == 0 for i in range(6)}
         result = detect_suspicious_clusters(
@@ -243,7 +243,7 @@ class TestCommunityDetection:
 
     def test_cluster_with_no_labels_fraud_rate_zero(self):
         """When customer_labels is None, cluster fraud_rate must be 0.0."""
-        from niro_ml.graph.community import detect_suspicious_clusters
+        from zeno_ml.graph.community import detect_suspicious_clusters
         g = self._build_cluster_graph(n_customers=4, shared_device=True)
         result = detect_suspicious_clusters(g, customer_labels=None,
                                             merchant_baseline_fraud_rate=0.05)
@@ -254,7 +254,7 @@ class TestCommunityDetection:
 
     def test_single_customer_component_excluded(self):
         """Components with only 1 customer must not appear in clusters list."""
-        from niro_ml.graph.community import detect_suspicious_clusters, MIN_CLUSTER_SIZE
+        from zeno_ml.graph.community import detect_suspicious_clusters, MIN_CLUSTER_SIZE
         g = self._build_cluster_graph(n_customers=1, shared_device=True)
         result = detect_suspicious_clusters(g, merchant_baseline_fraud_rate=0.05)
         assert len(result.clusters) == 0, (
@@ -263,7 +263,7 @@ class TestCommunityDetection:
 
     def test_suspicion_reason_populated(self):
         """is_suspicious=True clusters must have a non-empty suspicion_reason."""
-        from niro_ml.graph.community import detect_suspicious_clusters
+        from zeno_ml.graph.community import detect_suspicious_clusters
         g = self._build_cluster_graph(n_customers=5, shared_device=True)
         labels = {f"C{i:03d}": True for i in range(5)}
         result = detect_suspicious_clusters(
@@ -285,8 +285,8 @@ class TestGraphFeatures:
     @pytest.fixture
     def graph_and_clusters(self):
         """Build a small graph with 4 customers sharing 1 device."""
-        from niro_ml.graph.builder import build_graph
-        from niro_ml.graph.community import detect_suspicious_clusters
+        from zeno_ml.graph.builder import build_graph
+        from zeno_ml.graph.community import detect_suspicious_clusters
         rows = [
             {"customer_id": "C1", "transaction_id": "T1", "device_id": "DEV-S"},
             {"customer_id": "C2", "transaction_id": "T2", "device_id": "DEV-S"},
@@ -301,14 +301,14 @@ class TestGraphFeatures:
         return g, cr, df
 
     def test_all_graph_feature_columns_present(self, graph_and_clusters):
-        from niro_ml.graph.features import add_graph_features, GRAPH_FEATURE_NAMES
+        from zeno_ml.graph.features import add_graph_features, GRAPH_FEATURE_NAMES
         g, cr, df = graph_and_clusters
         df_feat = add_graph_features(df.copy(), g, cr)
         for col in GRAPH_FEATURE_NAMES:
             assert col in df_feat.columns, f"Missing graph feature column: {col}"
 
     def test_cluster_members_have_nonzero_cluster_size(self, graph_and_clusters):
-        from niro_ml.graph.features import add_graph_features
+        from zeno_ml.graph.features import add_graph_features
         g, cr, df = graph_and_clusters
         df_feat = add_graph_features(df.copy(), g, cr)
         # C1, C2, C3 share DEV-S → should be in a cluster
@@ -318,7 +318,7 @@ class TestGraphFeatures:
         )
 
     def test_solo_customer_has_zero_cluster_size(self, graph_and_clusters):
-        from niro_ml.graph.features import add_graph_features
+        from zeno_ml.graph.features import add_graph_features
         g, cr, df = graph_and_clusters
         df_feat = add_graph_features(df.copy(), g, cr)
         c4_row = df_feat[df_feat["customer_id"] == "C4"].iloc[0]
@@ -327,7 +327,7 @@ class TestGraphFeatures:
         )
 
     def test_in_cluster_indicator_correct(self, graph_and_clusters):
-        from niro_ml.graph.features import add_graph_features
+        from zeno_ml.graph.features import add_graph_features
         g, cr, df = graph_and_clusters
         df_feat = add_graph_features(df.copy(), g, cr)
         for cid in ["C1", "C2", "C3"]:
@@ -337,7 +337,7 @@ class TestGraphFeatures:
             )
 
     def test_co_user_count_correct_for_shared_device(self, graph_and_clusters):
-        from niro_ml.graph.features import add_graph_features
+        from zeno_ml.graph.features import add_graph_features
         g, cr, df = graph_and_clusters
         df_feat = add_graph_features(df.copy(), g, cr)
         # C1 shares DEV-S with C2 and C3 → co_user_count should be 2
@@ -349,9 +349,9 @@ class TestGraphFeatures:
 
     def test_absent_customer_gets_zero_graph_features(self):
         """Customer not in the training graph gets default 0 values."""
-        from niro_ml.graph.builder import build_graph
-        from niro_ml.graph.community import detect_suspicious_clusters
-        from niro_ml.graph.features import add_graph_features, GRAPH_FEATURE_NAMES
+        from zeno_ml.graph.builder import build_graph
+        from zeno_ml.graph.community import detect_suspicious_clusters
+        from zeno_ml.graph.features import add_graph_features, GRAPH_FEATURE_NAMES
 
         # Graph built from training data
         train_df = _tx_df([{"customer_id": "TRAIN_C", "transaction_id": "T_TR",
@@ -370,7 +370,7 @@ class TestGraphFeatures:
 
     def test_graph_features_are_numeric(self, graph_and_clusters):
         """All graph feature columns must be numeric (float)."""
-        from niro_ml.graph.features import add_graph_features, GRAPH_FEATURE_NAMES
+        from zeno_ml.graph.features import add_graph_features, GRAPH_FEATURE_NAMES
         g, cr, df = graph_and_clusters
         df_feat = add_graph_features(df.copy(), g, cr)
         for col in GRAPH_FEATURE_NAMES:
@@ -380,14 +380,14 @@ class TestGraphFeatures:
 
     def test_graph_feature_hook_callable(self, graph_and_clusters):
         """build_graph_feature_hook() must return a callable."""
-        from niro_ml.graph.features import build_graph_feature_hook
+        from zeno_ml.graph.features import build_graph_feature_hook
         g, cr, _ = graph_and_clusters
         hook = build_graph_feature_hook(g, cr)
         assert callable(hook)
 
     def test_graph_feature_hook_adds_columns(self, graph_and_clusters):
         """Hook returned by build_graph_feature_hook() must add graph columns."""
-        from niro_ml.graph.features import build_graph_feature_hook, GRAPH_FEATURE_NAMES
+        from zeno_ml.graph.features import build_graph_feature_hook, GRAPH_FEATURE_NAMES
         g, cr, df = graph_and_clusters
         hook     = build_graph_feature_hook(g, cr)
         df_after = hook(df.copy())
@@ -402,18 +402,18 @@ class TestGraphFeatures:
 class TestGraphFeatureBase:
 
     def test_graph_features_list_not_empty(self):
-        from niro_ml.features.base import GRAPH_FEATURES
+        from zeno_ml.features.base import GRAPH_FEATURES
         assert len(GRAPH_FEATURES) > 0
 
     def test_all_feature_columns_with_graph_superset(self):
-        from niro_ml.features.base import ALL_FEATURE_COLUMNS, ALL_FEATURE_COLUMNS_WITH_GRAPH, GRAPH_FEATURES
+        from zeno_ml.features.base import ALL_FEATURE_COLUMNS, ALL_FEATURE_COLUMNS_WITH_GRAPH, GRAPH_FEATURES
         for col in ALL_FEATURE_COLUMNS:
             assert col in ALL_FEATURE_COLUMNS_WITH_GRAPH
         for col in GRAPH_FEATURES:
             assert col in ALL_FEATURE_COLUMNS_WITH_GRAPH
 
     def test_no_duplicate_feature_names(self):
-        from niro_ml.features.base import ALL_FEATURE_COLUMNS_WITH_GRAPH
+        from zeno_ml.features.base import ALL_FEATURE_COLUMNS_WITH_GRAPH
         assert len(ALL_FEATURE_COLUMNS_WITH_GRAPH) == len(set(ALL_FEATURE_COLUMNS_WITH_GRAPH)), (
             "ALL_FEATURE_COLUMNS_WITH_GRAPH contains duplicate column names."
         )

@@ -23,7 +23,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from niro_ml.models.splits import (
+from zeno_ml.models.splits import (
     SplitResult,
     compute_fraud_rates,
     temporal_split,

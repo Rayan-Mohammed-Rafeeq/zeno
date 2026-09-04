@@ -1,5 +1,5 @@
 /**
- * Login.tsx — NIRO Authentication Page
+ * Login.tsx — ZENO Authentication Page
  * ----------------------------------------
  * Premium split-screen design:
  *   Left  (55%) — Hero with 3D risk-intelligence visualization
@@ -10,12 +10,12 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { NiroVisualization } from '@/components/brand/NiroVisualization';
+import { ZenoVisualization } from '@/components/brand/ZenoVisualization';
 import { AlertCircle, Eye, EyeOff, ArrowRight, Mail, Lock, ShieldCheck } from 'lucide-react';
 
 const LOGIN_STYLES = `
   /* ── Page shell ── */
-  .niro-login-shell {
+  .zeno-login-shell {
     height: 100svh;
     max-height: 100svh;
     display: flex;
@@ -24,7 +24,7 @@ const LOGIN_STYLES = `
   }
 
   /* ── LEFT HERO PANEL ── */
-  .niro-hero {
+  .zeno-hero {
     position: relative;
     width: 55%;
     flex-shrink: 0;
@@ -34,7 +34,7 @@ const LOGIN_STYLES = `
     background: var(--hero-bg);
   }
 
-  .niro-hero::before {
+  .zeno-hero::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -45,7 +45,7 @@ const LOGIN_STYLES = `
     z-index: 0;
   }
 
-  .niro-hero::after {
+  .zeno-hero::after {
     content: '';
     position: absolute;
     inset: 0;
@@ -56,7 +56,7 @@ const LOGIN_STYLES = `
     z-index: 0;
   }
 
-  .niro-hero-content {
+  .zeno-hero-content {
     position: relative;
     z-index: 1;
     display: flex;
@@ -66,14 +66,14 @@ const LOGIN_STYLES = `
     overflow: hidden;
   }
 
-  .niro-hero-logo {
+  .zeno-hero-logo {
     display: flex;
     align-items: center;
     gap: 10px;
     flex-shrink: 0;
   }
 
-  .niro-hero-logo-text {
+  .zeno-hero-logo-text {
     font-size: 1.1rem;
     font-weight: 800;
     letter-spacing: 0.18em;
@@ -81,12 +81,12 @@ const LOGIN_STYLES = `
     user-select: none;
   }
 
-  .niro-hero-copy {
+  .zeno-hero-copy {
     margin-top: 14px;
     flex-shrink: 0;
   }
 
-  .niro-hero-headline {
+  .zeno-hero-headline {
     font-size: clamp(1.4rem, 2.2vw, 1.9rem);
     font-weight: 800;
     line-height: 1.12;
@@ -95,12 +95,12 @@ const LOGIN_STYLES = `
     margin: 0;
   }
 
-  .niro-hero-headline-accent {
+  .zeno-hero-headline-accent {
     color: var(--hero-accent);
     display: block;
   }
 
-  .niro-hero-sub {
+  .zeno-hero-sub {
     margin-top: 10px;
     font-size: 0.875rem;
     line-height: 1.55;
@@ -108,7 +108,7 @@ const LOGIN_STYLES = `
     max-width: 360px;
   }
 
-  .niro-vis-wrap {
+  .zeno-vis-wrap {
     flex: 1;
     min-height: 0;
     display: flex;
@@ -119,17 +119,17 @@ const LOGIN_STYLES = `
   }
 
   /* ── Testimonial carousel ── */
-  .niro-testimonial {
+  .zeno-testimonial {
     flex-shrink: 0;
     padding: 6px 0 18px;
   }
 
-  .niro-testimonial-track {
+  .zeno-testimonial-track {
     position: relative;
     width: 100%;
   }
 
-  .niro-tcard {
+  .zeno-tcard {
     position: absolute;
     inset: 0;
     display: flex;
@@ -144,24 +144,24 @@ const LOGIN_STYLES = `
     pointer-events: none;
   }
 
-  .niro-tcard--active {
+  .zeno-tcard--active {
     opacity: 1;
     pointer-events: auto;
     position: relative;
   }
 
-  :root:not(.dark) .niro-tcard {
+  :root:not(.dark) .zeno-tcard {
     background: rgba(255, 255, 255, 0.70);
     border-color: rgba(94, 91, 193, 0.13);
   }
 
-  .niro-tcard-header {
+  .zeno-tcard-header {
     display: flex;
     align-items: center;
     gap: 9px;
   }
 
-  .niro-tcard-avatar {
+  .zeno-tcard-avatar {
     width: 26px;
     height: 26px;
     border-radius: 50%;
@@ -175,16 +175,16 @@ const LOGIN_STYLES = `
     letter-spacing: 0.03em;
   }
 
-  .niro-tcard-meta { flex: 1; min-width: 0; }
+  .zeno-tcard-meta { flex: 1; min-width: 0; }
 
-  .niro-tcard-name {
+  .zeno-tcard-name {
     font-size: 0.8rem;
     font-weight: 700;
     color: var(--hero-headline);
     line-height: 1.2;
   }
 
-  .niro-tcard-role {
+  .zeno-tcard-role {
     font-size: 0.68rem;
     color: var(--hero-sub);
     opacity: 0.75;
@@ -194,10 +194,10 @@ const LOGIN_STYLES = `
     text-overflow: ellipsis;
   }
 
-  .niro-tcard-stars { display: flex; gap: 2px; flex-shrink: 0; }
-  .niro-tcard-stars span { font-size: 0.65rem; color: #fbbf24; }
+  .zeno-tcard-stars { display: flex; gap: 2px; flex-shrink: 0; }
+  .zeno-tcard-stars span { font-size: 0.65rem; color: #fbbf24; }
 
-  .niro-tcard-quote {
+  .zeno-tcard-quote {
     font-size: 0.79rem;
     line-height: 1.5;
     color: var(--hero-headline);
@@ -206,16 +206,16 @@ const LOGIN_STYLES = `
     font-style: italic;
   }
 
-  :root:not(.dark) .niro-tcard-quote { opacity: 0.78; }
+  :root:not(.dark) .zeno-tcard-quote { opacity: 0.78; }
 
-  .niro-tcard-dots {
+  .zeno-tcard-dots {
     display: flex;
     justify-content: center;
     gap: 6px;
     padding-top: 9px;
   }
 
-  .niro-tcard-dot {
+  .zeno-tcard-dot {
     width: 5px; height: 5px;
     border-radius: 50%;
     background: rgba(155, 158, 245, 0.28);
@@ -223,18 +223,18 @@ const LOGIN_STYLES = `
     transition: background 0.25s ease, transform 0.25s ease;
   }
 
-  .niro-tcard-dot--active {
+  .zeno-tcard-dot--active {
     background: var(--hero-accent);
     transform: scale(1.35);
   }
 
-  :root:not(.dark) .niro-tcard-dot { background: rgba(94, 91, 193, 0.22); }
-  :root:not(.dark) .niro-tcard-dot--active { background: var(--hero-accent); }
+  :root:not(.dark) .zeno-tcard-dot { background: rgba(94, 91, 193, 0.22); }
+  :root:not(.dark) .zeno-tcard-dot--active { background: var(--hero-accent); }
 
-  @media (prefers-reduced-motion: reduce) { .niro-tcard { transition: none; } }
-  @media (max-width: 768px) { .niro-testimonial { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .zeno-tcard { transition: none; } }
+  @media (max-width: 768px) { .zeno-testimonial { display: none; } }
 
-  .niro-divider {
+  .zeno-divider {
     position: absolute; top: 0; right: 0;
     width: 1px; height: 100%;
     background: linear-gradient(to bottom, transparent 0%, var(--divider-color) 20%, var(--divider-color) 80%, transparent 100%);
@@ -244,7 +244,7 @@ const LOGIN_STYLES = `
   /* ═══════════════════════════════════════════
      RIGHT AUTH PANEL — redesigned
   ═══════════════════════════════════════════ */
-  .niro-auth {
+  .zeno-auth {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -256,10 +256,10 @@ const LOGIN_STYLES = `
     overflow: auto;
     scrollbar-width: none;
   }
-  .niro-auth::-webkit-scrollbar { display: none; }
+  .zeno-auth::-webkit-scrollbar { display: none; }
 
   /* Multi-layer ambient background */
-  .niro-auth::before {
+  .zeno-auth::before {
     content: '';
     position: absolute;
     top: -140px; right: -100px;
@@ -271,7 +271,7 @@ const LOGIN_STYLES = `
     z-index: 0;
   }
 
-  .niro-auth::after {
+  .zeno-auth::after {
     content: '';
     position: absolute;
     bottom: -80px; left: -60px;
@@ -283,7 +283,7 @@ const LOGIN_STYLES = `
     z-index: 0;
   }
 
-  .niro-auth-inner {
+  .zeno-auth-inner {
     position: relative;
     z-index: 1;
     width: 100%;
@@ -291,7 +291,7 @@ const LOGIN_STYLES = `
   }
 
   /* ── Floating card ── */
-  .niro-auth-card {
+  .zeno-auth-card {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 20px;
@@ -304,7 +304,7 @@ const LOGIN_STYLES = `
   }
 
   /* Subtle top-edge shimmer on the card */
-  .niro-auth-card::before {
+  .zeno-auth-card::before {
     content: '';
     position: absolute;
     top: 0; left: 10%; right: 10%;
@@ -314,12 +314,12 @@ const LOGIN_STYLES = `
   }
 
   /* ── Card header area ── */
-  .niro-card-header {
+  .zeno-card-header {
     margin-bottom: 28px;
   }
 
   /* Accent pill above the heading */
-  .niro-accent-pill {
+  .zeno-accent-pill {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -335,9 +335,9 @@ const LOGIN_STYLES = `
     margin-bottom: 14px;
   }
 
-  .niro-accent-pill svg { opacity: 0.85; }
+  .zeno-accent-pill svg { opacity: 0.85; }
 
-  .niro-auth-heading {
+  .zeno-auth-heading {
     font-size: 1.7rem;
     font-weight: 800;
     letter-spacing: -0.03em;
@@ -346,7 +346,7 @@ const LOGIN_STYLES = `
     line-height: 1.15;
   }
 
-  .niro-auth-subheading {
+  .zeno-auth-subheading {
     font-size: 0.88rem;
     color: var(--auth-sub);
     margin: 0;
@@ -354,7 +354,7 @@ const LOGIN_STYLES = `
   }
 
   /* ── Error banner ── */
-  .niro-error {
+  .zeno-error {
     display: flex;
     align-items: flex-start;
     gap: 10px;
@@ -369,16 +369,16 @@ const LOGIN_STYLES = `
   }
 
   /* ── Field ── */
-  .niro-field { margin-bottom: 16px; }
+  .zeno-field { margin-bottom: 16px; }
 
-  .niro-field-row {
+  .zeno-field-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 7px;
   }
 
-  .niro-label {
+  .zeno-label {
     display: block;
     font-size: 0.78rem;
     font-weight: 600;
@@ -389,13 +389,13 @@ const LOGIN_STYLES = `
   }
 
   /* ── Input with icon ── */
-  .niro-input-wrap {
+  .zeno-input-wrap {
     position: relative;
     display: flex;
     align-items: center;
   }
 
-  .niro-input-icon {
+  .zeno-input-icon {
     position: absolute;
     left: 13px;
     color: var(--input-icon);
@@ -406,7 +406,7 @@ const LOGIN_STYLES = `
     z-index: 1;
   }
 
-  .niro-input {
+  .zeno-input {
     width: 100%;
     height: 46px;
     padding: 0 14px 0 40px;
@@ -420,25 +420,25 @@ const LOGIN_STYLES = `
     caret-color: var(--auth-accent);
   }
 
-  .niro-input::placeholder { color: var(--input-placeholder); }
-  .niro-input:hover { border-color: var(--input-border-hover); }
+  .zeno-input::placeholder { color: var(--input-placeholder); }
+  .zeno-input:hover { border-color: var(--input-border-hover); }
 
-  .niro-input:focus {
+  .zeno-input:focus {
     border-color: var(--auth-accent);
     box-shadow: 0 0 0 3.5px var(--input-focus-ring);
     background: var(--input-bg-focus);
   }
 
-  .niro-input:focus ~ .niro-input-icon,
-  .niro-input-wrap:focus-within .niro-input-icon {
+  .zeno-input:focus ~ .zeno-input-icon,
+  .zeno-input-wrap:focus-within .zeno-input-icon {
     color: var(--auth-accent);
   }
 
-  .niro-input-pw { padding-right: 46px; }
+  .zeno-input-pw { padding-right: 46px; }
 
-  .niro-pw-wrap { position: relative; }
+  .zeno-pw-wrap { position: relative; }
 
-  .niro-pw-toggle {
+  .zeno-pw-toggle {
     position: absolute;
     right: 13px; top: 50%;
     transform: translateY(-50%);
@@ -449,19 +449,19 @@ const LOGIN_STYLES = `
     transition: color 0.15s;
     z-index: 1;
   }
-  .niro-pw-toggle:hover { color: var(--auth-sub); }
+  .zeno-pw-toggle:hover { color: var(--auth-sub); }
 
-  .niro-forgot {
+  .zeno-forgot {
     font-size: 0.78rem;
     font-weight: 500;
     color: var(--auth-accent);
     text-decoration: none;
     transition: opacity 0.15s;
   }
-  .niro-forgot:hover { opacity: 0.75; text-decoration: underline; }
+  .zeno-forgot:hover { opacity: 0.75; text-decoration: underline; }
 
   /* ── Submit button ── */
-  .niro-submit {
+  .zeno-submit {
     width: 100%;
     height: 48px;
     border-radius: 11px;
@@ -484,7 +484,7 @@ const LOGIN_STYLES = `
   }
 
   /* Shimmer sweep on the button */
-  .niro-submit::after {
+  .zeno-submit::after {
     content: '';
     position: absolute;
     top: 0; left: -100%;
@@ -493,29 +493,29 @@ const LOGIN_STYLES = `
     transform: skewX(-20deg);
     transition: left 0.55s ease;
   }
-  .niro-submit:hover:not(:disabled)::after { left: 160%; }
+  .zeno-submit:hover:not(:disabled)::after { left: 160%; }
 
-  .niro-submit:hover:not(:disabled) {
+  .zeno-submit:hover:not(:disabled) {
     opacity: 0.93;
     box-shadow: var(--btn-shadow-hover);
     transform: translateY(-1px);
   }
-  .niro-submit:active:not(:disabled) { transform: translateY(0); opacity: 1; }
-  .niro-submit:disabled { opacity: 0.55; cursor: not-allowed; }
+  .zeno-submit:active:not(:disabled) { transform: translateY(0); opacity: 1; }
+  .zeno-submit:disabled { opacity: 0.55; cursor: not-allowed; }
 
   /* Spinner */
-  .niro-spinner {
+  .zeno-spinner {
     width: 18px; height: 18px;
     border: 2px solid rgba(255,255,255,0.3);
     border-top-color: #fff;
     border-radius: 50%;
-    animation: niro-spin 0.7s linear infinite;
+    animation: zeno-spin 0.7s linear infinite;
   }
-  @keyframes niro-spin { to { transform: rotate(360deg); } }
-  @media (prefers-reduced-motion: reduce) { .niro-spinner { animation: none; opacity: 0.7; } }
+  @keyframes zeno-spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .zeno-spinner { animation: none; opacity: 0.7; } }
 
   /* ── Trust badges ── */
-  .niro-trust {
+  .zeno-trust {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -525,7 +525,7 @@ const LOGIN_STYLES = `
     border-top: 1px solid var(--card-divider);
   }
 
-  .niro-trust-item {
+  .zeno-trust-item {
     display: flex;
     align-items: center;
     gap: 5px;
@@ -535,33 +535,33 @@ const LOGIN_STYLES = `
     opacity: 0.75;
   }
 
-  .niro-trust-item svg { opacity: 0.65; flex-shrink: 0; }
+  .zeno-trust-item svg { opacity: 0.65; flex-shrink: 0; }
 
   /* ── Auth footer ── */
-  .niro-auth-footer {
+  .zeno-auth-footer {
     margin-top: 20px;
     text-align: center;
     font-size: 0.84rem;
     color: var(--auth-sub);
   }
 
-  .niro-auth-footer a {
+  .zeno-auth-footer a {
     color: var(--auth-accent);
     font-weight: 600;
     text-decoration: none;
     transition: opacity 0.15s;
   }
-  .niro-auth-footer a:hover { opacity: 0.75; text-decoration: underline; }
+  .zeno-auth-footer a:hover { opacity: 0.75; text-decoration: underline; }
 
   /* ── Mobile logo ── */
-  .niro-mobile-logo {
+  .zeno-mobile-logo {
     display: none;
     align-items: center;
     gap: 10px;
     margin-bottom: 28px;
   }
 
-  .niro-mobile-logo-text {
+  .zeno-mobile-logo-text {
     font-size: 1.15rem;
     font-weight: 800;
     letter-spacing: 0.18em;
@@ -673,37 +673,37 @@ const LOGIN_STYLES = `
      RESPONSIVE
   ════════════════════════════════════ */
   @media (max-width: 1100px) {
-    .niro-hero         { width: 48%; }
-    .niro-hero-content { padding: 18px 32px 0; }
-    .niro-auth         { padding: 24px 24px; }
-    .niro-auth-card    { padding: 28px 28px 22px; }
+    .zeno-hero         { width: 48%; }
+    .zeno-hero-content { padding: 18px 32px 0; }
+    .zeno-auth         { padding: 24px 24px; }
+    .zeno-auth-card    { padding: 28px 28px 22px; }
   }
 
   @media (max-width: 768px) {
-    .niro-login-shell  { flex-direction: column; }
-    .niro-hero         { width: 100%; min-height: 260px; }
-    .niro-hero-content { padding: 28px 28px 20px; }
-    .niro-hero-copy    { margin-top: 24px; }
-    .niro-hero-headline{ font-size: 1.7rem; }
-    .niro-hero-sub     { display: none; }
-    .niro-vis-wrap     { display: none; }
-    .niro-divider      { display: none; }
-    .niro-auth         { flex: 1; padding: 28px 20px 36px; justify-content: flex-start; }
-    .niro-auth-inner   { max-width: 100%; }
-    .niro-mobile-logo  { display: flex; }
-    .niro-auth-card    { padding: 24px 22px 20px; }
+    .zeno-login-shell  { flex-direction: column; }
+    .zeno-hero         { width: 100%; min-height: 260px; }
+    .zeno-hero-content { padding: 28px 28px 20px; }
+    .zeno-hero-copy    { margin-top: 24px; }
+    .zeno-hero-headline{ font-size: 1.7rem; }
+    .zeno-hero-sub     { display: none; }
+    .zeno-vis-wrap     { display: none; }
+    .zeno-divider      { display: none; }
+    .zeno-auth         { flex: 1; padding: 28px 20px 36px; justify-content: flex-start; }
+    .zeno-auth-inner   { max-width: 100%; }
+    .zeno-mobile-logo  { display: flex; }
+    .zeno-auth-card    { padding: 24px 22px 20px; }
   }
 
   @media (max-width: 400px) {
-    .niro-hero         { min-height: 200px; }
-    .niro-auth         { padding: 20px 14px 32px; }
-    .niro-input        { height: 44px; }
-    .niro-submit       { height: 46px; }
-    .niro-auth-card    { padding: 20px 16px 18px; border-radius: 16px; }
+    .zeno-hero         { min-height: 200px; }
+    .zeno-auth         { padding: 20px 14px 32px; }
+    .zeno-input        { height: 44px; }
+    .zeno-submit       { height: 46px; }
+    .zeno-auth-card    { padding: 20px 16px 18px; border-radius: 16px; }
   }
 
   /* ── BACK / SWITCH BUTTONS ── */
-  .niro-back-btn {
+  .zeno-back-btn {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -723,7 +723,7 @@ const LOGIN_STYLES = `
     white-space: nowrap;
     margin-bottom: 16px;
   }
-  .niro-back-btn::before {
+  .zeno-back-btn::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -732,21 +732,21 @@ const LOGIN_STYLES = `
     opacity: 0;
     transition: opacity 0.22s ease;
   }
-  .niro-back-btn:hover {
+  .zeno-back-btn:hover {
     color: var(--auth-accent);
     border-color: var(--auth-accent);
     transform: translateY(-2px) scale(1.03);
     box-shadow: 0 4px 16px rgba(94, 91, 193, 0.18);
   }
-  .niro-back-btn:hover::before { opacity: 1; }
-  .niro-back-btn:active { transform: translateY(0) scale(0.97); }
-  .niro-back-btn:hover .niro-back-arrow { transform: translateX(-3px); }
-  .niro-back-arrow {
+  .zeno-back-btn:hover::before { opacity: 1; }
+  .zeno-back-btn:active { transform: translateY(0) scale(0.97); }
+  .zeno-back-btn:hover .zeno-back-arrow { transform: translateX(-3px); }
+  .zeno-back-arrow {
     display: inline-flex;
     transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
-  .niro-switch-btn {
+  .zeno-switch-btn {
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -765,7 +765,7 @@ const LOGIN_STYLES = `
     transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
     white-space: nowrap;
   }
-  .niro-switch-btn::before {
+  .zeno-switch-btn::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -773,27 +773,27 @@ const LOGIN_STYLES = `
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
     transform: translateX(-120%) skewX(-15deg);
   }
-  .niro-switch-btn:hover {
+  .zeno-switch-btn:hover {
     background: var(--auth-accent);
     border-color: var(--auth-accent);
     color: #fff;
     transform: translateY(-2px) scale(1.04);
     box-shadow: 0 6px 20px rgba(94, 91, 193, 0.35);
   }
-  .niro-switch-btn:hover::before { animation: niro-shimmer 0.55s ease forwards; }
-  .niro-switch-btn:active { transform: translateY(0) scale(0.97); }
-  .niro-switch-btn:hover .niro-switch-arrow { transform: translateX(3px); }
-  .niro-switch-arrow {
+  .zeno-switch-btn:hover::before { animation: zeno-shimmer 0.55s ease forwards; }
+  .zeno-switch-btn:active { transform: translateY(0) scale(0.97); }
+  .zeno-switch-btn:hover .zeno-switch-arrow { transform: translateX(3px); }
+  .zeno-switch-arrow {
     display: inline-flex;
     transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
-  @keyframes niro-shimmer {
+  @keyframes zeno-shimmer {
     0%   { transform: translateX(-120%) skewX(-15deg); }
     100% { transform: translateX(220%)  skewX(-15deg); }
   }
 
-  .niro-auth-footer-row {
+  .zeno-auth-footer-row {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -801,7 +801,7 @@ const LOGIN_STYLES = `
     margin-top: 20px;
     flex-wrap: wrap;
   }
-  .niro-auth-footer-label {
+  .zeno-auth-footer-label {
     font-size: 0.84rem;
     color: var(--auth-sub);
   }
@@ -835,8 +835,8 @@ export function Login() {
   const logoSrc = isDark ? '/dark-logo.svg' : '/light-logo.svg';
 
   const testimonials = [
-    { initials: 'SK', avatarBg: '#4f46e5', name: 'Sarah K.',  role: 'Head of Risk · Retailio',      quote: 'NIRO helped us catch suspicious activity much earlier without slowing down legitimate customers.' },
-    { initials: 'JT', avatarBg: '#5e5bc1', name: 'James T.',  role: 'COO · MarketNest',              quote: 'False positives dropped significantly after we introduced NIRO\'s risk intelligence layer.' },
+    { initials: 'SK', avatarBg: '#4f46e5', name: 'Sarah K.',  role: 'Head of Risk · Retailio',      quote: 'ZENO helped us catch suspicious activity much earlier without slowing down legitimate customers.' },
+    { initials: 'JT', avatarBg: '#5e5bc1', name: 'James T.',  role: 'COO · MarketNest',              quote: 'False positives dropped significantly after we introduced ZENO\'s risk intelligence layer.' },
     { initials: 'PM', avatarBg: '#4338ca', name: 'Priya M.',  role: 'Trust & Safety · Shopwave',    quote: 'The risk signals are clear enough for our team to act on immediately — no guesswork needed.' },
     { initials: 'LB', avatarBg: '#6366f1', name: 'Lucas B.',  role: 'Fraud Analyst · Vendly',       quote: 'Coordinated abuse patterns that used to take days to find now surface in hours.' },
     { initials: 'AN', avatarBg: '#7c3aed', name: 'Aisha N.',  role: 'Risk Manager · Storefront Pro',quote: 'Our team trusts the signals. That confidence alone has changed how we operate.' },
@@ -851,7 +851,7 @@ export function Login() {
   }, [testimonials.length]);
 
   const Stars = () => (
-    <div className="niro-tcard-stars" aria-label="5 out of 5 stars">
+    <div className="zeno-tcard-stars" aria-label="5 out of 5 stars">
       {[0,1,2,3,4].map(i => <span key={i} aria-hidden>★</span>)}
     </div>
   );
@@ -860,70 +860,70 @@ export function Login() {
     <>
       <style>{LOGIN_STYLES}</style>
 
-      <div className="niro-login-shell">
+      <div className="zeno-login-shell">
 
         {/* ══ LEFT — Hero panel ══ */}
-        <div className="niro-hero">
-          <div className="niro-hero-content">
+        <div className="zeno-hero">
+          <div className="zeno-hero-content">
 
-            <div className="niro-hero-logo">
-              <img src={logoSrc} alt="NIRO" height={28} draggable={false} style={{ height: 28, width: 'auto' }} />
-              <span className="niro-hero-logo-text">NIRO</span>
+            <div className="zeno-hero-logo">
+              <img src={logoSrc} alt="ZENO" height={28} draggable={false} style={{ height: 28, width: 'auto' }} />
+              <span className="zeno-hero-logo-text">ZENO</span>
             </div>
 
-            <div className="niro-hero-copy">
-              <h1 className="niro-hero-headline">
+            <div className="zeno-hero-copy">
+              <h1 className="zeno-hero-headline">
                 Intelligence that
-                <span className="niro-hero-headline-accent">stops abuse.</span>
+                <span className="zeno-hero-headline-accent">stops abuse.</span>
               </h1>
             </div>
 
-            <div className="niro-vis-wrap">
-              <NiroVisualization isDark={isDark} className="w-full h-full" />
+            <div className="zeno-vis-wrap">
+              <ZenoVisualization isDark={isDark} className="w-full h-full" />
             </div>
 
-            <div className="niro-testimonial" aria-label="Customer testimonials">
-              <div className="niro-testimonial-track">
+            <div className="zeno-testimonial" aria-label="Customer testimonials">
+              <div className="zeno-testimonial-track">
                 {testimonials.map((t, i) => (
-                  <div key={i} className={`niro-tcard${i === tIdx ? ' niro-tcard--active' : ''}`} aria-hidden={i !== tIdx}>
-                    <div className="niro-tcard-header">
-                      <div className="niro-tcard-avatar" style={{ background: t.avatarBg }}>{t.initials}</div>
-                      <div className="niro-tcard-meta">
-                        <div className="niro-tcard-name">{t.name}</div>
-                        <div className="niro-tcard-role">{t.role}</div>
+                  <div key={i} className={`zeno-tcard${i === tIdx ? ' zeno-tcard--active' : ''}`} aria-hidden={i !== tIdx}>
+                    <div className="zeno-tcard-header">
+                      <div className="zeno-tcard-avatar" style={{ background: t.avatarBg }}>{t.initials}</div>
+                      <div className="zeno-tcard-meta">
+                        <div className="zeno-tcard-name">{t.name}</div>
+                        <div className="zeno-tcard-role">{t.role}</div>
                       </div>
                       <Stars />
                     </div>
-                    <p className="niro-tcard-quote">"{t.quote}"</p>
+                    <p className="zeno-tcard-quote">"{t.quote}"</p>
                   </div>
                 ))}
               </div>
-              <div className="niro-tcard-dots" role="tablist" aria-label="Testimonial pagination">
+              <div className="zeno-tcard-dots" role="tablist" aria-label="Testimonial pagination">
                 {testimonials.map((_, i) => (
                   <button key={i} role="tab" aria-selected={i === tIdx} aria-label={`Testimonial ${i + 1}`}
-                    className={`niro-tcard-dot${i === tIdx ? ' niro-tcard-dot--active' : ''}`}
+                    className={`zeno-tcard-dot${i === tIdx ? ' zeno-tcard-dot--active' : ''}`}
                     onClick={() => setTIdx(i)} />
                 ))}
               </div>
             </div>
 
           </div>
-          <div className="niro-divider" aria-hidden />
+          <div className="zeno-divider" aria-hidden />
         </div>
 
         {/* ══ RIGHT — Auth panel ══ */}
-        <div className="niro-auth">
-          <div className="niro-auth-inner">
+        <div className="zeno-auth">
+          <div className="zeno-auth-inner">
 
             {/* Mobile-only logo */}
-            <div className="niro-mobile-logo">
-              <img src={logoSrc} alt="NIRO" height={32} draggable={false} style={{ height: 32, width: 'auto' }} />
-              <span className="niro-mobile-logo-text">NIRO</span>
+            <div className="zeno-mobile-logo">
+              <img src={logoSrc} alt="ZENO" height={32} draggable={false} style={{ height: 32, width: 'auto' }} />
+              <span className="zeno-mobile-logo-text">ZENO</span>
             </div>
 
             {/* ← Back to Home */}
-            <Link to="/" className="niro-back-btn" aria-label="Back to home">
-              <span className="niro-back-arrow" aria-hidden="true">
+            <Link to="/" className="zeno-back-btn" aria-label="Back to home">
+              <span className="zeno-back-arrow" aria-hidden="true">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M19 12H5M12 5l-7 7 7 7"/>
                 </svg>
@@ -932,21 +932,21 @@ export function Login() {
             </Link>
 
             {/* Floating card */}
-            <div className="niro-auth-card">
+            <div className="zeno-auth-card">
 
               {/* Card header */}
-              <div className="niro-card-header">
-                <div className="niro-accent-pill">
+              <div className="zeno-card-header">
+                <div className="zeno-accent-pill">
                   <ShieldCheck size={11} aria-hidden />
                   Secure sign-in
                 </div>
-                <h2 className="niro-auth-heading">Welcome back</h2>
-                <p className="niro-auth-subheading">Sign in to your NIRO workspace</p>
+                <h2 className="zeno-auth-heading">Welcome back</h2>
+                <p className="zeno-auth-subheading">Sign in to your ZENO workspace</p>
               </div>
 
               {/* Error */}
               {error && (
-                <div className="niro-error" role="alert">
+                <div className="zeno-error" role="alert">
                   <AlertCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} aria-hidden />
                   <span>{error}</span>
                 </div>
@@ -955,44 +955,44 @@ export function Login() {
               <form onSubmit={handleSubmit} noValidate>
 
                 {/* Email */}
-                <div className="niro-field">
-                  <label htmlFor="niro-email" className="niro-label">Email address</label>
-                  <div className="niro-input-wrap">
-                    <span className="niro-input-icon"><Mail size={15} aria-hidden /></span>
+                <div className="zeno-field">
+                  <label htmlFor="zeno-email" className="zeno-label">Email address</label>
+                  <div className="zeno-input-wrap">
+                    <span className="zeno-input-icon"><Mail size={15} aria-hidden /></span>
                     <input
-                      id="niro-email"
+                      id="zeno-email"
                       type="email"
                       required
                       autoComplete="email"
                       placeholder="you@company.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="niro-input"
+                      className="zeno-input"
                       aria-label="Email address"
                     />
                   </div>
                 </div>
 
                 {/* Password */}
-                <div className="niro-field">
-                  <div className="niro-field-row">
-                    <label htmlFor="niro-password" className="niro-label" style={{ margin: 0 }}>Password</label>
-                    <Link to="/forgot-password" className="niro-forgot" tabIndex={0}>Forgot password?</Link>
+                <div className="zeno-field">
+                  <div className="zeno-field-row">
+                    <label htmlFor="zeno-password" className="zeno-label" style={{ margin: 0 }}>Password</label>
+                    <Link to="/forgot-password" className="zeno-forgot" tabIndex={0}>Forgot password?</Link>
                   </div>
-                  <div className="niro-input-wrap niro-pw-wrap">
-                    <span className="niro-input-icon"><Lock size={15} aria-hidden /></span>
+                  <div className="zeno-input-wrap zeno-pw-wrap">
+                    <span className="zeno-input-icon"><Lock size={15} aria-hidden /></span>
                     <input
-                      id="niro-password"
+                      id="zeno-password"
                       type={showPw ? 'text' : 'password'}
                       required
                       autoComplete="current-password"
                       placeholder="Enter your password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="niro-input niro-input-pw"
+                      className="zeno-input zeno-input-pw"
                       aria-label="Password"
                     />
-                    <button type="button" className="niro-pw-toggle" onClick={() => setShowPw(v => !v)}
+                    <button type="button" className="zeno-pw-toggle" onClick={() => setShowPw(v => !v)}
                       aria-label={showPw ? 'Hide password' : 'Show password'}>
                       {showPw ? <EyeOff size={15} aria-hidden /> : <Eye size={15} aria-hidden />}
                     </button>
@@ -1000,9 +1000,9 @@ export function Login() {
                 </div>
 
                 {/* Submit */}
-                <button type="submit" disabled={loading} className="niro-submit" aria-label="Sign in">
+                <button type="submit" disabled={loading} className="zeno-submit" aria-label="Sign in">
                   {loading
-                    ? <span className="niro-spinner" aria-hidden />
+                    ? <span className="zeno-spinner" aria-hidden />
                     : <>Sign in <ArrowRight size={15} aria-hidden /></>
                   }
                 </button>
@@ -1013,11 +1013,11 @@ export function Login() {
 
             </div>{/* /card */}
 
-            <div className="niro-auth-footer-row">
-              <span className="niro-auth-footer-label">Don't have an account?</span>
-              <Link to="/register" className="niro-switch-btn">
+            <div className="zeno-auth-footer-row">
+              <span className="zeno-auth-footer-label">Don't have an account?</span>
+              <Link to="/register" className="zeno-switch-btn">
                 Create account
-                <span className="niro-switch-arrow" aria-hidden="true">
+                <span className="zeno-switch-arrow" aria-hidden="true">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M5 12h14M12 5l7 7-7 7"/>
                   </svg>

@@ -1,4 +1,4 @@
-// Core domain types for Niro Risk Intelligence Platform
+// Core domain types for Zeno Risk Intelligence Platform
 
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 export type TransactionStatus = 'COMPLETED' | 'PENDING' | 'FAILED' | 'REFUNDED';

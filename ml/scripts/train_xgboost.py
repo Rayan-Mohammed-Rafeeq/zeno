@@ -13,7 +13,7 @@ What this script does
 3. Feature pipeline on each split (scaler fit on train only).
 4. Train XGBoost with scale_pos_weight + early stopping on val AUPRC.
 5. Sweep thresholds on validation → freeze optimal threshold.
-6. Log all params + metrics to MLflow experiment 'niro-fraud-detection'.
+6. Log all params + metrics to MLflow experiment 'zeno-fraud-detection'.
 7. Evaluate ONCE on held-out test set.
 8. Compare against baseline from previous run (logged as tags).
 9. Save artefacts + benchmark report.
@@ -43,12 +43,12 @@ import mlflow
 import numpy as np
 import pandas as pd
 
-from niro_ml.evaluation.report import BenchmarkReport, ModelEntry
-from niro_ml.features.base import FEATURE_VERSION
-from niro_ml.models.calibration import evaluate_calibration, save_calibrator
-from niro_ml.models.splits import compute_fraud_rates, temporal_split, temporal_split_labels
-from niro_ml.models.xgboost_model import DEFAULT_XGB_PARAMS, XGBoostFraudModel
-from niro_ml.scripts_common import build_feature_matrix, load_dataset
+from zeno_ml.evaluation.report import BenchmarkReport, ModelEntry
+from zeno_ml.features.base import FEATURE_VERSION
+from zeno_ml.models.calibration import evaluate_calibration, save_calibrator
+from zeno_ml.models.splits import compute_fraud_rates, temporal_split, temporal_split_labels
+from zeno_ml.models.xgboost_model import DEFAULT_XGB_PARAMS, XGBoostFraudModel
+from zeno_ml.scripts_common import build_feature_matrix, load_dataset
 
 logging.basicConfig(
     level=logging.INFO,
@@ -60,7 +60,7 @@ logger = logging.getLogger("train_xgboost")
 def train(args: argparse.Namespace) -> None:
     mlflow_uri = f"file:///{(ROOT / 'mlruns').as_posix()}"
     mlflow.set_tracking_uri(mlflow_uri)
-    mlflow.set_experiment("niro-fraud-detection")
+    mlflow.set_experiment("zeno-fraud-detection")
 
     output_dir = Path(args.output_dir or ROOT / "data" / "artifacts" / "xgboost")
     report_dir = ROOT / "reports"

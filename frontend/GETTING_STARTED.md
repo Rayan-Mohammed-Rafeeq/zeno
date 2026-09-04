@@ -1,4 +1,4 @@
-# Getting Started with Niro
+# Getting Started with Zeno
 
 ## Quick Start (5 minutes)
 
@@ -17,7 +17,7 @@ The application will open at **http://localhost:3000**
 
 ### 3. Login
 Use any credentials in development mode:
-- **Email**: `analyst@niro.dev` (or any email)
+- **Email**: `analyst@zeno.dev` (or any email)
 - **Password**: `password` (or any password)
 
 The mock API will automatically log you in.
@@ -27,7 +27,7 @@ The mock API will automatically log you in.
 ## What You'll See
 
 ### Landing Page: Login
-- Professional Niro branding
+- Professional Zeno branding
 - Left side: Brand identity with lavender accent
 - Right side: Login form
 - Links to register and password recovery
@@ -245,7 +245,7 @@ To connect to real backend:
 **A**: Professional fintech applications avoid pure white backgrounds. The cool gray/blue (#F3F6F8) is easier on eyes during long analyst sessions, similar to LinkedIn's professional palette.
 
 ### Q: Where's the AI chat interface?
-**A**: Niro is **not** a ChatGPT clone. It's a risk operations console. AI assists with evidence analysis but doesn't provide conversational chat. This is intentional.
+**A**: Zeno is **not** a ChatGPT clone. It's a risk operations console. AI assists with evidence analysis but doesn't provide conversational chat. This is intentional.
 
 ### Q: Can I see real fraud data?
 **A**: No. All data is synthetic. The evaluation page clearly states this with an honest limitations banner. Real fraud detection requires real merchant data and ML models.

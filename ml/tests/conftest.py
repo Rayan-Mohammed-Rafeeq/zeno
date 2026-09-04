@@ -1,5 +1,5 @@
 """
-Shared pytest fixtures for the Niro ML test suite.
+Shared pytest fixtures for the Zeno ML test suite.
 
 Every fixture that builds transactions uses explicit, controlled timestamps
 so that temporal leakage tests are deterministic.
@@ -16,7 +16,7 @@ import pytest
 # Make the src package importable without installation
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from niro_ml.data.schema import CustomerContext, RawTransaction
+from zeno_ml.data.schema import CustomerContext, RawTransaction
 
 
 def _utc(year: int, month: int, day: int, hour: int = 0, minute: int = 0) -> datetime:

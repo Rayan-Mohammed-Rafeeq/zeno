@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { NiroLogo, NiroMark } from '@/components/brand/Logo';
+import { ZenoLogo, ZenoMark } from '@/components/brand/Logo';
 import {
   LayoutDashboard, Users, Receipt, Network, FileSearch,
   BarChart3, FileText, Database, Settings,
@@ -146,15 +146,15 @@ function Sidebar({
         <Link
           to="/dashboard"
           onClick={onNav}
-          title={collapsed ? 'NIRO — Dashboard' : undefined}
+          title={collapsed ? 'ZENO — Dashboard' : undefined}
           className={cn(
             'group flex items-center min-w-0 transition-all duration-200',
             collapsed ? 'w-full justify-center gap-0' : 'gap-3',
           )}
         >
           {collapsed
-            ? <NiroMark size={32} />
-            : <NiroLogo height={34} />
+            ? <ZenoMark size={32} />
+            : <ZenoLogo height={34} />
           }
           <span
             className={cn(
@@ -164,7 +164,7 @@ function Sidebar({
             )}
             style={{ color: 'var(--fg)' }}
           >
-            NIRO
+            ZENO
           </span>
         </Link>
       </div>
@@ -373,7 +373,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <Menu className="h-5 w-5" />
             </button>
             <div className="flex items-center gap-2 text-sm">
-              <span className="hidden sm:inline" style={{ color: 'var(--fg-subtle)' }}>NIRO</span>
+              <span className="hidden sm:inline" style={{ color: 'var(--fg-subtle)' }}>ZENO</span>
               <span className="hidden sm:inline" style={{ color: 'var(--fg-subtle)' }}>/</span>
               <span className="font-semibold" style={{ color: 'var(--fg)' }}>
                 {currentPage?.name ?? 'Risk Operations'}

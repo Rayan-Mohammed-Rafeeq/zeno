@@ -1,8 +1,8 @@
-# Niro Risk Intelligence Platform - Final Delivery
+# Zeno Risk Intelligence Platform - Final Delivery
 
 ## 🎯 Executive Summary
 
-**Niro** is a production-quality fintech risk intelligence platform built for **Track 02: AI Risk Manager**. This is a complete, functional, demo-ready application that detects coordinated merchant abuse patterns, explains evidence transparently, supports analyst investigations, and reports honest evaluation metrics.
+**Zeno** is a production-quality fintech risk intelligence platform built for **Track 02: AI Risk Manager**. This is a complete, functional, demo-ready application that detects coordinated merchant abuse patterns, explains evidence transparently, supports analyst investigations, and reports honest evaluation metrics.
 
 **Status**: ✅ **READY FOR DEMO**
 
@@ -22,7 +22,7 @@
 #### ✅ Authentication System
 - Login, Register, Email Verification, Password Reset
 - Protected routes with AuthContext
-- Professional Niro branding throughout
+- Professional Zeno branding throughout
 - Mock API ready for backend integration
 
 #### ✅ Dual Theme System
@@ -121,7 +121,7 @@ npm run preview
 
 ### Login
 Use any credentials in mock mode:
-- Email: `analyst@niro.dev`
+- Email: `analyst@zeno.dev`
 - Password: `password`
 
 ---
@@ -137,14 +137,14 @@ Use any credentials in mock mode:
 
 ### Differentiation from Generic Dashboards
 
-#### ❌ What Niro is NOT:
+#### ❌ What Zeno is NOT:
 - Generic admin template
 - ChatGPT clone
 - Crypto dashboard with sparkles
 - Marketing landing page
 - Mobile-first social app
 
-#### ✅ What Niro IS:
+#### ✅ What Zeno IS:
 - **Fintech risk operations console**
 - **Evidence-based fraud detection**
 - **Transparent AI assistance**
@@ -156,7 +156,7 @@ Use any credentials in mock mode:
 ## 📊 Key Screenshots (Conceptual)
 
 ### 1. Login Page
-- Left: Niro brand identity with gradient
+- Left: Zeno brand identity with gradient
 - Right: Login form
 - Professional, restrained design
 
@@ -328,7 +328,7 @@ These features are **structured for but not implemented**:
 ## 💡 Design Decisions Explained
 
 ### Why Cool Gray/Blue Light Theme?
-Professional fintech apps avoid pure white (#FFFFFF) backgrounds. Eyes fatigue during long analyst sessions. LinkedIn, Stripe, and professional tools use soft, cool-toned backgrounds. Niro uses #F3F6F8 for comfort.
+Professional fintech apps avoid pure white (#FFFFFF) backgrounds. Eyes fatigue during long analyst sessions. LinkedIn, Stripe, and professional tools use soft, cool-toned backgrounds. Zeno uses #F3F6F8 for comfort.
 
 ### Why Honest Limitations?
 Transparency builds trust. Every ML system has limitations. The evaluation page prominently states: "This evaluation uses synthetic data... Results should not be interpreted as production fraud-detection performance." This is **intentional and important**.
@@ -337,22 +337,22 @@ Transparency builds trust. Every ML system has limitations. The evaluation page 
 Analysts need to understand **why** the system makes mistakes. Showing false positives with explanations (VPN usage, bulk purchasing, family device sharing) helps analysts calibrate their trust and improve investigation efficiency.
 
 ### Why Evidence-Based Risk Signals?
-Instead of "AI says fraud", Niro shows: "Refund velocity: 7 refunds in 14 days vs. baseline 1.2 refunds/customer (+24 risk points)". This is **explainable AI** in practice.
+Instead of "AI says fraud", Zeno shows: "Refund velocity: 7 refunds in 14 days vs. baseline 1.2 refunds/customer (+24 risk points)". This is **explainable AI** in practice.
 
 ### Why No Chat Interface?
-Niro is a risk operations console, not a ChatGPT clone. AI assists with **evidence analysis**, not conversation. The AI assessment shows reasoning, confidence, and limitations - but in structured format, not chat bubbles.
+Zeno is a risk operations console, not a ChatGPT clone. AI assists with **evidence analysis**, not conversation. The AI assessment shows reasoning, confidence, and limitations - but in structured format, not chat bubbles.
 
 ---
 
 ## 🎬 Demo Flow (5 minutes)
 
 ### 1. **Introduction (30 seconds)**
-"Niro is a defensive merchant risk intelligence platform that detects coordinated fraud patterns and explains evidence transparently."
+"Zeno is a defensive merchant risk intelligence platform that detects coordinated fraud patterns and explains evidence transparently."
 
 ### 2. **Login (15 seconds)**
 - Show professional authentication UI
 - Login with any credentials (mock mode)
-- Emphasize Niro branding
+- Emphasize Zeno branding
 
 ### 3. **Dashboard (1 minute)**
 - "Here's the risk operations overview"
@@ -386,7 +386,7 @@ Niro is a risk operations console, not a ChatGPT clone. AI assists with **eviden
 - Show theme persistence
 
 ### 7. **Conclusion (15 seconds)**
-"Niro is production-quality code, ready for backend integration, with honest evaluation and evidence-based fraud detection."
+"Zeno is production-quality code, ready for backend integration, with honest evaluation and evidence-based fraud detection."
 
 ---
 
@@ -420,7 +420,7 @@ Niro is a risk operations console, not a ChatGPT clone. AI assists with **eviden
 This isn't a cloned admin dashboard. It's custom-built for fintech risk operations with specific workflows, terminology, and visual language.
 
 ### 2. **Honest Evaluation**
-Most ML demos hide limitations. Niro prominently displays them. This builds trust.
+Most ML demos hide limitations. Zeno prominently displays them. This builds trust.
 
 ### 3. **Evidence Transparency**
 Every risk signal shows why it fired. Observed vs. baseline. Contribution. Confidence. No black boxes.
@@ -500,7 +500,7 @@ This is a hackathon project for **Track 02: AI Risk Manager**.
 
 ### Repository Structure
 ```
-niro/
+zeno/
 ├── backend/          # Spring Boot (separate)
 ├── frontend/         # This React app
 │   ├── src/
@@ -542,7 +542,7 @@ niro/
 
 ## 🎯 Conclusion
 
-**Niro Risk Intelligence Platform** is a **production-quality fintech application** that successfully demonstrates:
+**Zeno Risk Intelligence Platform** is a **production-quality fintech application** that successfully demonstrates:
 
 ✅ **Coordinated abuse detection** with multiple risk signals
 ✅ **Evidence transparency** with observed vs. baseline values
@@ -560,5 +560,5 @@ This is **not** a generic AI dashboard. This is a **serious fintech risk platfor
 
 **Date**: September 3, 2026
 **Track**: 02 - AI Risk Manager
-**Product**: Niro Risk Intelligence Platform
+**Product**: Zeno Risk Intelligence Platform
 **Delivery**: Frontend Application (Production-Ready)

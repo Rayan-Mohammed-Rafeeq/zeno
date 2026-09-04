@@ -1,4 +1,4 @@
-# Niro ML Service — pinned dependencies
+# Zeno ML Service — pinned dependencies
 # Python 3.12+
 
 # --- Web framework ---

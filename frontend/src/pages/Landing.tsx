@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ArrowRight, Menu, X } from 'lucide-react';
-import { NiroLogo } from '@/components/brand/Logo';
+import { ZenoLogo } from '@/components/brand/Logo';
 import { useTheme } from '@/contexts/ThemeContext';
-import { NiroVisualization } from '@/components/brand/NiroVisualization';
+import { ZenoVisualization } from '@/components/brand/ZenoVisualization';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    LANDING PAGE STYLES
@@ -453,18 +453,15 @@ html, body { margin:0; padding:0; }
 }
 .lp-signal-chip {
   display:flex; align-items:center; gap:8px;
-  background:rgba(18,19,32,0.85); border:1px solid rgba(133,136,230,0.2);
+  background:rgba(18,19,32,0.85);
   border-radius:10px; padding:8px 12px;
   backdrop-filter:blur(12px);
   font-size:11px; font-weight:600; color:rgba(232,234,240,0.7);
   letter-spacing:0.5px; white-space:nowrap;
   box-shadow:0 4px 20px rgba(0,0,0,0.3);
-  transition:border-color 0.3s;
 }
-.lp-signal-chip:hover { border-color:rgba(133,136,230,0.45); }
 .lp-signal-icon {
   width:20px; height:20px; border-radius:5px;
-  background:rgba(133,136,230,0.15);
   display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
 .lp-signal-trail {
@@ -1165,8 +1162,8 @@ function useMouseParallax(ref: React.RefObject<HTMLDivElement | null>) {
    SUB-COMPONENTS
 ───────────────────────────────────────────────────────────────────────────── */
 
-/* ── NIRO ORB (hero 3D centerpiece) ─────────────────────────────────────── */
-function NiroOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
+/* ── ZENO ORB (hero 3D centerpiece) ─────────────────────────────────────── */
+function ZenoOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
   const stageRef   = useRef<HTMLDivElement>(null);
   const sceneRef   = useRef<HTMLDivElement>(null);
   useMouseParallax(stageRef);
@@ -1322,7 +1319,7 @@ function NiroOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
       <div className="lp-signal lp-sig-order">
         <div className="lp-signal-chip">
           <div className="lp-signal-icon">
-            <img src="/orders.svg" width={12} height={12} alt="" style={{opacity:0.7}} />
+            <img src="/orders.svg" width={18} height={18} alt="" style={{opacity:0.7}} />
           </div>
           ORDER
         </div>
@@ -1332,7 +1329,7 @@ function NiroOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
         <div className="lp-signal-trail lp-signal-trail-up" />
         <div className="lp-signal-chip">
           <div className="lp-signal-icon">
-            <img src="/profile-users.svg" width={12} height={12} alt="" style={{opacity:0.7}} />
+            <img src="/profile-users.svg" width={18} height={18} alt="" style={{opacity:0.7}} />
           </div>
           CUSTOMER
         </div>
@@ -1341,7 +1338,7 @@ function NiroOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
         <div className="lp-signal-trail lp-signal-trail-up" />
         <div className="lp-signal-chip">
           <div className="lp-signal-icon">
-            <img src="/wallet.svg" width={12} height={12} alt="" style={{opacity:0.7}} />
+            <img src="/wallet.svg" width={18} height={18} alt="" style={{opacity:0.7}} />
           </div>
           PAYMENT
         </div>
@@ -1349,7 +1346,7 @@ function NiroOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
       <div className="lp-signal lp-sig-location">
         <div className="lp-signal-chip">
           <div className="lp-signal-icon">
-            <img src="/store.svg" width={12} height={12} alt="" style={{opacity:0.7}} />
+            <img src="/store.svg" width={18} height={18} alt="" style={{opacity:0.7}} />
           </div>
           LOCATION
         </div>
@@ -1358,7 +1355,7 @@ function NiroOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
       <div className="lp-signal lp-sig-history">
         <div className="lp-signal-chip">
           <div className="lp-signal-icon">
-            <img src="/network.svg" width={12} height={12} alt="" style={{opacity:0.7}} />
+            <img src="/network.svg" width={18} height={18} alt="" style={{opacity:0.7}} />
           </div>
           PAST PURCHASE
         </div>
@@ -1611,7 +1608,7 @@ function NiroOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
 
             {/* Logo as mouth */}
             <div className={`lp-orb-mouth ${mouthClass}`}>
-              <NiroLogo height={52} forceVariant={logoVariant} />
+              <ZenoLogo height={52} forceVariant={logoVariant} />
             </div>
 
           </div>
@@ -1676,7 +1673,7 @@ function OrdersFlowVisual() {
       </div>
       <div className="lp-flow-watching">
         <div className="lp-flow-watching-dot" />
-        <span>Niro is watching every order</span>
+        <span>Zeno is watching every order</span>
       </div>
     </div>
   );
@@ -1697,7 +1694,7 @@ function DashboardMockup() {
         <div className="lp-dash-dot" style={{background:'#f87171'}} />
         <div className="lp-dash-dot" style={{background:'#fbbf24'}} />
         <div className="lp-dash-dot" style={{background:'#4ade80'}} />
-        <span className="lp-dash-title">Niro — Today's Orders</span>
+        <span className="lp-dash-title">Zeno — Today's Orders</span>
       </div>
       <div className="lp-dash-body">
         <div className="lp-dash-stats">
@@ -1749,7 +1746,7 @@ function ReasonCard() {
         </div>
       </div>
       <div className="lp-reason-body">
-        <div className="lp-reason-why-label">Why Niro flagged this</div>
+        <div className="lp-reason-why-label">Why Zeno flagged this</div>
         <div className="lp-reason-items">
           <div className="lp-reason-item">
             <div className="lp-reason-item-dot" />
@@ -1774,11 +1771,11 @@ function ReasonCard() {
 }
 
 /* ── SECURITY ORB (3D CSS) ────────────────────────────────────────────────── */
-/* ── SECURITY ORB — uses the same NiroVisualization from login/register ─────── */
+/* ── SECURITY ORB — uses the same ZenoVisualization from login/register ─────── */
 function SecurityOrb() {
   return (
     <div className="lp-sec-viz-wrap">
-      <NiroVisualization
+      <ZenoVisualization
         isDark={true}
         className="lp-sec-viz"
       />
@@ -1802,8 +1799,8 @@ function Nav({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
     <nav className="lp-nav">
       <div className="wrap lp-nav-inner">
         <Link to="/" className="lp-brand" onClick={close}>
-          <NiroLogo height={28} forceVariant={logoVariant} />
-          NIRO
+          <ZenoLogo height={28} forceVariant={logoVariant} />
+          ZENO
         </Link>
 
         <div className="lp-nav-links">
@@ -1898,7 +1895,7 @@ export function Landing() {
                 </h1>
 
                 <p className="lp-hero-sub">
-                  Niro watches your store around the clock, spots suspicious
+                  Zeno watches your store around the clock, spots suspicious
                   orders, and tells you what to do — before you lose money.
                 </p>
 
@@ -1929,7 +1926,7 @@ export function Landing() {
               </div>
 
               {/* RIGHT — 3D orb */}
-              <NiroOrb logoVariant={logoVariant} />
+              <ZenoOrb logoVariant={logoVariant} />
             </div>
           </div>
         </section>
@@ -2022,13 +2019,13 @@ export function Landing() {
         </section>
 
         {/* ══════════════════════════════════════════════════════════════
-            HOW NIRO WORKS
+            HOW ZENO WORKS
         ══════════════════════════════════════════════════════════════ */}
-        <section className="lp-hiw" id="how-it-works" aria-label="How Niro works">
+        <section className="lp-hiw" id="how-it-works" aria-label="How Zeno works">
           <div className="wrap">
             <div className="lp-hiw-header lp-reveal">
               <div className="lp-eyebrow">How it works</div>
-              <h2 className="lp-section-h2">How Niro protects<br />your store</h2>
+              <h2 className="lp-section-h2">How Zeno protects<br />your store</h2>
               <p className="lp-section-sub">Simple for you. Powerful behind the scenes.</p>
             </div>
 
@@ -2044,7 +2041,7 @@ export function Landing() {
                   num: '02',
                   icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
                   title: 'Watch',
-                  desc: 'Niro checks every order the moment it comes in — automatically.',
+                  desc: 'Zeno checks every order the moment it comes in — automatically.',
                 },
                 {
                   num: '03',
@@ -2056,7 +2053,7 @@ export function Landing() {
                   num: '04',
                   icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
                   title: 'Decide',
-                  desc: 'You always make the final call. Niro recommends. You decide.',
+                  desc: 'You always make the final call. Zeno recommends. You decide.',
                 },
               ].map((step, i, arr) => (
                 <div className="lp-hiw-step" key={step.num}>
@@ -2071,7 +2068,7 @@ export function Landing() {
 
             {/* Order journey track */}
             <div className="lp-journey lp-reveal lp-reveal-d2">
-              <div className="lp-journey-label">Watch an order move through Niro</div>
+              <div className="lp-journey-label">Watch an order move through Zeno</div>
               <div className="lp-journey-track">
 
                 <div className="lp-journey-stage">
@@ -2093,7 +2090,7 @@ export function Landing() {
                 <div className="lp-journey-arrow" aria-hidden="true">→</div>
 
                 <div className="lp-journey-stage">
-                  <div className="lp-journey-stage-label">Niro checks it</div>
+                  <div className="lp-journey-stage-label">Zeno checks it</div>
                   <div className="lp-journey-card">
                     <div className="lp-journey-card-amt">$129</div>
                     <div className="lp-journey-card-hint">Order history ✓  ·  Matching info ✓</div>
@@ -2111,7 +2108,7 @@ export function Landing() {
                 <div className="lp-journey-arrow" aria-hidden="true">→</div>
 
                 <div className="lp-journey-stage">
-                  <div className="lp-journey-stage-label">Niro explains it</div>
+                  <div className="lp-journey-stage-label">Zeno explains it</div>
                   <div className="lp-journey-card">
                     <div className="lp-journey-card-amt">$129</div>
                     <div className="lp-journey-card-hint">"Trusted customer, all good."</div>
@@ -2170,7 +2167,7 @@ export function Landing() {
                 <div className="lp-product-checks">
                   {[
                     "Today's safe, review, and blocked orders",
-                    'See who is buying and why Niro flagged an order',
+                    'See who is buying and why Zeno flagged an order',
                     'A short list of orders that need your attention',
                     'No confusing charts — just clear answers',
                   ].map(c => (
@@ -2205,13 +2202,13 @@ export function Landing() {
                 <div className="lp-eyebrow">Clear answers</div>
                 <h2>Don't just get an alert.<br />Know why.</h2>
                 <p>
-                  When Niro flags an order, it tells you exactly what
+                  When Zeno flags an order, it tells you exactly what
                   to look at — in plain language, not confusing numbers.
                 </p>
                 <div className="lp-explain-tagline">
                   "Is the shipping address different from the billing address?
                   Is this a new customer placing an unusually large order?
-                  Niro points it out so you can check before you ship."
+                  Zeno points it out so you can check before you ship."
                 </div>
               </div>
 
@@ -2278,7 +2275,7 @@ export function Landing() {
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8588e6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
                 </div>
                 <h3>Spot Repeat Problems</h3>
-                <p>Niro remembers suspicious activity so you don't have to.</p>
+                <p>Zeno remembers suspicious activity so you don't have to.</p>
                 <div className="lp-memory-dots" aria-hidden="true">
                   {[
                     '#f87171','#f87171','#fbbf24',
@@ -2323,7 +2320,7 @@ export function Landing() {
               <div className="lp-eyebrow">Security</div>
               <h2>Your store deserves<br />serious protection.</h2>
               <p>
-                Niro keeps your information protected while quietly
+                Zeno keeps your information protected while quietly
                 watching over your orders — every hour of every day.
               </p>
               <div className="lp-sec-items">
@@ -2341,7 +2338,7 @@ export function Landing() {
                   {
                     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
                     title: 'Always watching',
-                    desc: 'Niro monitors your orders around the clock, even when you sleep.',
+                    desc: 'Zeno monitors your orders around the clock, even when you sleep.',
                   },
                 ].map(item => (
                   <div className="lp-sec-item" key={item.title}>
@@ -2373,11 +2370,11 @@ export function Landing() {
         {/* ══════════════════════════════════════════════════════════════
             BEFORE / AFTER
         ══════════════════════════════════════════════════════════════ */}
-        <section className="lp-results" aria-label="What changes with Niro">
+        <section className="lp-results" aria-label="What changes with Zeno">
           <div className="wrap">
             <div className="lp-results-header lp-reveal">
               <div className="lp-eyebrow">The difference</div>
-              <h2 className="lp-section-h2">What changes<br />with Niro</h2>
+              <h2 className="lp-section-h2">What changes<br />with Zeno</h2>
             </div>
 
             <div className="lp-ba-grid lp-reveal lp-reveal-d1">
@@ -2385,7 +2382,7 @@ export function Landing() {
               <div className="lp-ba-card lp-ba-before">
                 <div className="lp-ba-header">
                   <span>✗</span>
-                  Without Niro
+                  Without Zeno
                 </div>
                 <div className="lp-ba-list">
                   {[
@@ -2406,7 +2403,7 @@ export function Landing() {
               <div className="lp-ba-card lp-ba-after">
                 <div className="lp-ba-header">
                   <span>✓</span>
-                  With Niro
+                  With Zeno
                 </div>
                 <div className="lp-ba-list">
                   {[
@@ -2435,7 +2432,7 @@ export function Landing() {
           <div className="wrap">
             <div className="lp-testi-header lp-reveal">
               <div className="lp-eyebrow">Merchants</div>
-              <h2 className="lp-section-h2">Merchants sleep better<br />with Niro.</h2>
+              <h2 className="lp-section-h2">Merchants sleep better<br />with Zeno.</h2>
               <p className="lp-section-sub">
                 Because they know someone is watching the orders.
               </p>
@@ -2444,14 +2441,14 @@ export function Landing() {
             <div className="lp-testi-grid">
               {[
                 {
-                  quote: 'I used to spend hours checking suspicious orders. Now Niro tells me which ones actually need my attention. I get that time back every single day.',
+                  quote: 'I used to spend hours checking suspicious orders. Now Zeno tells me which ones actually need my attention. I get that time back every single day.',
                   name: 'Priya Sharma',
                   store: 'Boutique Owner',
                   color: '#8588e6',
                   delay: 'lp-reveal-d1',
                 },
                 {
-                  quote: "We were losing money to bad orders without even realising it. Niro started catching them straight away. The explanation it gives is what I love most — I finally understand why.",
+                  quote: "We were losing money to bad orders without even realising it. Zeno started catching them straight away. The explanation it gives is what I love most — I finally understand why.",
                   name: 'Marcus Obi',
                   store: 'Electronics Retailer',
                   color: '#4ade80',
@@ -2500,7 +2497,7 @@ export function Landing() {
                 <div className="lp-eyebrow" style={{justifyContent:'center'}}>Get started</div>
                 <h2>Spend less time worrying<br />about orders.</h2>
                 <p>
-                  Let Niro watch the risk while you focus on
+                  Let Zeno watch the risk while you focus on
                   growing your store.
                 </p>
                 <div className="lp-cta-actions">
@@ -2527,8 +2524,8 @@ export function Landing() {
               {/* ── Left: brand + nav + legal ── */}
               <div className="lp-footer-left">
                 <div className="lp-footer-brand">
-                  <NiroLogo height={24} forceVariant={logoVariant} />
-                  NIRO
+                  <ZenoLogo height={24} forceVariant={logoVariant} />
+                  ZENO
                 </div>
                 <nav className="lp-footer-nav" aria-label="Footer navigation">
                   <a href="#how-it-works">How It Works</a>
@@ -2544,7 +2541,7 @@ export function Landing() {
                   <a href="#">Terms of Service</a>
                 </div>
                 <p className="lp-footer-copy">
-                  © {new Date().getFullYear()} Niro.
+                  © {new Date().getFullYear()} Zeno.
                   <span className="lp-footer-dot">·</span>
                   Protecting merchants worldwide.
                 </p>

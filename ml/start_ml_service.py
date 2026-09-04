@@ -1,5 +1,5 @@
 """
-Niro ML Service startup script.
+Zeno ML Service startup script.
 
 Usage
 ─────
@@ -13,10 +13,10 @@ Usage
     python start_ml_service.py --port 8001
 
     # Or run directly with uvicorn:
-    uvicorn niro_ml.inference.app:app --host 0.0.0.0 --port 8001
+    uvicorn zeno_ml.inference.app:app --host 0.0.0.0 --port 8001
 
 Environment variables (see .env.ml.example):
-    NIRO_MODEL_DIR  — path to model artefacts directory
+    ZENO_MODEL_DIR  — path to model artefacts directory
     ML_SERVICE_HOST — bind host (default 0.0.0.0)
     ML_SERVICE_PORT — bind port (default 8001)
     LOG_LEVEL       — logging level (default INFO)
@@ -46,7 +46,7 @@ if env_file.exists():
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(description="Start the Niro ML inference service")
+    p = argparse.ArgumentParser(description="Start the Zeno ML inference service")
     p.add_argument("--host",  default=os.getenv("ML_SERVICE_HOST", "0.0.0.0"))
     p.add_argument("--port",  type=int, default=int(os.getenv("ML_SERVICE_PORT", "8001")))
     p.add_argument("--prod",  action="store_true", help="Production mode (no auto-reload)")
@@ -60,8 +60,8 @@ def main() -> None:
     )
     logger = logging.getLogger("startup")
 
-    model_dir = os.getenv("NIRO_MODEL_DIR", str(ROOT / "data" / "artifacts" / "xgboost"))
-    logger.info("Niro ML Service")
+    model_dir = os.getenv("ZENO_MODEL_DIR", str(ROOT / "data" / "artifacts" / "xgboost"))
+    logger.info("Zeno ML Service")
     logger.info("  Model directory : %s", model_dir)
     logger.info("  Host            : %s", args.host)
     logger.info("  Port            : %d", args.port)
@@ -81,7 +81,7 @@ def main() -> None:
 
     import uvicorn
     uvicorn.run(
-        "niro_ml.inference.app:app",
+        "zeno_ml.inference.app:app",
         host=args.host,
         port=args.port,
         reload=not args.prod,

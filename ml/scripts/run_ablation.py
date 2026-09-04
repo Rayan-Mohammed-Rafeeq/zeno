@@ -23,7 +23,7 @@ The test set is NEVER used in ablation.  We use validation AUPRC throughout.
 If a feature group degrades AUPRC, we report it honestly — we do NOT
 remove it from the ablation table or pretend it helped.
 
-All runs are logged to MLflow under the 'niro-fraud-detection' experiment
+All runs are logged to MLflow under the 'zeno-fraud-detection' experiment
 with run names like 'ablation-step-1', 'ablation-step-2', etc.
 
 The final ablation table is saved as:
@@ -53,14 +53,14 @@ import mlflow
 import numpy as np
 import pandas as pd
 
-from niro_ml.evaluation.metrics import sweep_thresholds, evaluate
-from niro_ml.features.base import (
+from zeno_ml.evaluation.metrics import sweep_thresholds, evaluate
+from zeno_ml.features.base import (
     TRANSACTION_FEATURES, BEHAVIORAL_FEATURES, DEVICE_IP_FEATURES,
     SEQUENCE_FEATURES, GRAPH_FEATURES, ALL_FEATURE_COLUMNS, FEATURE_VERSION,
 )
-from niro_ml.models.splits import temporal_split, temporal_split_labels
-from niro_ml.models.xgboost_model import DEFAULT_XGB_PARAMS, XGBoostFraudModel
-from niro_ml.scripts_common import build_feature_matrix, load_dataset
+from zeno_ml.models.splits import temporal_split, temporal_split_labels
+from zeno_ml.models.xgboost_model import DEFAULT_XGB_PARAMS, XGBoostFraudModel
+from zeno_ml.scripts_common import build_feature_matrix, load_dataset
 
 logging.basicConfig(
     level=logging.INFO,
@@ -130,7 +130,7 @@ def _select_columns(X: np.ndarray, all_cols: list[str], keep_cols: list[str]) ->
 def run(args: argparse.Namespace) -> None:
     mlflow_uri = f"file:///{(ROOT / 'mlruns').as_posix()}"
     mlflow.set_tracking_uri(mlflow_uri)
-    mlflow.set_experiment("niro-fraud-detection")
+    mlflow.set_experiment("zeno-fraud-detection")
 
     report_dir = ROOT / "reports"
     report_dir.mkdir(exist_ok=True)
@@ -157,8 +157,8 @@ def run(args: argparse.Namespace) -> None:
     include_anomaly = False
     if args.with_anomaly:
         try:
-            from niro_ml.models.isolation_forest import AnomalyDetector
-            from niro_ml.inference.aggregator import normalize_anomaly_score
+            from zeno_ml.models.isolation_forest import AnomalyDetector
+            from zeno_ml.inference.aggregator import normalize_anomaly_score
 
             detector = AnomalyDetector()
             detector.fit(X_train_full, y_train, feature_names=full_col_names)
@@ -294,7 +294,7 @@ def _print_table(rows: list[dict]) -> None:
 
 def _build_text_report(report: dict) -> str:
     lines = [
-        "NIRO FRAUD DETECTION — ABLATION STUDY",
+        "ZENO FRAUD DETECTION — ABLATION STUDY",
         "=" * 70,
         f"Generated : {report['generated_at']}",
         f"Dataset   : {report['dataset']}",

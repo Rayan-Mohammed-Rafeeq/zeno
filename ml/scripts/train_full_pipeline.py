@@ -1,5 +1,5 @@
 """
-Full Niro ML pipeline — runs all training steps in sequence.
+Full Zeno ML pipeline — runs all training steps in sequence.
 
 This is the single entry point for a complete training run:
   1. Load dataset (IEEE-CIS or synthetic)
@@ -54,17 +54,17 @@ import mlflow
 import numpy as np
 import pandas as pd
 
-from niro_ml.evaluation.metrics import evaluate
-from niro_ml.evaluation.report import BenchmarkReport, ModelEntry
-from niro_ml.evaluation.threshold import ThresholdOptimizer
-from niro_ml.features.base import ALL_FEATURE_COLUMNS, FEATURE_VERSION, GRAPH_FEATURES
-from niro_ml.inference.aggregator import normalize_anomaly_score
-from niro_ml.models.baseline import BaselineModel
-from niro_ml.models.calibration import evaluate_calibration, save_calibrator
-from niro_ml.models.isolation_forest import AnomalyDetector
-from niro_ml.models.splits import compute_fraud_rates, temporal_split, temporal_split_labels
-from niro_ml.models.xgboost_model import DEFAULT_XGB_PARAMS, XGBoostFraudModel
-from niro_ml.scripts_common import build_feature_matrix, load_dataset
+from zeno_ml.evaluation.metrics import evaluate
+from zeno_ml.evaluation.report import BenchmarkReport, ModelEntry
+from zeno_ml.evaluation.threshold import ThresholdOptimizer
+from zeno_ml.features.base import ALL_FEATURE_COLUMNS, FEATURE_VERSION, GRAPH_FEATURES
+from zeno_ml.inference.aggregator import normalize_anomaly_score
+from zeno_ml.models.baseline import BaselineModel
+from zeno_ml.models.calibration import evaluate_calibration, save_calibrator
+from zeno_ml.models.isolation_forest import AnomalyDetector
+from zeno_ml.models.splits import compute_fraud_rates, temporal_split, temporal_split_labels
+from zeno_ml.models.xgboost_model import DEFAULT_XGB_PARAMS, XGBoostFraudModel
+from zeno_ml.scripts_common import build_feature_matrix, load_dataset
 
 logging.basicConfig(
     level=logging.INFO,
@@ -76,7 +76,7 @@ logger = logging.getLogger("train_full_pipeline")
 def run(args: argparse.Namespace) -> None:  # noqa: C901  (acceptable length for pipeline)
     mlflow_uri = f"file:///{(ROOT / 'mlruns').as_posix()}"
     mlflow.set_tracking_uri(mlflow_uri)
-    mlflow.set_experiment("niro-fraud-detection")
+    mlflow.set_experiment("zeno-fraud-detection")
 
     output_dir = Path(args.output_dir or ROOT / "data" / "artifacts" / "xgboost")
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -379,7 +379,7 @@ def _run_ablation_nested(
     detector: "AnomalyDetector",
     args:     argparse.Namespace,
 ) -> list[dict]:
-    from niro_ml.features.base import (
+    from zeno_ml.features.base import (
         TRANSACTION_FEATURES, BEHAVIORAL_FEATURES,
         DEVICE_IP_FEATURES, SEQUENCE_FEATURES,
     )
@@ -466,7 +466,7 @@ def _log_ablation_to_mlflow(rows: list[dict], report_dir: Path) -> None:
 
 
 def _parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="Full Niro ML training pipeline")
+    p = argparse.ArgumentParser(description="Full Zeno ML training pipeline")
     p.add_argument("--synthetic",      action="store_true")
     p.add_argument("--n-samples",      type=int,   default=8000)
     p.add_argument("--max-rows",       type=int,   default=None)

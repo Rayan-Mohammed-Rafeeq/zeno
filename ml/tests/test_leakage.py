@@ -27,13 +27,13 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from niro_ml.data.normalization import normalize_transactions
-from niro_ml.data.schema import RawTransaction
-from niro_ml.features.behavioral import add_behavioral_features
-from niro_ml.features.device_ip import add_device_ip_features
-from niro_ml.features.pipeline import audit_for_leakage, run_feature_pipeline
-from niro_ml.features.sequence import add_sequence_features
-from niro_ml.features.transaction import add_transaction_features
+from zeno_ml.data.normalization import normalize_transactions
+from zeno_ml.data.schema import RawTransaction
+from zeno_ml.features.behavioral import add_behavioral_features
+from zeno_ml.features.device_ip import add_device_ip_features
+from zeno_ml.features.pipeline import audit_for_leakage, run_feature_pipeline
+from zeno_ml.features.sequence import add_sequence_features
+from zeno_ml.features.transaction import add_transaction_features
 
 
 def _utc(year, month, day, hour=0, minute=0, second=0):
@@ -425,7 +425,7 @@ class TestNormalizationLeakage:
 
     def test_normalization_strips_is_fraud(self, labeled_transactions):
         """normalize_transactions must remove is_fraud from the DataFrame."""
-        from niro_ml.data.normalization import normalize_transactions
+        from zeno_ml.data.normalization import normalize_transactions
         result = normalize_transactions(labeled_transactions)
         assert "is_fraud" not in result.df.columns, (
             "normalize_transactions returned DataFrame with is_fraud column."
@@ -433,7 +433,7 @@ class TestNormalizationLeakage:
 
     def test_normalization_strips_is_refunded(self):
         """normalize_transactions must remove is_refunded from the DataFrame."""
-        from niro_ml.data.normalization import normalize_transactions
+        from zeno_ml.data.normalization import normalize_transactions
         tx = RawTransaction(
             transaction_id="tx-r-001",
             merchant_id="m1",
@@ -452,7 +452,7 @@ class TestNormalizationLeakage:
         Labels must be in result.label_series (aligned to the DataFrame),
         not embedded in result.df.
         """
-        from niro_ml.data.normalization import normalize_transactions
+        from zeno_ml.data.normalization import normalize_transactions
         result = normalize_transactions(labeled_transactions)
         # Labels must be separate
         assert result.label_series is not None
@@ -467,7 +467,7 @@ class TestNormalizationLeakage:
         """
         from sklearn.preprocessing import StandardScaler
 
-        from niro_ml.data.normalization import normalize_transactions
+        from zeno_ml.data.normalization import normalize_transactions
 
         dummy_scaler = StandardScaler()
         with pytest.raises(ValueError, match="fit_scaler=True"):

@@ -29,10 +29,10 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from niro_ml.data.schema import RawTransaction
-from niro_ml.features.base import ALL_FEATURE_COLUMNS, FEATURE_VERSION
-from niro_ml.features.pipeline import run_feature_pipeline
-from niro_ml.inference.aggregator import aggregate_risk_score, normalize_anomaly_score
+from zeno_ml.data.schema import RawTransaction
+from zeno_ml.features.base import ALL_FEATURE_COLUMNS, FEATURE_VERSION
+from zeno_ml.features.pipeline import run_feature_pipeline
+from zeno_ml.inference.aggregator import aggregate_risk_score, normalize_anomaly_score
 
 
 def _utc(year, month, day, hour=0, minute=0, second=0):
@@ -46,7 +46,7 @@ def _utc(year, month, day, hour=0, minute=0, second=0):
 class TestDataQualityValidator:
 
     def test_valid_record_accepted(self):
-        from niro_ml.data.validation import DataQualityValidator
+        from zeno_ml.data.validation import DataQualityValidator
         records = [{
             "transaction_id": "tx-001",
             "merchant_id":    "m1",
@@ -59,7 +59,7 @@ class TestDataQualityValidator:
         assert result.stats.rows_rejected == 0
 
     def test_missing_transaction_id_rejected(self):
-        from niro_ml.data.validation import DataQualityValidator
+        from zeno_ml.data.validation import DataQualityValidator
         records = [{"merchant_id": "m1", "customer_id": "c1",
                     "timestamp": "2024-01-15T10:00:00Z", "amount": 100.0}]
         result = DataQualityValidator().validate(records)
@@ -67,7 +67,7 @@ class TestDataQualityValidator:
         assert result.stats.missing_transaction_id == 1
 
     def test_negative_amount_rejected(self):
-        from niro_ml.data.validation import DataQualityValidator
+        from zeno_ml.data.validation import DataQualityValidator
         records = [{"transaction_id": "tx-001", "merchant_id": "m1",
                     "customer_id": "c1", "timestamp": "2024-01-15T10:00:00Z",
                     "amount": -50.0}]
@@ -76,7 +76,7 @@ class TestDataQualityValidator:
         assert result.stats.invalid_amount == 1
 
     def test_zero_amount_rejected(self):
-        from niro_ml.data.validation import DataQualityValidator
+        from zeno_ml.data.validation import DataQualityValidator
         records = [{"transaction_id": "tx-001", "merchant_id": "m1",
                     "customer_id": "c1", "timestamp": "2024-01-15T10:00:00Z",
                     "amount": 0.0}]
@@ -84,7 +84,7 @@ class TestDataQualityValidator:
         assert result.stats.rows_rejected == 1
 
     def test_duplicate_transaction_id_rejected(self):
-        from niro_ml.data.validation import DataQualityValidator
+        from zeno_ml.data.validation import DataQualityValidator
         record = {"transaction_id": "tx-dup", "merchant_id": "m1",
                   "customer_id": "c1", "timestamp": "2024-01-15T10:00:00Z",
                   "amount": 100.0}
@@ -95,7 +95,7 @@ class TestDataQualityValidator:
 
     def test_same_id_different_merchant_not_duplicate(self):
         """Same transaction_id for different merchants must NOT be flagged as duplicate."""
-        from niro_ml.data.validation import DataQualityValidator
+        from zeno_ml.data.validation import DataQualityValidator
         r1 = {"transaction_id": "tx-001", "merchant_id": "m1",
               "customer_id": "c1", "timestamp": "2024-01-15T10:00:00Z", "amount": 100.0}
         r2 = {"transaction_id": "tx-001", "merchant_id": "m2",
@@ -106,7 +106,7 @@ class TestDataQualityValidator:
 
     def test_future_timestamp_rejected(self):
         from datetime import timezone as tz
-        from niro_ml.data.validation import DataQualityValidator
+        from zeno_ml.data.validation import DataQualityValidator
         reference = datetime(2024, 1, 15, tzinfo=timezone.utc)
         records = [{"transaction_id": "tx-001", "merchant_id": "m1",
                     "customer_id": "c1", "timestamp": "2025-12-31T00:00:00Z",
@@ -116,7 +116,7 @@ class TestDataQualityValidator:
         assert result.stats.future_timestamp == 1
 
     def test_extreme_amount_flagged_not_rejected_in_non_strict_mode(self):
-        from niro_ml.data.validation import DataQualityValidator
+        from zeno_ml.data.validation import DataQualityValidator
         records = [{"transaction_id": "tx-001", "merchant_id": "m1",
                     "customer_id": "c1", "timestamp": "2024-01-15T10:00:00Z",
                     "amount": 2_000_000.0}]
@@ -126,7 +126,7 @@ class TestDataQualityValidator:
         assert result.stats.rows_accepted == 1
 
     def test_extreme_amount_rejected_in_strict_mode(self):
-        from niro_ml.data.validation import DataQualityValidator
+        from zeno_ml.data.validation import DataQualityValidator
         records = [{"transaction_id": "tx-001", "merchant_id": "m1",
                     "customer_id": "c1", "timestamp": "2024-01-15T10:00:00Z",
                     "amount": 2_000_000.0}]
@@ -134,7 +134,7 @@ class TestDataQualityValidator:
         assert result.stats.rows_rejected == 1
 
     def test_acceptance_rate_calculation(self):
-        from niro_ml.data.validation import DataQualityValidator
+        from zeno_ml.data.validation import DataQualityValidator
         records = [
             {"transaction_id": "tx-001", "merchant_id": "m1", "customer_id": "c1",
              "timestamp": "2024-01-15T10:00:00Z", "amount": 100.0},
@@ -152,7 +152,7 @@ class TestDataQualityValidator:
 class TestNormalization:
 
     def test_output_sorted_by_timestamp(self, three_sequential_transactions):
-        from niro_ml.data.normalization import normalize_transactions
+        from zeno_ml.data.normalization import normalize_transactions
         # Reverse the input order
         reversed_txs = list(reversed(three_sequential_transactions))
         result = normalize_transactions(reversed_txs)
@@ -162,7 +162,7 @@ class TestNormalization:
         )
 
     def test_log_amount_computed(self, three_sequential_transactions):
-        from niro_ml.data.normalization import normalize_transactions
+        from zeno_ml.data.normalization import normalize_transactions
         result = normalize_transactions(three_sequential_transactions)
         assert "log_amount" in result.df.columns
         # log1p(100) ≈ 4.615
@@ -170,7 +170,7 @@ class TestNormalization:
         assert row["log_amount"] == pytest.approx(np.log1p(100.0), rel=1e-6)
 
     def test_hour_of_day_correct(self):
-        from niro_ml.data.normalization import normalize_transactions
+        from zeno_ml.data.normalization import normalize_transactions
         tx = RawTransaction(
             transaction_id="tx-hour",
             merchant_id="m1", customer_id="c1",
@@ -181,7 +181,7 @@ class TestNormalization:
         assert result.df.iloc[0]["hour_of_day"] == 14
 
     def test_day_of_week_correct(self):
-        from niro_ml.data.normalization import normalize_transactions
+        from zeno_ml.data.normalization import normalize_transactions
         # 2024-01-15 is a Monday (dayofweek = 0)
         tx = RawTransaction(
             transaction_id="tx-dow",
@@ -193,7 +193,7 @@ class TestNormalization:
         assert result.df.iloc[0]["day_of_week"] == 0   # Monday
 
     def test_country_mismatch_detected(self):
-        from niro_ml.data.normalization import normalize_transactions
+        from zeno_ml.data.normalization import normalize_transactions
         tx = RawTransaction(
             transaction_id="tx-mismatch",
             merchant_id="m1", customer_id="c1",
@@ -206,7 +206,7 @@ class TestNormalization:
         assert result.df.iloc[0]["country_mismatch"] == 1
 
     def test_country_match_zero(self):
-        from niro_ml.data.normalization import normalize_transactions
+        from zeno_ml.data.normalization import normalize_transactions
         tx = RawTransaction(
             transaction_id="tx-match",
             merchant_id="m1", customer_id="c1",
@@ -219,7 +219,7 @@ class TestNormalization:
         assert result.df.iloc[0]["country_mismatch"] == 0
 
     def test_country_missing_negative_one(self):
-        from niro_ml.data.normalization import normalize_transactions
+        from zeno_ml.data.normalization import normalize_transactions
         tx = RawTransaction(
             transaction_id="tx-unknown-country",
             merchant_id="m1", customer_id="c1",

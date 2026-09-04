@@ -1,4 +1,4 @@
-# Niro — Sentinel
+# Zeno
 
 Abuse ring detection and fraud intelligence platform.
 
@@ -15,10 +15,10 @@ Abuse ring detection and fraud intelligence platform.
 ## Project Structure
 
 ```
-niro/
+zeno/
 ├── frontend/                   # React + TypeScript + Vite
 ├── backend/                    # Java 17 + Spring Boot
-│   └── src/main/java/com/abusering/sentinel/
+│   └── src/main/java/com/zeno/
 │       ├── modules/
 │       │   ├── identity/
 │       │   ├── merchant/
@@ -35,7 +35,9 @@ niro/
 │       │   └── dataset/
 │       ├── shared/
 │       ├── config/
-│       └── SentinelApplication.java
+│       └── ZenoApplication.java
+├── ml/                         # Python ML service
+│   └── src/zeno_ml/
 ├── data/
 │   ├── generated/
 │   ├── evaluation/

@@ -25,7 +25,7 @@ const mockUsers: AdminUser[] = [
   {
     id: 'mock-1',
     name: 'Admin User',
-    email: 'admin@niro.app',
+    email: 'admin@zeno.app',
     role: 'ADMIN',
     status: 'ACTIVE',
     emailVerified: true,

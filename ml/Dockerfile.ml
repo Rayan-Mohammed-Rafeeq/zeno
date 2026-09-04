@@ -1,9 +1,9 @@
-# Niro ML Service — Docker image
+# Zeno ML Service — Docker image
 # Python 3.12 slim, installs dependencies from requirements.txt,
 # loads model artefacts from a mounted volume at runtime.
 #
-# Build:  docker build -f Dockerfile.ml -t niro-ml:latest .
-# Run:    docker run -p 8001:8001 -v ./data/artifacts:/app/data/artifacts:ro niro-ml:latest
+# Build:  docker build -f Dockerfile.ml -t zeno-ml:latest .
+# Run:    docker run -p 8001:8001 -v ./data/artifacts:/app/data/artifacts:ro zeno-ml:latest
 
 FROM python:3.12-slim
 
@@ -27,13 +27,13 @@ COPY start_ml_service.py .
 RUN mkdir -p data/artifacts/xgboost
 
 # Non-root user for security
-RUN useradd -m -u 1001 niro
-USER niro
+RUN useradd -m -u 1001 zeno
+USER zeno
 
 EXPOSE 8001
 
 ENV PYTHONPATH=/app/src
-ENV NIRO_MODEL_DIR=/app/data/artifacts/xgboost
+ENV ZENO_MODEL_DIR=/app/data/artifacts/xgboost
 ENV ML_SERVICE_HOST=0.0.0.0
 ENV ML_SERVICE_PORT=8001
 ENV LOG_LEVEL=INFO

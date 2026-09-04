@@ -1,8 +1,8 @@
-# Niro Risk Intelligence Platform - Project Summary
+# Zeno Risk Intelligence Platform - Project Summary
 
 ## Overview
 
-**Niro** is a defensive merchant risk intelligence platform designed for **Track 02: AI Risk Manager**. It detects coordinated abuse and fraud patterns across synthetic transaction, customer, refund, device, and IP data, explains the evidence, supports analyst investigations, and reports honest evaluation metrics.
+**Zeno** is a defensive merchant risk intelligence platform designed for **Track 02: AI Risk Manager**. It detects coordinated abuse and fraud patterns across synthetic transaction, customer, refund, device, and IP data, explains the evidence, supports analyst investigations, and reports honest evaluation metrics.
 
 This is a **production-quality fintech risk operations console**, not a generic AI dashboard.
 
@@ -11,7 +11,7 @@ This is a **production-quality fintech risk operations console**, not a generic 
 ## ✅ Completed Features
 
 ### 1. **Complete Authentication System**
-- Login page with professional Niro branding
+- Login page with professional Zeno branding
 - Registration with email verification flow
 - Password recovery (forgot/reset)
 - Protected routes with AuthContext
@@ -131,7 +131,7 @@ This is a **production-quality fintech risk operations console**, not a generic 
   - Card, CardHeader, CardTitle, CardContent
   - Badge (default and risk variants)
   - Table, TableHeader, TableBody, TableRow, TableCell
-  - Logo and LogoIcon (geometric Niro branding)
+  - Logo and LogoIcon (geometric Zeno branding)
 
 - **Risk Color System:**
   - LOW: Green (#16a34a)
@@ -274,7 +274,7 @@ src/
 
 ## 🎯 Differentiation from Generic AI Dashboards
 
-### What Niro Is NOT:
+### What Zeno Is NOT:
 ❌ Generic startup login with giant hero sections
 ❌ Purple gradients everywhere
 ❌ Generic AI sparkle icons
@@ -284,7 +284,7 @@ src/
 ❌ Oversized mobile-first cards on desktop
 ❌ AI oracle that claims infallibility
 
-### What Niro IS:
+### What Zeno IS:
 ✅ Serious internal fintech risk operations console
 ✅ Evidence-based risk assessment
 ✅ Observable signals with baselines
@@ -520,7 +520,7 @@ The application architecture supports but doesn't yet implement:
 
 ## 📄 Conclusion
 
-**Niro** is a production-quality fintech risk intelligence platform that successfully demonstrates:
+**Zeno** is a production-quality fintech risk intelligence platform that successfully demonstrates:
 
 - Professional design for risk operations
 - Evidence-based risk detection

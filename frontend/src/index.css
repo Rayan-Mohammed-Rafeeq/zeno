@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ============================================================
-   NIRO DESIGN TOKENS
+   ZENO DESIGN TOKENS
    Brand: #8588e6 lavender (dark surfaces), #5e5bc1 (light surfaces)
    Dark bg: #1a1a2e → #16213e surface
    Light bg: #f0f4f8 — cool blue-gray, NOT pure white
@@ -171,22 +171,22 @@ body {
    Map CSS variables → Tailwind custom utilities
    ============================================================ */
 @layer utilities {
-  .bg-niro-bg        { background-color: var(--bg); }
-  .bg-niro-surface   { background-color: var(--surface); }
-  .bg-niro-surface-2 { background-color: var(--surface-2); }
-  .bg-niro-surface-3 { background-color: var(--surface-3); }
-  .bg-niro-accent    { background-color: var(--accent); }
-  .bg-niro-accent-muted { background-color: var(--accent-muted); }
+  .bg-zeno-bg        { background-color: var(--bg); }
+  .bg-zeno-surface   { background-color: var(--surface); }
+  .bg-zeno-surface-2 { background-color: var(--surface-2); }
+  .bg-zeno-surface-3 { background-color: var(--surface-3); }
+  .bg-zeno-accent    { background-color: var(--accent); }
+  .bg-zeno-accent-muted { background-color: var(--accent-muted); }
 
-  .text-niro-fg       { color: var(--fg); }
-  .text-niro-muted    { color: var(--fg-muted); }
-  .text-niro-subtle   { color: var(--fg-subtle); }
-  .text-niro-accent   { color: var(--accent); }
+  .text-zeno-fg       { color: var(--fg); }
+  .text-zeno-muted    { color: var(--fg-muted); }
+  .text-zeno-subtle   { color: var(--fg-subtle); }
+  .text-zeno-accent   { color: var(--accent); }
 
-  .border-niro        { border-color: var(--border); }
-  .border-niro-strong { border-color: var(--border-strong); }
+  .border-zeno        { border-color: var(--border); }
+  .border-zeno-strong { border-color: var(--border-strong); }
 
-  .shadow-niro-sm  { box-shadow: var(--shadow-sm); }
-  .shadow-niro     { box-shadow: var(--shadow); }
-  .shadow-niro-lg  { box-shadow: var(--shadow-lg); }
+  .shadow-zeno-sm  { box-shadow: var(--shadow-sm); }
+  .shadow-zeno     { box-shadow: var(--shadow); }
+  .shadow-zeno-lg  { box-shadow: var(--shadow-lg); }
 }

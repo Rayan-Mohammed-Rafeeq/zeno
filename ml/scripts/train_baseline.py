@@ -23,7 +23,7 @@ Options
   --mlflow-uri PATH     MLflow tracking URI (default ml/mlruns)
   --no-test             Skip final test-set evaluation (development mode)
 
-MLflow experiment: niro-fraud-detection
+MLflow experiment: zeno-fraud-detection
 MLflow run name:   logistic-regression-baseline
 
 What this script does
@@ -61,17 +61,17 @@ import mlflow
 import numpy as np
 import pandas as pd
 
-from niro_ml.evaluation.metrics import evaluate, sweep_thresholds
-from niro_ml.evaluation.report import BenchmarkReport, ModelEntry
-from niro_ml.features.base import ALL_FEATURE_COLUMNS, FEATURE_VERSION
-from niro_ml.models.baseline import BASELINE_HYPERPARAMS, BaselineModel
-from niro_ml.models.splits import (
+from zeno_ml.evaluation.metrics import evaluate, sweep_thresholds
+from zeno_ml.evaluation.report import BenchmarkReport, ModelEntry
+from zeno_ml.features.base import ALL_FEATURE_COLUMNS, FEATURE_VERSION
+from zeno_ml.models.baseline import BASELINE_HYPERPARAMS, BaselineModel
+from zeno_ml.models.splits import (
     SplitResult,
     compute_fraud_rates,
     temporal_split,
     temporal_split_labels,
 )
-from niro_ml.scripts_common import build_feature_matrix, load_dataset
+from zeno_ml.scripts_common import build_feature_matrix, load_dataset
 
 logging.basicConfig(
     level=logging.INFO,
@@ -88,7 +88,7 @@ def load_ieee_cis_dataset(
     max_rows: int | None,
 ) -> tuple[pd.DataFrame, pd.Series]:
     """Load IEEE-CIS and return (mapped_df, labels)."""
-    from niro_ml.data.ieee_cis import load_ieee_cis_dataframe
+    from zeno_ml.data.ieee_cis import load_ieee_cis_dataframe
     logger.info("Loading IEEE-CIS dataset …")
     df, labels = load_ieee_cis_dataframe(max_rows=max_rows)
     logger.info("Loaded %d rows. Fraud rate: %.4f", len(df), labels.mean())
@@ -103,7 +103,7 @@ def load_synthetic_dataset(n_samples: int) -> tuple[pd.DataFrame, pd.Series]:
 
     This dataset is labelled as SYNTHETIC in the benchmark report.
     """
-    from niro_ml.data.schema import RawTransaction
+    from zeno_ml.data.schema import RawTransaction
 
     logger.info("Generating synthetic dataset: %d samples …", n_samples)
     rng = np.random.default_rng(42)
@@ -167,8 +167,8 @@ def build_feature_matrix(
     Converts DataFrame rows to RawTransaction objects, runs the feature
     pipeline, returns numpy arrays ready for sklearn.
     """
-    from niro_ml.data.schema import RawTransaction
-    from niro_ml.data.normalization import FORBIDDEN_FEATURE_COLUMNS
+    from zeno_ml.data.schema import RawTransaction
+    from zeno_ml.data.normalization import FORBIDDEN_FEATURE_COLUMNS
 
     transactions = _df_to_transactions(df_split)
 
@@ -196,7 +196,7 @@ def build_feature_matrix(
 
 def _df_to_transactions(df: pd.DataFrame):
     """Convert a canonical-mapped DataFrame to list[RawTransaction]."""
-    from niro_ml.data.schema import RawTransaction
+    from zeno_ml.data.schema import RawTransaction
     txs = []
     for _, row in df.iterrows():
         ts = row.get("timestamp")
@@ -233,7 +233,7 @@ def _df_to_transactions(df: pd.DataFrame):
 def train(args: argparse.Namespace) -> None:
     mlflow_uri = args.mlflow_uri or f"file:///{(ROOT / 'mlruns').as_posix()}"
     mlflow.set_tracking_uri(mlflow_uri)
-    mlflow.set_experiment("niro-fraud-detection")
+    mlflow.set_experiment("zeno-fraud-detection")
 
     output_dir = Path(args.output_dir or ROOT / "data" / "artifacts" / "baseline")
     output_dir.mkdir(parents=True, exist_ok=True)
