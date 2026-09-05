@@ -112,7 +112,9 @@ export function RazorpayCheckoutButton({
         confirm_close: false,
         ondismiss: () => {
           setState(prev => {
-            if (prev === 'open' || prev === 'verifying') {
+            // Only treat as cancellation if payment never reached a terminal state.
+            // 'success' and 'failed' are terminal — ondismiss fires on those too.
+            if (prev === 'open') {
               onError?.('Payment cancelled by user.');
               return 'cancelled';
             }

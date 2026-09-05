@@ -35,7 +35,7 @@ const SIGNAL_TYPES = [
   'COORDINATED_ACTIVITY',
 ] as const;
 
-const SIGNAL_NAMES: Record<typeof SIGNAL_TYPES[number], string> = {
+export const SIGNAL_NAMES: Record<typeof SIGNAL_TYPES[number], string> = {
   REFUND_VELOCITY: 'Abnormal Refund Rate',
   TRANSACTION_VELOCITY: 'Transaction Velocity',
   DEVICE_REUSE: 'Device Reuse',
@@ -72,7 +72,6 @@ export const mockCustomers: Customer[] = Array.from({ length: 50 }, (_, i) => {
     id: `cust-${i + 1}`,
     customerId: `CUST-${String(i + 1).padStart(5, '0')}`,
     name: CUSTOMER_NAMES[i % CUSTOMER_NAMES.length] + (i >= CUSTOMER_NAMES.length ? ` ${Math.floor(i / CUSTOMER_NAMES.length) + 1}` : ''),
-    email: `customer${i + 1}@example.com`,
     transactionCount,
     totalAmount: Math.floor(Math.random() * 50000) + 1000,
     refundCount,
@@ -123,27 +122,33 @@ export const mockTransactions: Transaction[] = Array.from({ length: 200 }, (_, i
 
 export const mockClusters: RiskCluster[] = Array.from({ length: 12 }, (_, i) => {
   const riskLevel = randomRiskLevel([0.2, 0.3, 0.3, 0.2]);
-  const customerCount = Math.floor(Math.random() * 15) + 3;
+  const memberCount = Math.floor(Math.random() * 12) + 3;
+  const deviceCount = Math.max(1, Math.floor(Math.random() * 4) + 1);
+  const ipCount = Math.max(1, Math.floor(Math.random() * 3) + 1);
+  const transactionCount = memberCount * (Math.floor(Math.random() * 10) + 5);
+  const refundCount = Math.floor(Math.random() * 20) + 5;
+  const riskScore = riskLevel === 'CRITICAL' ? Math.floor(Math.random() * 10) + 90 :
+                    riskLevel === 'HIGH'     ? Math.floor(Math.random() * 15) + 70 :
+                    riskLevel === 'MEDIUM'   ? Math.floor(Math.random() * 20) + 50 :
+                    Math.floor(Math.random() * 40) + 10;
+
+  const memberId = () => `00000000-0000-0000-0000-${String(Math.floor(Math.random() * 1e12)).padStart(12, '0')}`;
+  const members = Array.from({ length: memberCount }, () => ({ entityType: 'CUSTOMER', entityId: memberId() }));
 
   return {
-    id: `cluster-${i + 1}`,
-    clusterId: `CR-${String(i + 1).padStart(4, '0')}`,
-    name: `Cluster ${i + 1}`,
-    customerCount,
-    deviceCount: Math.floor(Math.random() * 6) + 1,
-    ipCount: Math.floor(Math.random() * 5) + 1,
-    transactionCount: customerCount * (Math.floor(Math.random() * 10) + 5),
-    refundCount: Math.floor(Math.random() * 20) + 5,
-    totalExposure: Math.floor(Math.random() * 100000) + 10000,
-    riskScore: riskLevel === 'CRITICAL' ? Math.floor(Math.random() * 15) + 85 :
-                riskLevel === 'HIGH' ? Math.floor(Math.random() * 15) + 70 :
-                riskLevel === 'MEDIUM' ? Math.floor(Math.random() * 20) + 50 :
-                Math.floor(Math.random() * 50),
+    id: `00000000-0000-0000-${String(i + 1).padStart(4, '0')}-000000000000`,
+    merchantId: '00000000-0000-0000-0000-000000000001',
+    riskScore,
     riskLevel,
-    primarySignal: SIGNAL_NAMES[SIGNAL_TYPES[Math.floor(Math.random() * SIGNAL_TYPES.length)]],
-    status: ['DETECTED', 'INVESTIGATING'][Math.floor(Math.random() * 2)] as any,
-    detectedAt: randomDate(14),
+    memberCount,
+    deviceCount,
+    ipCount,
+    transactionCount,
+    refundCount,
+    estimatedExposure: Math.floor(Math.random() * 100000) + 10000,
+    status: (['ACTIVE', 'UNDER_REVIEW', 'RESOLVED'] as const)[Math.floor(Math.random() * 3)],
     createdAt: randomDate(14),
+    members,
   };
 });
 

@@ -18,8 +18,7 @@ export const customerApi = {
         const search = params.search.toLowerCase();
         filtered = filtered.filter(c =>
           c.name.toLowerCase().includes(search) ||
-          c.customerId.toLowerCase().includes(search) ||
-          c.email.toLowerCase().includes(search)
+          c.customerId.toLowerCase().includes(search)
         );
       }
       if (params?.riskLevel && params.riskLevel !== 'ALL') {
@@ -32,13 +31,14 @@ export const customerApi = {
     }
 
     // Backend: page is 0-indexed, param is `size` not `pageSize`.
-    // Backend customer endpoint accepts: page, size, sort, direction, status (enum — not riskLevel)
-    const backendPage = Math.max(0, (params?.page ?? 1) - 1); // convert 1-indexed → 0-indexed
+    // Backend now supports: search (externalCustomerId contains), riskLevel (post-filter)
+    const backendPage = Math.max(0, (params?.page ?? 1) - 1);
     const qs = new URLSearchParams({
       page: String(backendPage),
       size: String(params?.pageSize ?? 20),
     });
-    // Backend accepts `status` (CustomerStatus enum), not `riskLevel`. Skip mapping — search not supported server-side.
+    if (params?.search?.trim())                           qs.set('search', params.search.trim());
+    if (params?.riskLevel && params.riskLevel !== 'ALL') qs.set('riskLevel', params.riskLevel);
     const result = await apiRequestPaged<Customer>(`/customers?${qs}`);
     return {
       data: result.data,
@@ -68,8 +68,8 @@ export const customerApi = {
       return {
         assessmentId: `risk-${id}`,
         customerId: id,
-        riskScore: customer.riskScore,
-        riskLevel: customer.riskLevel,
+        riskScore: customer.riskScore ?? 0,
+        riskLevel: customer.riskLevel ?? 'LOW',
         flagged: customer.riskLevel === 'HIGH' || customer.riskLevel === 'CRITICAL',
         signals: [],
         fraudProbability: null,

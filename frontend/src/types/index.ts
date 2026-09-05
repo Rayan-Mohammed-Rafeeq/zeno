@@ -32,20 +32,24 @@ export interface Merchant {
 
 export interface Customer {
   id: string;
+  /** Maps to Customer.externalCustomerId */
   customerId: string;
+  /** Derived display name (title-cased externalCustomerId) */
   name: string;
-  email: string;
   transactionCount: number;
   totalAmount: number;
   refundCount: number;
   refundRate: number;
   deviceCount: number;
   ipCount: number;
-  riskScore: number;
-  riskLevel: RiskLevel;
+  /** null when no risk assessment has been run yet */
+  riskScore: number | null;
+  /** null when no risk assessment has been run yet */
+  riskLevel: RiskLevel | null;
   status: 'ACTIVE' | 'SUSPENDED' | 'FLAGGED';
   firstSeen: string;
-  lastActivity: string;
+  /** null when customer has no payments yet */
+  lastActivity: string | null;
   createdAt: string;
 }
 
@@ -63,8 +67,10 @@ export interface Transaction {
   isRefunded: boolean;
   refundAmount?: number;
   refundDate?: string;
-  riskScore: number;
-  riskLevel: RiskLevel;
+  /** null when no risk assessment has been run yet */
+  riskScore: number | null;
+  /** null when no risk assessment has been run yet */
+  riskLevel: RiskLevel | null;
   signalCount: number;
   timestamp: string;
   createdAt: string;
@@ -104,22 +110,46 @@ export interface RiskAssessment {
   createdAt: string;
 }
 
+/**
+ * RiskCluster — aligned to the actual backend ClusterResponse DTO.
+ *
+ * Key field mapping (old → real):
+ *   clusterId  → id (UUID string)
+ *   customerCount → memberCount
+ *   totalExposure → estimatedExposure (number, may be null if no refunds)
+ *   detectedAt → createdAt
+ *   status: backend values are ACTIVE | UNDER_REVIEW | RESOLVED
+ *   deviceCount, ipCount, transactionCount, refundCount: now returned by backend
+ *
+ * Mock data still uses the full shape for display purposes.
+ */
 export interface RiskCluster {
+  /** UUID from the backend (route key for /clusters/:id) */
   id: string;
-  clusterId: string;
-  name: string;
-  customerCount: number;
-  deviceCount: number;
-  ipCount: number;
-  transactionCount: number;
-  refundCount: number;
-  totalExposure: number;
+  merchantId: string;
   riskScore: number;
   riskLevel: RiskLevel;
-  primarySignal: string;
-  status: 'DETECTED' | 'INVESTIGATING' | 'CONFIRMED' | 'FALSE_POSITIVE';
-  detectedAt: string;
+  /** Number of customer members in this cluster */
+  memberCount: number;
+  /** Distinct devices across all members (computed by backend) */
+  deviceCount: number;
+  /** Distinct IPs across all members (computed by backend) */
+  ipCount: number;
+  /** Total payment records across all members */
+  transactionCount: number;
+  /** Total refund records across all members */
+  refundCount: number;
+  /**
+   * Sum of refund amounts — NOT confirmed fraud loss.
+   * Backend serialises BigDecimal as a number (can be null when no refunds).
+   */
+  estimatedExposure: number | null;
+  /** ACTIVE | UNDER_REVIEW | RESOLVED */
+  status: 'ACTIVE' | 'UNDER_REVIEW' | 'RESOLVED';
+  /** ISO-8601 timestamp from @CreationTimestamp */
   createdAt: string;
+  /** Cluster members — [{entityType: 'CUSTOMER', entityId: UUID}] */
+  members: Array<{ entityType: string; entityId: string }>;
 }
 
 export interface GraphNode {
@@ -145,16 +175,16 @@ export interface ClusterGraph {
 
 export interface Investigation {
   id: string;
-  investigationId: string;
-  subject: string;
-  subjectType: 'CUSTOMER' | 'CLUSTER' | 'TRANSACTION';
-  subjectId: string;
-  type: 'FRAUD' | 'REFUND_ABUSE' | 'COORDINATED_ACTIVITY' | 'SUSPICIOUS_PATTERN';
+  investigationId?: string;
+  subject?: string;
+  subjectType?: 'CUSTOMER' | 'CLUSTER' | 'TRANSACTION' | string;
+  subjectId?: string;
+  type?: 'FRAUD' | 'REFUND_ABUSE' | 'COORDINATED_ACTIVITY' | 'SUSPICIOUS_PATTERN' | string;
   riskLevel: RiskLevel;
   status: InvestigationStatus;
   assignedTo?: string;
   assignedToName?: string;
-  notes: InvestigationNote[];
+  notes?: InvestigationNote[];
   decision?: Decision;
   createdAt: string;
   updatedAt: string;
@@ -343,8 +373,14 @@ export interface DatasetRun {
   id: string;
   recordCount: number;
   status: 'GENERATING' | 'ANALYZING' | 'COMPLETED' | 'FAILED';
-  steps: DatasetStep[];
-  startedAt: string;
+  /** Steps are not yet returned by the backend — may be absent. */
+  steps?: DatasetStep[];
+  /** ISO timestamp when the run was created (backend field: createdAt). */
+  createdAt: string;
+  /** ISO timestamp when generation completed (backend field: generatedAt). */
+  generatedAt?: string;
+  /** Legacy alias kept for compatibility — prefer createdAt. */
+  startedAt?: string;
   completedAt?: string;
 }
 

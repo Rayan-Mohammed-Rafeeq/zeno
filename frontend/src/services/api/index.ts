@@ -32,10 +32,12 @@ export const transactionApi = {
       const start = (page - 1) * pageSize;
       return { data: filtered.slice(start, start + pageSize), total: filtered.length, page, pageSize };
     }
-    // Backend: /payments (not /transactions), page 0-indexed, param `size`
-    // No search or riskLevel filter on backend — omit them
+    // Backend: /payments, page 0-indexed, param `size`
+    // Now supports: search (externalPaymentId contains), riskLevel (post-filter)
     const backendPage = Math.max(0, (params?.page ?? 1) - 1);
     const qs = new URLSearchParams({ page: String(backendPage), size: String(params?.pageSize ?? 20) });
+    if (params?.search?.trim())                           qs.set('search', params.search.trim());
+    if (params?.riskLevel && params.riskLevel !== 'ALL') qs.set('riskLevel', params.riskLevel);
     const result = await apiRequestPaged<Transaction>(`/payments?${qs}`);
     return { data: result.data, total: result.meta.totalElements, page: params?.page ?? 1, pageSize: params?.pageSize ?? 20 };
   },
@@ -69,7 +71,7 @@ export const clusterApi = {
   async getCluster(id: string): Promise<RiskCluster> {
     if (MOCK_API_ENABLED) {
       await delay();
-      const cluster = mockClusters.find(c => c.clusterId === id || c.id === id);
+      const cluster = mockClusters.find(c => c.id === id);
       if (!cluster) throw new Error('Cluster not found');
       return cluster;
     }
@@ -85,6 +87,18 @@ export const clusterApi = {
   },
 };
 
+function normalizeInvestigation(inv: any): Investigation {
+  if (!inv) return inv;
+  const shortId = inv.id ? `INV-${String(inv.id).replace(/-/g, '').slice(0, 6).toUpperCase()}` : 'INV-UNKNOWN';
+  return {
+    ...inv,
+    investigationId: inv.investigationId || shortId,
+    subject: inv.subject || `${inv.subjectType ?? 'Case'} ${inv.subjectId ? String(inv.subjectId).slice(0, 8).toUpperCase() : ''}`,
+    type: inv.type || (inv.subjectType === 'CLUSTER' ? 'COORDINATED_ACTIVITY' : inv.subjectType === 'CUSTOMER' ? 'SUSPICIOUS_PATTERN' : 'FRAUD'),
+    notes: inv.notes ?? [],
+  };
+}
+
 export const investigationApi = {
   async getInvestigations(params?: { page?: number; pageSize?: number; status?: string }): Promise<PaginatedResponse<Investigation>> {
     if (MOCK_API_ENABLED) {
@@ -96,14 +110,19 @@ export const investigationApi = {
       const page = params?.page || 1;
       const pageSize = params?.pageSize || 20;
       const start = (page - 1) * pageSize;
-      return { data: filtered.slice(start, start + pageSize), total: filtered.length, page, pageSize };
+      return { data: filtered.slice(start, start + pageSize).map(normalizeInvestigation), total: filtered.length, page, pageSize };
     }
     const backendPage = Math.max(0, (params?.page ?? 1) - 1);
     const qs = new URLSearchParams({ page: String(backendPage), size: String(params?.pageSize ?? 20) });
     // Only pass status if it's a real enum value (not 'ALL')
     if (params?.status && params.status !== 'ALL') qs.set('status', params.status);
     const result = await apiRequestPaged<Investigation>(`/investigations?${qs}`);
-    return { data: result.data, total: result.meta.totalElements, page: params?.page ?? 1, pageSize: params?.pageSize ?? 20 };
+    return {
+      data: (result.data || []).map(normalizeInvestigation),
+      total: result.meta?.totalElements ?? result.data?.length ?? 0,
+      page: params?.page ?? 1,
+      pageSize: params?.pageSize ?? 20,
+    };
   },
 
   async getInvestigation(id: string): Promise<Investigation> {
@@ -111,9 +130,63 @@ export const investigationApi = {
       await delay();
       const investigation = mockInvestigations.find(i => i.investigationId === id || i.id === id);
       if (!investigation) throw new Error('Investigation not found');
-      return investigation;
+      return normalizeInvestigation(investigation);
     }
-    return apiRequest<Investigation>(`/investigations/${id}`);
+    const result = await apiRequest<Investigation>(`/investigations/${id}`);
+    return normalizeInvestigation(result);
+  },
+
+  /**
+   * Create an investigation scoped to a risk cluster.
+   * Uses SubjectType.CLUSTER — wired in InvestigationController.
+   */
+  async createInvestigationForCluster(clusterId: string, riskLevel: string): Promise<Investigation> {
+    if (MOCK_API_ENABLED) {
+      await delay(600);
+      return normalizeInvestigation({
+        id: 'inv-cluster-' + Date.now(),
+        investigationId: 'INV-' + String(Date.now()).slice(-6),
+        subject: `Cluster ${clusterId.slice(0, 8)}`,
+        subjectType: 'CLUSTER',
+        subjectId: clusterId,
+        type: 'COORDINATED_ACTIVITY',
+        riskLevel: riskLevel as any,
+        status: 'OPEN',
+        notes: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    }
+    const result = await apiRequest<Investigation>('/investigations', {
+      method: 'POST',
+      body: JSON.stringify({
+        subjectType: 'CLUSTER',
+        subjectId: clusterId,
+        riskLevel,
+      }),
+    });
+    return normalizeInvestigation(result);
+  },
+
+  /**
+   * Find an existing investigation for a cluster subject ID (if any).
+   * Returns null when no investigation exists yet.
+   */
+  async findInvestigationForCluster(clusterId: string): Promise<Investigation | null> {
+    if (MOCK_API_ENABLED) {
+      await delay(200);
+      return null;
+    }
+    try {
+      // Fetch the first page and look for a matching cluster subject
+      const result = await apiRequestPaged<Investigation>('/investigations?page=0&size=50');
+      const match = (result.data || []).find(
+        (inv: any) => inv.subjectType === 'CLUSTER' && String(inv.subjectId) === clusterId
+      );
+      return match ? normalizeInvestigation(match) : null;
+    } catch {
+      return null;
+    }
   },
 };
 
@@ -129,8 +202,11 @@ export const auditApi = {
       return { data, total: mockAuditEvents.length, page, pageSize };
     }
     
-    const query = new URLSearchParams(params as any).toString();
-    return apiRequest<PaginatedResponse<AuditEvent>>(`/audit-events?${query}`);
+    const qs = new URLSearchParams({
+      page: String(Math.max(0, (params?.page ?? 1) - 1)), // 0-indexed
+      size: String(params?.pageSize ?? 100),
+    }).toString();
+    return apiRequest<PaginatedResponse<AuditEvent>>(`/audit-events?${qs}`);
   },
 };
 
@@ -206,6 +282,26 @@ export const monitoringApi = {
   },
 };
 
+export const riskApi = {
+  /** Run full risk analysis + cluster detection for the current merchant. */
+  async analyzeAll(): Promise<{ assessed: number }> {
+    if (MOCK_API_ENABLED) {
+      await delay(800);
+      return { assessed: 50 };
+    }
+    const result = await apiRequest<{ assessed: number }>('/risk/analyze', { method: 'POST' });
+    return result;
+  },
+  async detectClusters(): Promise<{ clustersDetected: number }> {
+    if (MOCK_API_ENABLED) {
+      await delay(400);
+      return { clustersDetected: 5 };
+    }
+    const result = await apiRequest<{ clustersDetected: number }>('/clusters/detect', { method: 'POST' });
+    return result;
+  },
+};
+
 export const dashboardApi = {
   async getStats(): Promise<DashboardStats> {
     if (MOCK_API_ENABLED) {
@@ -232,6 +328,7 @@ export const datasetApi = {
           { name: 'Clusters detected', status: 'COMPLETED', completedAt: new Date().toISOString() },
           { name: 'Evaluation completed', status: 'COMPLETED', completedAt: new Date().toISOString() },
         ],
+        createdAt: new Date().toISOString(),
         startedAt: new Date().toISOString(),
         completedAt: new Date().toISOString(),
       };
@@ -257,6 +354,7 @@ export const datasetApi = {
           { name: 'Clusters detected', status: 'COMPLETED', completedAt: new Date().toISOString() },
           { name: 'Evaluation completed', status: 'COMPLETED', completedAt: new Date().toISOString() },
         ],
+        createdAt: new Date(Date.now() - 3600000).toISOString(),
         startedAt: new Date(Date.now() - 3600000).toISOString(),
         completedAt: new Date().toISOString(),
       };
@@ -313,6 +411,50 @@ export const intelligenceApi = {
       }),
     });
     return resp;
+  },
+
+  /**
+   * Generate an AI evidence assessment for a cluster.
+   * Passes subjectType=CLUSTER so the IntelligenceService performs the cluster
+   * member lookup and assembles graph + signal evidence before querying the LLM.
+   */
+  async assessCluster(clusterId: string, memberCount: number): Promise<CustomerRiskDetail['aiAssessment']> {
+    if (MOCK_API_ENABLED) {
+      await delay(1500);
+      return {
+        id: 'ai-cluster-mock-' + Date.now(),
+        assessmentType: 'POTENTIAL_COORDINATED_ACTIVITY',
+        confidence: 0.84,
+        recommendedAction: 'MANUAL_REVIEW',
+        provider: 'rule-based-fallback',
+        aiGenerated: false,
+        disclaimer: 'AI-generated evidence summary. Requires analyst verification.',
+        createdAt: new Date().toISOString(),
+        structuredResult: {
+          assessment: 'HIGH_RISK',
+          confidence: 84,
+          recommendedAction: 'MANUAL_REVIEW',
+          summary: 'Mock cluster assessment — connect to real backend for live AI output.',
+          reasons: [
+            { signal: 'Device reuse', observed: 'Shared across multiple accounts', baseline: '< 2 accounts/device', interpretation: 'Multiple customers are connected through a common device fingerprint, consistent with coordinated activity.' },
+            { signal: 'IP overlap', observed: 'Shared across accounts', baseline: '< 2 accounts/IP', interpretation: 'Accounts share IP address — possible shared infrastructure or coordinated access.' },
+          ],
+          mlEvidence: null,
+          networkEvidence: { clusterDetected: true, clusterSize: memberCount, relationshipSummary: `Cluster of ${memberCount} customers connected via shared device/IP infrastructure.` },
+          limitations: ['AI assessment does not independently establish fraud.', 'Analyst verification required before any action.'],
+          analystNote: 'Review shared device and IP relationships. Escalate if coordinated timing confirmed.',
+          aiGenerated: false,
+        },
+      };
+    }
+    return apiRequest<CustomerRiskDetail['aiAssessment']>('/intelligence/assess', {
+      method: 'POST',
+      body: JSON.stringify({
+        subjectType: 'CLUSTER',
+        subjectId: clusterId,
+        clusterSize: memberCount,
+      }),
+    });
   },
 
   /**
