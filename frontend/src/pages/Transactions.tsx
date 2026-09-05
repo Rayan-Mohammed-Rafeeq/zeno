@@ -163,7 +163,10 @@ export function Transactions() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="risk" riskLevel={txn.riskLevel} dot>{txn.riskLevel}</Badge>
+                          {txn.riskLevel
+                            ? <Badge variant="risk" riskLevel={txn.riskLevel} dot>{txn.riskLevel}</Badge>
+                            : <span style={{ color: 'var(--fg-subtle)' }}>—</span>
+                          }
                         </TableCell>
                         <TableCell>
                           {txn.signalCount > 0 ? (

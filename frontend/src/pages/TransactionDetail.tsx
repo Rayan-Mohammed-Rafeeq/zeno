@@ -59,9 +59,10 @@ export function TransactionDetail() {
     );
   }
 
-  const scoreColor = txn.riskScore >= 80 ? 'var(--risk-critical)'
-    : txn.riskScore >= 65 ? 'var(--risk-high)'
-    : txn.riskScore >= 40 ? 'var(--risk-medium)'
+  const score = txn.riskScore ?? 0;
+  const scoreColor = score >= 80 ? 'var(--risk-critical)'
+    : score >= 65 ? 'var(--risk-high)'
+    : score >= 40 ? 'var(--risk-medium)'
     : 'var(--risk-low)';
 
   return (
@@ -92,7 +93,7 @@ export function TransactionDetail() {
                       style={{ background: STATUS_COLORS[txn.status] ?? 'var(--fg-subtle)' }} />
                     <span className="text-sm" style={{ color: 'var(--fg-muted)' }}>{txn.status}</span>
                   </div>
-                  <Badge variant="risk" riskLevel={txn.riskLevel}>{txn.riskLevel} RISK</Badge>
+                  <Badge variant="risk" riskLevel={txn.riskLevel ?? 'LOW'}>{(txn.riskLevel ?? 'LOW')} RISK</Badge>
                   <Link to={`/customers/${txn.customerId}`}
                     className="text-sm hover:underline" style={{ color: 'var(--accent)' }}>
                     {txn.customerName}
@@ -118,9 +119,8 @@ export function TransactionDetail() {
                 <div className="text-xs uppercase tracking-wider mb-0.5"
                   style={{ color: 'var(--fg-subtle)' }}>Risk Score</div>
                 <div className="text-3xl font-bold tabular-nums" style={{ color: scoreColor }}>
-                  {txn.riskScore}
+                  {txn.riskScore ?? '—'}
                 </div>
-                <div className="text-xs" style={{ color: 'var(--fg-subtle)' }}>/100</div>
               </div>
             </div>
           </div>
@@ -182,13 +182,13 @@ export function TransactionDetail() {
               </div>
               <div className="flex items-end gap-2">
                 <div className="text-3xl font-bold tabular-nums" style={{ color: scoreColor }}>
-                  {txn.riskScore}
+                  {txn.riskScore ?? '—'}
                 </div>
                 <div className="text-sm mb-1" style={{ color: 'var(--fg-subtle)' }}>/100</div>
               </div>
               <div className="mt-2 h-2 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
                 <div className="h-full rounded-full transition-all"
-                  style={{ width: `${txn.riskScore}%`, background: scoreColor }} />
+                  style={{ width: `${score}%`, background: scoreColor }} />
               </div>
               <div className="text-xs mt-1" style={{ color: 'var(--fg-subtle)' }}>
                 0.75 × fraud_prob + 0.25 × anomaly_score

@@ -520,10 +520,11 @@ export function CustomerDetail() {
     );
   }
 
+  const score = customer.riskScore ?? 0;
   const scoreColor =
-    customer.riskScore >= 80 ? 'var(--risk-critical)'
-    : customer.riskScore >= 65 ? 'var(--risk-high)'
-    : customer.riskScore >= 40 ? 'var(--risk-medium)'
+    score >= 80 ? 'var(--risk-critical)'
+    : score >= 65 ? 'var(--risk-high)'
+    : score >= 40 ? 'var(--risk-medium)'
     : 'var(--risk-low)';
 
   const clusterSize = riskDetail?.signals
@@ -557,7 +558,7 @@ export function CustomerDetail() {
                   <span className="font-mono text-sm" style={{ color: 'var(--fg-subtle)' }}>
                     {customer.customerId}
                   </span>
-                  <Badge variant="risk" riskLevel={customer.riskLevel}>{customer.riskLevel} RISK</Badge>
+                  <Badge variant="risk" riskLevel={customer.riskLevel ?? 'LOW'}>{customer.riskLevel ?? 'LOW'} RISK</Badge>
                   <span className="text-xs px-2 py-0.5 rounded-full" style={{
                     background: customer.status === 'FLAGGED' ? 'var(--risk-critical-bg)' : 'var(--success-bg)',
                     color:      customer.status === 'FLAGGED' ? 'var(--risk-critical)' : 'var(--success)',
@@ -566,7 +567,7 @@ export function CustomerDetail() {
                   </span>
                 </div>
                 <p className="text-sm mt-2" style={{ color: 'var(--fg-muted)' }}>
-                  First seen {formatRelativeTime(customer.firstSeen)} · Last active {formatRelativeTime(customer.lastActivity)}
+                  First seen {formatRelativeTime(customer.firstSeen)} · Last active {customer.lastActivity ? formatRelativeTime(customer.lastActivity) : 'Never'}
                 </p>
               </div>
             </div>
@@ -576,7 +577,7 @@ export function CustomerDetail() {
               <div className="text-xs font-medium uppercase tracking-wider mb-1"
                 style={{ color: 'var(--fg-subtle)' }}>Risk Score</div>
               <div className="text-5xl font-bold tabular-nums" style={{ color: scoreColor }}>
-                {customer.riskScore}
+                {customer.riskScore ?? '—'}
               </div>
               <div className="text-xs mt-1" style={{ color: 'var(--fg-subtle)' }}>/ 100</div>
             </div>
@@ -809,7 +810,7 @@ export function CustomerDetail() {
                           {tx.status}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="risk" riskLevel={tx.riskLevel}>{tx.riskLevel}</Badge>
+                          <Badge variant="risk" riskLevel={tx.riskLevel ?? undefined}>{tx.riskLevel ?? 'N/A'}</Badge>
                         </TableCell>
                         <TableCell className="text-xs" style={{ color: 'var(--fg-subtle)' }}>
                           {formatRelativeTime(tx.timestamp)}

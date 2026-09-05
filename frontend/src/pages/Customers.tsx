@@ -27,18 +27,19 @@ const RISK_PILL_STYLE: Record<string, React.CSSProperties> = {
 };
 
 /** Inline refund-rate bar */
-function RefundBar({ rate }: { rate: number }) {
-  const color = rate > 20 ? 'var(--risk-critical)' : rate > 10 ? 'var(--risk-high)' : 'var(--success)';
+function RefundBar({ rate }: { rate: number | null | undefined }) {
+  const safeRate = rate ?? 0;
+  const color = safeRate > 20 ? 'var(--risk-critical)' : safeRate > 10 ? 'var(--risk-high)' : 'var(--success)';
   return (
     <div className="flex items-center gap-2">
       <span className="text-sm tabular-nums font-medium" style={{ color, minWidth: 36 }}>
-        {rate.toFixed(1)}%
+        {safeRate.toFixed(1)}%
       </span>
       <div className="stat-bar-track w-16">
         <div
           className="stat-bar-fill"
           style={{
-            width: `${Math.min(rate * 2, 100)}%`,
+            width: `${Math.min(safeRate * 2, 100)}%`,
             background: `linear-gradient(90deg, ${color}, ${color}99)`,
           }}
         />
@@ -49,8 +50,11 @@ function RefundBar({ rate }: { rate: number }) {
 
 /** Customer initials avatar */
 function Avatar({ name }: { name: string }) {
-  const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-  const hue = (name.charCodeAt(0) * 37 + name.charCodeAt(1) * 13) % 360;
+  const safeName = name ?? '?';
+  const initials = safeName.split(' ').map(w => w[0]).filter(Boolean).join('').slice(0, 2).toUpperCase() || '?';
+  const hue = safeName.length > 1
+    ? (safeName.charCodeAt(0) * 37 + safeName.charCodeAt(1) * 13) % 360
+    : 0;
   return (
     <div
       className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 select-none"
@@ -91,7 +95,7 @@ export function Customers() {
           <div className="relative flex-1 min-w-[220px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none" style={{ color: 'var(--fg-subtle)' }} />
             <input
-              placeholder="Search by name, ID or email…"
+              placeholder="Search by name or ID…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full h-9 pl-9 pr-3 rounded-lg text-sm outline-none transition-all"
@@ -171,7 +175,7 @@ export function Customers() {
                         <div className="flex items-center gap-2.5">
                           <Avatar name={customer.name} />
                           <Link
-                            to={`/customers/${customer.customerId}`}
+                            to={`/customers/${customer.id}`}
                             className="font-semibold text-sm hover:underline"
                             style={{ color: 'var(--accent)' }}
                           >
@@ -184,38 +188,44 @@ export function Customers() {
                           {customer.customerId}
                         </span>
                       </TableCell>
-                      <TableCell style={{ color: 'var(--fg)' }}>{formatNumber(customer.transactionCount)}</TableCell>
-                      <TableCell style={{ color: 'var(--fg)', fontWeight: 600 }}>{formatCurrency(customer.totalAmount)}</TableCell>
+                      <TableCell style={{ color: 'var(--fg)' }}>{formatNumber(customer.transactionCount ?? 0)}</TableCell>
+                      <TableCell style={{ color: 'var(--fg)', fontWeight: 600 }}>{formatCurrency(customer.totalAmount ?? 0)}</TableCell>
                       <TableCell><RefundBar rate={customer.refundRate} /></TableCell>
-                      <TableCell style={{ color: 'var(--fg)' }}>{customer.deviceCount}</TableCell>
-                      <TableCell style={{ color: 'var(--fg)' }}>{customer.ipCount}</TableCell>
+                      <TableCell style={{ color: 'var(--fg)' }}>{customer.deviceCount ?? 0}</TableCell>
+                      <TableCell style={{ color: 'var(--fg)' }}>{customer.ipCount ?? 0}</TableCell>
                       <TableCell>
                         <span
                           className="font-bold tabular-nums text-sm"
                           style={{
-                            color: customer.riskScore >= 80 ? 'var(--risk-critical)'
-                              : customer.riskScore >= 65 ? 'var(--risk-high)'
-                              : customer.riskScore >= 40 ? 'var(--risk-medium)'
+                            color: (customer.riskScore ?? 0) >= 80 ? 'var(--risk-critical)'
+                              : (customer.riskScore ?? 0) >= 65 ? 'var(--risk-high)'
+                              : (customer.riskScore ?? 0) >= 40 ? 'var(--risk-medium)'
                               : 'var(--fg-muted)',
                           }}
                         >
-                          {customer.riskScore}
+                          {customer.riskScore ?? '—'}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="risk" riskLevel={customer.riskLevel} dot>{customer.riskLevel}</Badge>
+                        {customer.riskLevel
+                          ? <Badge variant="risk" riskLevel={customer.riskLevel} dot>{customer.riskLevel}</Badge>
+                          : <span style={{ color: 'var(--fg-subtle)' }}>—</span>
+                        }
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5">
                           <span
-                            className="h-2 w-2 rounded-full inline-block pulse-dot"
-                            style={{ color: STATUS_CONFIG[customer.status]?.color ?? 'var(--fg-subtle)' }}
+                            className="h-2 w-2 rounded-full inline-block shrink-0 pulse-dot"
+                            style={{
+                              background: STATUS_CONFIG[customer.status]?.color ?? 'var(--fg-subtle)',
+                              color:      STATUS_CONFIG[customer.status]?.color ?? 'var(--fg-subtle)',
+                            }}
                           />
                           <span className="text-xs">{STATUS_CONFIG[customer.status]?.label ?? customer.status}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-xs" style={{ color: 'var(--fg-subtle)' }}>
-                        {formatRelativeTime(customer.lastActivity)}
+                        {customer.lastActivity ? formatRelativeTime(customer.lastActivity) : '—'}
                       </TableCell>
                     </TableRow>
                   ))}

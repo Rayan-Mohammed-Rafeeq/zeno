@@ -39,13 +39,34 @@ export function Investigations() {
     queryFn:  () => investigationApi.getInvestigations({ status, page, pageSize: PAGE_SIZE }),
   });
 
+  // Fetch server-side totals for each status independently so KPI counts
+  // are always accurate regardless of which filter is currently active.
+  const { data: countsData } = useQuery({
+    queryKey: ['investigations-counts'],
+    queryFn: async () => {
+      const [open, reviewing, escalated, resolved] = await Promise.all([
+        investigationApi.getInvestigations({ status: 'OPEN',      page: 1, pageSize: 1 }),
+        investigationApi.getInvestigations({ status: 'REVIEWING', page: 1, pageSize: 1 }),
+        investigationApi.getInvestigations({ status: 'ESCALATED', page: 1, pageSize: 1 }),
+        investigationApi.getInvestigations({ status: 'RESOLVED',  page: 1, pageSize: 1 }),
+      ]);
+      return {
+        OPEN:      open.total,
+        REVIEWING: reviewing.total,
+        ESCALATED: escalated.total,
+        RESOLVED:  resolved.total,
+      };
+    },
+    staleTime: 30_000,
+  });
+
   const all = data?.data ?? [];
 
-  const counts: Record<string, number> = {
-    OPEN:      all.filter(i => i.status === 'OPEN').length,
-    REVIEWING: all.filter(i => i.status === 'REVIEWING').length,
-    ESCALATED: all.filter(i => i.status === 'ESCALATED').length,
-    RESOLVED:  all.filter(i => i.status === 'RESOLVED').length,
+  const counts = {
+    OPEN:      countsData?.OPEN      ?? 0,
+    REVIEWING: countsData?.REVIEWING ?? 0,
+    ESCALATED: countsData?.ESCALATED ?? 0,
+    RESOLVED:  countsData?.RESOLVED  ?? 0,
   };
 
   return (
@@ -117,50 +138,56 @@ export function Investigations() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {all.map((inv) => (
-                    <TableRow key={inv.id}>
-                      <TableCell className="pl-6">
-                        <span className="font-mono text-xs font-bold px-1.5 py-0.5 rounded"
-                          style={{ background: 'var(--surface-2)', color: 'var(--fg)' }}>
-                          {inv.investigationId}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium text-sm" style={{ color: 'var(--fg)' }}>{inv.subject}</div>
-                        <div className="text-xs mt-0.5" style={{ color: 'var(--fg-subtle)' }}>
-                          {inv.subjectType} · {inv.subjectId}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'var(--surface-2)', color: 'var(--fg-muted)' }}>
-                          {inv.type.replace(/_/g, ' ')}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="risk" riskLevel={inv.riskLevel} dot>{inv.riskLevel}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm" style={{ color: 'var(--fg-muted)' }}>
-                          {inv.assignedToName ?? '—'}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={STATUS_VARIANT[inv.status] ?? 'default'}>
-                          {inv.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-xs" style={{ color: 'var(--fg-subtle)' }}>
-                        {formatRelativeTime(inv.createdAt)}
-                      </TableCell>
-                      <TableCell>
-                        <Link to={`/investigations/${inv.investigationId}`}
-                          className="inline-flex items-center gap-1 text-xs font-medium hover:underline"
-                          style={{ color: 'var(--accent)' }}>
-                          View <ArrowRight className="h-3 w-3" />
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {all.map((inv) => {
+                    const invId = inv.investigationId || (inv.id ? `INV-${inv.id.replace(/-/g, '').slice(0, 6).toUpperCase()}` : '—');
+                    const subject = inv.subject || `${inv.subjectType ?? 'Case'} ${inv.subjectId ? String(inv.subjectId).slice(0, 8).toUpperCase() : ''}`;
+                    const typeLabel = (inv.type || inv.subjectType || 'CASE').replace(/_/g, ' ');
+                    const routeId = inv.id || inv.investigationId;
+                    return (
+                      <TableRow key={inv.id || invId}>
+                        <TableCell className="pl-6">
+                          <span className="font-mono text-xs font-bold px-1.5 py-0.5 rounded"
+                            style={{ background: 'var(--surface-2)', color: 'var(--fg)' }}>
+                            {invId}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium text-sm" style={{ color: 'var(--fg)' }}>{subject}</div>
+                          <div className="text-xs mt-0.5" style={{ color: 'var(--fg-subtle)' }}>
+                            {inv.subjectType ?? 'ENTITY'} {inv.subjectId ? `· ${inv.subjectId}` : ''}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'var(--surface-2)', color: 'var(--fg-muted)' }}>
+                            {typeLabel}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="risk" riskLevel={inv.riskLevel} dot>{inv.riskLevel}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm" style={{ color: 'var(--fg-muted)' }}>
+                            {inv.assignedToName ?? (inv.assignedTo ? String(inv.assignedTo).slice(0, 8) : '—')}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={STATUS_VARIANT[inv.status] ?? 'default'}>
+                            {inv.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs" style={{ color: 'var(--fg-subtle)' }}>
+                          {formatRelativeTime(inv.createdAt)}
+                        </TableCell>
+                        <TableCell>
+                          <Link to={`/investigations/${routeId}`}
+                            className="inline-flex items-center gap-1 text-xs font-medium hover:underline"
+                            style={{ color: 'var(--accent)' }}>
+                            View <ArrowRight className="h-3 w-3" />
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
               <PaginationBar

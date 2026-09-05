@@ -44,11 +44,13 @@ function riskColor(level: string | null): string {
   }
 }
 
-function eventTypeLabel(type: string): string {
+function eventTypeLabel(type?: string): string {
+  if (!type) return 'EVENT';
   return type.replace('.', ' ').toUpperCase();
 }
 
-function eventTypeColor(type: string): string {
+function eventTypeColor(type?: string): string {
+  if (!type) return 'var(--fg-subtle)';
   if (type.startsWith('payment.captured'))  return 'var(--success)';
   if (type.startsWith('payment.failed'))    return 'var(--risk-high)';
   if (type.startsWith('refund.'))           return 'var(--warning)';
