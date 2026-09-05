@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Zeno (local)",
+      "Group": "Zeno",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "zeno",
+      "Username": "zeno",
+      "SSLMode": "prefer",
+      "PassFile": "/pgpass"
+    }
+  }
+}
