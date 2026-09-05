@@ -28,10 +28,9 @@ import numpy as np
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 
-from zeno_ml.data.schema import CustomerContext, RawTransaction
-from zeno_ml.features.pipeline import audit_for_leakage, run_feature_pipeline
 from zeno_ml.inference.aggregator import aggregate_risk_score, normalize_anomaly_score
 from zeno_ml.inference.explainer import SHAPExplainer
+from zeno_ml.inference.ieee_cis_features import build_feature_vector
 from zeno_ml.inference.model_registry import RegistryStatus, get_registry
 from zeno_ml.inference.request import BatchPredictRequest, PredictRequest
 from zeno_ml.inference.response import (
@@ -155,31 +154,20 @@ async def predict(request: PredictRequest) -> PredictResponse:
 
     t_start = time.monotonic()
 
-    # Convert request to canonical schema
-    tx, ctx = _request_to_canonical(request)
-
-    # Run feature pipeline
-    pipeline_result = run_feature_pipeline(
-        transactions=[tx],
-        customer_contexts={tx.customer_id: ctx},
-        scaler=bundle.scaler,
+    # Build feature vector using IEEE-CIS trained feature schema
+    tx_payload  = request.transaction
+    ctx_payload = request.customer_context
+    X = build_feature_vector(
+        amount              = tx_payload.amount,
+        timestamp           = tx_payload.timestamp,
+        payment_method      = tx_payload.payment_method or "UNKNOWN",
+        merchant_category   = tx_payload.merchant_category or "UNKNOWN",
+        email_domain        = tx_payload.email_domain,
+        device_id           = tx_payload.device_id,
+        historical_tx_count = ctx_payload.historical_transaction_count,
+        feature_names       = bundle.feature_names,
+        scaler              = bundle.scaler,
     )
-
-    # Leakage audit (fast — just checks column names)
-    leakage = audit_for_leakage(pipeline_result.feature_matrix)
-    if leakage:
-        logger.error(
-            "LEAKAGE DETECTED in prediction for tx %s: %s",
-            request.transaction.transaction_id,
-            leakage,
-        )
-        # Do not proceed — this is a critical data integrity failure
-        raise HTTPException(
-            status_code=500,
-            detail=f"Feature pipeline leakage detected: {leakage}. Prediction aborted.",
-        )
-
-    X = pipeline_result.feature_matrix.values
 
     # XGBoost prediction
     fraud_probability = _predict_fraud_probability(bundle, X)
@@ -271,24 +259,24 @@ async def batch_predict(request: BatchPredictRequest) -> BatchPredictResponse:
 
     t_start = time.monotonic()
 
-    transactions = []
-    ctx_map: dict[str, CustomerContext] = {}
-
+    X_rows = []
     for item in request.requests:
-        tx, ctx = _request_to_canonical(item)
-        transactions.append(tx)
-        # Later context for the same customer overwrites earlier — acceptable
-        # for batch because the pipeline uses in-DataFrame history as fallback
-        ctx_map[tx.customer_id] = ctx
+        tx_p  = item.transaction
+        ctx_p = item.customer_context
+        row = build_feature_vector(
+            amount              = tx_p.amount,
+            timestamp           = tx_p.timestamp,
+            payment_method      = tx_p.payment_method or "UNKNOWN",
+            merchant_category   = tx_p.merchant_category or "UNKNOWN",
+            email_domain        = tx_p.email_domain,
+            device_id           = tx_p.device_id,
+            historical_tx_count = ctx_p.historical_transaction_count,
+            feature_names       = bundle.feature_names,
+            scaler              = bundle.scaler,
+        )
+        X_rows.append(row)
 
-    pipeline_result = run_feature_pipeline(
-        transactions=transactions,
-        customer_contexts=ctx_map,
-        scaler=bundle.scaler,
-    )
-
-    X = pipeline_result.feature_matrix.values
-    tx_ids = pipeline_result.transaction_ids
+    X = np.vstack(X_rows)
 
     fraud_probs   = _predict_fraud_probability_batch(bundle, X)
     anomaly_raw   = _predict_anomaly_score_batch(bundle, X)
@@ -345,46 +333,6 @@ def _require_model_ready(registry) -> None:
                 "load_error":   h.get("load_error"),
             },
         )
-
-
-def _request_to_canonical(
-    req: PredictRequest,
-) -> tuple[RawTransaction, CustomerContext]:
-    """Convert a PredictRequest into (RawTransaction, CustomerContext)."""
-    tx_payload  = req.transaction
-    ctx_payload = req.customer_context
-
-    tx = RawTransaction(
-        transaction_id=tx_payload.transaction_id,
-        merchant_id=tx_payload.merchant_id,
-        customer_id=tx_payload.customer_id,
-        timestamp=tx_payload.timestamp,
-        amount=tx_payload.amount,
-        currency=tx_payload.currency,
-        payment_method=tx_payload.payment_method,
-        device_id=tx_payload.device_id,
-        ip_address=tx_payload.ip_address,
-        billing_country=tx_payload.billing_country,
-        shipping_country=tx_payload.shipping_country,
-        merchant_category=tx_payload.merchant_category,
-        email_domain=tx_payload.email_domain,
-        data_source="API_EVENT",
-        # is_refunded, is_fraud intentionally absent at inference time
-    )
-
-    ctx = CustomerContext(
-        customer_id=tx_payload.customer_id,
-        merchant_id=tx_payload.merchant_id,
-        account_age_days=ctx_payload.account_age_days,
-        historical_transaction_count=ctx_payload.historical_transaction_count,
-        historical_total_amount=ctx_payload.historical_total_amount,
-        historical_refund_count=ctx_payload.historical_refund_count,
-        historical_device_count=ctx_payload.historical_device_count,
-        historical_ip_count=ctx_payload.historical_ip_count,
-        historical_fraud_rate=ctx_payload.historical_fraud_rate,
-    )
-
-    return tx, ctx
 
 
 def _predict_fraud_probability(bundle, X: np.ndarray) -> float:

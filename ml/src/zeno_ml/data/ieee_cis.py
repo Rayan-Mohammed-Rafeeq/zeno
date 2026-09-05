@@ -263,7 +263,9 @@ def _map_columns(tx_df: pd.DataFrame) -> pd.DataFrame:
     )
 
     # ── Email ─────────────────────────────────────────────────────────────
-    df["email_domain"] = tx_df.get("P_emaildomain", pd.Series(dtype=str)).fillna(None)
+    df["email_domain"] = tx_df.get("P_emaildomain", pd.Series(dtype=str)).where(
+        tx_df.get("P_emaildomain", pd.Series(dtype=str)).notna(), other=None
+    )
 
     # ── Refund fields ─────────────────────────────────────────────────────
     # IEEE-CIS does not include refund data

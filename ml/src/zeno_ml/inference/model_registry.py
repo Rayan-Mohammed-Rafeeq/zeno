@@ -29,7 +29,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 # Default artefact directory — override via ZENO_MODEL_DIR env var
-DEFAULT_MODEL_DIR = Path(__file__).resolve().parent.parent.parent.parent / "data" / "artifacts"
+DEFAULT_MODEL_DIR = Path(__file__).resolve().parent.parent.parent.parent / "data" / "artifacts" / "xgboost"
 
 
 class RegistryStatus(str, Enum):
