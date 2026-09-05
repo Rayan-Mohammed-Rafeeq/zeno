@@ -1,6 +1,26 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ArrowRight, Menu, X } from 'lucide-react';
+import {
+  ArrowRight,
+  Menu,
+  X,
+  Check,
+  Copy,
+  Terminal,
+  Play,
+  RotateCcw,
+  Shield,
+  Cpu,
+  Layers,
+  Sparkles,
+  ChevronRight,
+  ChevronLeft,
+  Code2,
+  CheckCircle2,
+  ShoppingBag,
+  Eye,
+  Globe
+} from 'lucide-react';
 import { ZenoLogo } from '@/components/brand/Logo';
 import { useForceDark } from '@/hooks/useForceDark';
 import { ZenoVisualization } from '@/components/brand/ZenoVisualization';
@@ -655,88 +675,596 @@ html, body { margin:0; padding:0; }
 .lp-problem .lp-badge-blocked { background:rgba(220,38,38,0.1); color:#dc2626; border:1px solid rgba(220,38,38,0.25); }
 
 /* ══════════════════════════════════════════════════════════════════════
-   HOW IT WORKS (DARK TECHNICAL SECTION)
+   HOW IT WORKS (DOCKER-STYLE DEVELOPER WORKFLOW SECTION)
 ══════════════════════════════════════════════════════════════════════ */
 .lp-hiw {
-  padding:120px 0; position:relative;
-  background:linear-gradient(180deg, #090b14 0%, #0d1020 50%, #090b14 100%);
-  color:#e8eaf0;
-  box-shadow:inset 0 20px 40px -10px rgba(0,0,0,0.5);
+  padding: 120px 0 100px;
+  position: relative;
+  background: radial-gradient(circle at 50% 15%, rgba(99,102,241,0.08) 0%, transparent 60%),
+              linear-gradient(180deg, #080911 0%, #0b0d18 50%, #07080e 100%);
+  color: #e8eaf0;
+  box-shadow: inset 0 20px 40px -10px rgba(0,0,0,0.6);
+  overflow: hidden;
 }
 .lp-hiw::before {
-  content:''; position:absolute; top:25%; left:50%; transform:translateX(-50%);
-  width:800px; height:500px;
-  background:radial-gradient(ellipse, rgba(99,102,241,0.07) 0%, rgba(59,130,246,0.035) 45%, transparent 75%);
+  content:''; position:absolute; top:20%; left:50%; transform:translateX(-50%);
+  width:1000px; height:600px;
+  background:radial-gradient(ellipse, rgba(99,102,241,0.08) 0%, rgba(59,130,246,0.04) 40%, transparent 75%);
   pointer-events:none; z-index:0;
 }
-.lp-hiw-header { max-width:600px; margin:0 auto 80px; text-align:center; position:relative; z-index:1; }
+.lp-hiw-header { max-width:680px; margin:0 auto 44px; text-align:center; position:relative; z-index:1; }
 .lp-hiw .lp-eyebrow { color:#818cf8; }
 .lp-hiw .lp-eyebrow::before { background:#818cf8; }
-.lp-hiw .lp-section-h2 { color:#f0f1f8; }
-.lp-hiw .lp-section-sub { color:rgba(232,234,240,0.5); }
-.lp-hiw-steps {
-  display:grid; grid-template-columns:repeat(4,1fr); gap:2px;
-  background:rgba(99,102,241,0.12); border-radius:20px; overflow:hidden;
-  border:1px solid rgba(99,102,241,0.18);
-  box-shadow:0 24px 60px rgba(0,0,0,0.45);
-  position:relative; z-index:1;
+.lp-hiw .lp-section-h2 { color:#f0f1f8; font-size:clamp(32px, 3.8vw, 50px); font-weight:800; line-height:1.15; letter-spacing:-1px; margin:0 0 16px; }
+.lp-hiw .lp-section-sub { color:rgba(232,234,240,0.6); font-size:17px; line-height:1.6; margin:0; }
+
+/* ── INTERACTIVE PRESENTER DEMO BAR ──────────────────────────────────── */
+.lp-presenter-bar {
+  background: linear-gradient(135deg, rgba(22,26,50,0.95) 0%, rgba(14,17,34,0.96) 100%);
+  border: 1px solid rgba(133,136,230,0.3);
+  border-radius: 18px; padding: 14px 20px; margin-bottom: 24px;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08);
+  position: relative; z-index: 2; flex-wrap: wrap; gap: 14px;
 }
-.lp-hiw-step {
-  background:#0c0e1e; padding:40px 28px;
-  position:relative; transition:all 0.3s;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
+.lp-presenter-info {
+  display: flex; align-items: center; gap: 14px; flex: 1; min-width: 280px;
 }
-.lp-hiw-step:hover {
-  background:#101328;
-  box-shadow:inset 0 0 30px rgba(99,102,241,0.08), inset 0 1px 0 rgba(165,180,252,0.12);
+.lp-presenter-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, rgba(99,102,241,0.28) 0%, rgba(133,136,230,0.18) 100%);
+  border: 1px solid rgba(133,136,230,0.4);
+  padding: 6px 12px; border-radius: 8px;
+  font-size: 11px; font-weight: 800; letter-spacing: 1.5px;
+  color: #a5b4fc; text-transform: uppercase; white-space: nowrap; flex-shrink: 0;
 }
-.lp-hiw-step-num {
-  font-size:12px; font-weight:800; letter-spacing:2.5px; color:#818cf8;
-  margin-bottom:24px; opacity:0.85;
+.lp-presenter-pulse-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: #4ade80;
+  box-shadow: 0 0 10px #4ade80; animation: lp-hero-pulse 1.8s infinite;
 }
-.lp-hiw-step-icon {
-  width:48px; height:48px; border-radius:12px;
-  background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.25);
-  display:flex; align-items:center; justify-content:center;
-  font-size:22px; margin-bottom:20px; color:#a5b4fc;
-  box-shadow:0 0 16px rgba(99,102,241,0.1);
-  transition:transform 0.25s, border-color 0.25s;
+.lp-presenter-quote {
+  font-size: 13.5px; line-height: 1.5; color: #e2e8f0; font-weight: 500;
+  font-style: italic;
 }
-.lp-hiw-step:hover .lp-hiw-step-icon {
-  transform:translateY(-2px) scale(1.05);
-  border-color:rgba(99,102,241,0.45);
-  box-shadow:0 0 22px rgba(99,102,241,0.22);
+.lp-presenter-quote span {
+  color: #818cf8; font-weight: 700; font-style: normal; margin-right: 6px;
 }
-.lp-hiw-step h3 { font-size:16px; font-weight:700; color:#e8eaf0; margin:0 0 10px; }
-.lp-hiw-step p { font-size:13px; line-height:1.65; color:rgba(232,234,240,0.5); margin:0; }
-.lp-hiw-connector {
-  position:absolute; right:-1px; top:50%; transform:translateY(-50%);
-  width:2px; height:44px; background:linear-gradient(to bottom,transparent,rgba(129,140,248,0.45),transparent);
-  z-index:2;
+.lp-presenter-controls {
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+.lp-pres-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 13px; border-radius: 8px; font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; border: none;
+}
+.lp-pres-btn-play {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: #ffffff; box-shadow: 0 2px 10px rgba(99,102,241,0.4);
+  border: 1px solid rgba(133,136,230,0.35);
+}
+.lp-pres-btn-play:hover {
+  background: linear-gradient(135deg, #7b7fe0, #5e5bc1);
+  transform: translateY(-1px);
+}
+.lp-pres-btn-nav {
+  background: rgba(18,22,42,0.8); color: rgba(232,234,240,0.75);
+  border: 1px solid rgba(133,136,230,0.22); padding: 7px 10px;
+}
+.lp-pres-btn-nav:hover:not(:disabled) {
+  background: rgba(99,102,241,0.2); color: #ffffff; border-color: rgba(133,136,230,0.4);
+}
+.lp-pres-btn-nav:disabled { opacity: 0.35; cursor: not-allowed; }
+.lp-pres-progress {
+  display: flex; align-items: center; gap: 4px; padding: 0 4px;
+}
+.lp-pres-bar {
+  width: 16px; height: 4px; border-radius: 4px; background: rgba(133,136,230,0.2);
+  transition: all 0.3s;
+}
+.lp-pres-bar.active {
+  width: 24px; background: #818cf8; box-shadow: 0 0 8px rgba(129,140,248,0.6);
 }
 
-/* ── ORDER JOURNEY ───────────────────────────────────────────────────── */
-.lp-journey { margin-top:64px; position:relative; z-index:1; }
-.lp-journey-label { text-align:center; font-size:12px; font-weight:600; letter-spacing:2px;
-  text-transform:uppercase; color:rgba(232,234,240,0.32); margin-bottom:28px; }
-.lp-journey-track {
-  position:relative; display:flex; gap:0; align-items:stretch;
-  background:rgba(13,16,30,0.85); border:1px solid rgba(99,102,241,0.16);
-  border-radius:16px; overflow:hidden;
-  box-shadow:0 18px 48px rgba(0,0,0,0.4);
+/* ── INTERACTIVE DEMO VIEW (RIGHT PANEL) ─────────────────────────────── */
+.lp-demo-interactive {
+  padding: 22px; min-height: 330px; display: flex; flex-direction: column;
+  justify-content: space-between; background: rgba(8,10,20,0.75);
 }
-.lp-journey-track::before {
-  content:''; position:absolute; top:0; left:0; right:0; height:1px;
-  background:linear-gradient(90deg,transparent,rgba(129,140,248,0.35),transparent);
+.lp-demo-screen-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-bottom: 12px; border-bottom: 1px solid rgba(133,136,230,0.14);
+  margin-bottom: 16px;
+}
+.lp-demo-order-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px; font-weight: 700; color: #818cf8;
+}
+.lp-demo-order-amount {
+  font-size: 16px; font-weight: 800; color: #f1f5f9;
+}
+
+/* Stage 1: Incoming Order Showcase */
+.lp-demo-order-box {
+  background: rgba(15,19,38,0.9);
+  border: 1px solid rgba(133,136,230,0.25);
+  border-radius: 14px; padding: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  margin-bottom: 16px;
+}
+.lp-demo-order-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0; border-bottom: 1px solid rgba(133,136,230,0.08);
+  font-size: 12.5px;
+}
+.lp-demo-order-row:last-child { border-bottom: none; }
+.lp-demo-order-label { color: rgba(232,234,240,0.5); font-weight: 500; }
+.lp-demo-order-val { color: #f1f5f9; font-weight: 600; }
+
+/* Stage 2: Telemetry Radar Scanner */
+.lp-demo-telemetry-grid {
+  display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 16px;
+}
+.lp-demo-telemetry-item {
+  background: rgba(15,19,38,0.85); border: 1px solid rgba(133,136,230,0.18);
+  border-radius: 10px; padding: 9px 12px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px;
+}
+.lp-demo-telemetry-left {
+  display: flex; align-items: center; gap: 8px; color: #e2e8f0; font-weight: 500;
+}
+.lp-demo-pill-warn {
+  font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 4px;
+  background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3);
+}
+.lp-demo-pill-block {
+  font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 4px;
+  background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3);
+}
+
+/* Stage 3: Explainable Reasons */
+.lp-demo-evidence-list {
+  display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;
+}
+.lp-demo-evidence-item {
+  background: rgba(18,22,44,0.85); border-left: 3px solid #f59e0b;
+  border-radius: 0 10px 10px 0; padding: 9px 12px; font-size: 12px;
+  color: rgba(232,234,240,0.88); line-height: 1.5;
+}
+
+/* Stage 4: Decision Actions */
+.lp-demo-action-prompt {
+  text-align: center; margin-bottom: 12px;
+}
+.lp-demo-action-title {
+  font-size: 13.5px; font-weight: 700; color: #f1f5f9; margin-bottom: 3px;
+}
+.lp-demo-action-sub {
+  font-size: 11.5px; color: rgba(232,234,240,0.5);
+}
+.lp-demo-action-buttons {
+  display: flex; gap: 10px; justify-content: center; margin-bottom: 14px;
+}
+.lp-demo-btn-hold {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #ffffff; border: 1px solid rgba(248,113,113,0.4);
+  padding: 9px 16px; border-radius: 8px; font-size: 12.5px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+  box-shadow: 0 4px 14px rgba(239,68,68,0.35);
+}
+.lp-demo-btn-hold:hover {
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+  transform: translateY(-2px); box-shadow: 0 6px 20px rgba(239,68,68,0.5);
+}
+.lp-demo-btn-approve {
+  background: transparent; color: rgba(232,234,240,0.7);
+  border: 1px solid rgba(133,136,230,0.25);
+  padding: 9px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.lp-demo-btn-approve:hover {
+  background: rgba(133,136,230,0.1); color: #ffffff; border-color: rgba(133,136,230,0.45);
+}
+
+/* Success Result banner */
+.lp-demo-success-banner {
+  background: linear-gradient(135deg, rgba(22,101,52,0.35) 0%, rgba(20,83,45,0.2) 100%);
+  border: 1px solid rgba(74,222,128,0.4);
+  border-radius: 12px; padding: 14px; text-align: center;
+  box-shadow: 0 8px 24px rgba(74,222,128,0.12);
+}
+.lp-demo-success-title {
+  font-size: 13.5px; font-weight: 800; color: #4ade80; margin-bottom: 5px;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+}
+.lp-demo-success-desc {
+  font-size: 11.5px; color: rgba(232,234,240,0.75); line-height: 1.5; margin-bottom: 10px;
+}
+
+/* Big primary interactive trigger button inside demo */
+.lp-demo-trigger-btn {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: #ffffff; border: 1px solid rgba(133,136,230,0.4);
+  padding: 11px 18px; border-radius: 10px; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all 0.25s;
+  box-shadow: 0 4px 16px rgba(99,102,241,0.35);
+}
+.lp-demo-trigger-btn:hover {
+  background: linear-gradient(135deg, #7b7fe0 0%, #5e5bc1 100%);
+  transform: translateY(-2px); box-shadow: 0 6px 22px rgba(99,102,241,0.5);
+}
+
+/* Presenter Callout Pointer */
+.lp-presenter-click-hint {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: rgba(99,102,241,0.18); border: 1px solid rgba(133,136,230,0.38);
+  border-radius: 100px; padding: 5px 14px;
+  font-size: 11.5px; font-weight: 700; color: #c7d2fe;
+  margin: 10px auto 0; width: fit-content;
+  animation: lp-pointer-bounce 1.6s ease-in-out infinite;
+  cursor: pointer;
+}
+@keyframes lp-pointer-bounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+
+/* ── DOCKER-STYLE SEGMENTED WORKFLOW TABS ────────────────────────────── */
+.lp-docker-tabs-wrap {
+  display:flex; justify-content:center; margin-bottom:36px; position:relative; z-index:1;
+}
+.lp-docker-tabs {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(15,18,34,0.92);
+  border:1px solid rgba(133,136,230,0.22);
+  border-radius:100px; padding:6px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+  backdrop-filter:blur(16px);
+  max-width:100%; overflow-x:auto; scrollbar-width:none;
+}
+.lp-docker-tabs::-webkit-scrollbar { display:none; }
+
+.lp-dtab-btn {
+  display:inline-flex; align-items:center; gap:9px;
+  background:transparent; border:1px solid transparent;
+  color:rgba(232,234,240,0.6);
+  padding:10px 22px; border-radius:100px;
+  font-size:13.5px; font-weight:600; letter-spacing:0.3px;
+  cursor:pointer; white-space:nowrap;
+  transition:all 0.25s cubic-bezier(0.16,1,0.3,1);
+  position:relative;
+}
+.lp-dtab-btn:hover {
+  color:#f0f1f8; background:rgba(133,136,230,0.08);
+}
+.lp-dtab-btn.active {
+  background:linear-gradient(135deg, rgba(99,102,241,0.25) 0%, rgba(133,136,230,0.18) 100%);
+  border:1px solid rgba(133,136,230,0.45);
+  color:#ffffff;
+  box-shadow:0 4px 20px rgba(99,102,241,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.lp-dtab-icon {
+  width:22px; height:22px; border-radius:6px;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(255,255,255,0.06); font-size:12px;
+  transition:all 0.2s;
+}
+.lp-dtab-btn.active .lp-dtab-icon {
+  background:linear-gradient(135deg,#6366f1,#818cf8);
+  color:#ffffff; box-shadow:0 0 10px rgba(99,102,241,0.4);
+}
+.lp-dtab-num {
+  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size:11px; opacity:0.75; font-weight:700;
+}
+
+/* ── DOCKER-STYLE 2-COLUMN SHOWCASE ──────────────────────────────────── */
+.lp-docker-stage {
+  display:grid; grid-template-columns:1fr 1.22fr; gap:36px;
+  align-items:stretch; position:relative; z-index:1; margin-bottom:52px;
+}
+
+/* LEFT PANEL: Story & Capabilities */
+.lp-dpanel-left {
+  background:linear-gradient(180deg, rgba(14,17,32,0.92) 0%, rgba(10,12,24,0.95) 100%);
+  border:1px solid rgba(133,136,230,0.2);
+  border-radius:22px; padding:38px 34px;
+  display:flex; flex-direction:column; justify-content:space-between;
+  box-shadow:0 24px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06);
+  backdrop-filter:blur(12px);
+}
+.lp-dstep-kicker {
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:11px; font-weight:800; letter-spacing:2px; text-transform:uppercase;
+  color:#818cf8; background:rgba(99,102,241,0.12);
+  border:1px solid rgba(99,102,241,0.28);
+  padding:5px 12px; border-radius:6px; margin-bottom:18px;
+  width:fit-content;
+}
+.lp-dstep-kicker-dot {
+  width:6px; height:6px; border-radius:50%; background:#818cf8;
+  animation:lp-hero-pulse 2s infinite;
+}
+.lp-dstep-title {
+  font-size:clamp(23px, 2.3vw, 30px); font-weight:800; color:#f1f5f9;
+  line-height:1.22; letter-spacing:-0.5px; margin:0 0 14px;
+}
+.lp-dstep-desc {
+  font-size:15px; line-height:1.65; color:rgba(232,234,240,0.65);
+  margin:0 0 28px;
+}
+.lp-dfeature-list {
+  display:flex; flex-direction:column; gap:16px; margin-bottom:32px;
+}
+.lp-dfeature-item {
+  display:flex; gap:14px; align-items:flex-start;
+}
+.lp-dfeature-icon {
+  width:24px; height:24px; border-radius:7px;
+  background:rgba(74,222,128,0.12); border:1px solid rgba(74,222,128,0.28);
+  color:#4ade80; display:flex; align-items:center; justify-content:center;
+  font-size:12px; flex-shrink:0; margin-top:2px;
+}
+.lp-dfeature-body h4 {
+  font-size:14px; font-weight:700; color:#e2e8f0; margin:0 0 3px;
+}
+.lp-dfeature-body p {
+  font-size:13px; line-height:1.55; color:rgba(232,234,240,0.5); margin:0;
+}
+.lp-dpanel-footer {
+  display:flex; justify-content:space-between; align-items:center;
+  padding-top:22px; border-top:1px solid rgba(133,136,230,0.12);
+  flex-wrap:wrap; gap:14px;
+}
+.lp-dstep-cta {
+  display:inline-flex; align-items:center; gap:8px;
+  background:linear-gradient(135deg,#6366f1 0%,#4f46e5 100%);
+  color:#ffffff; font-size:13px; font-weight:600;
+  padding:10px 20px; border-radius:8px; text-decoration:none;
+  box-shadow:0 4px 16px rgba(99,102,241,0.35);
+  border:1px solid rgba(133,136,230,0.3);
+  transition:all 0.25s cubic-bezier(0.16,1,0.3,1);
+}
+.lp-dstep-cta:hover {
+  background:linear-gradient(135deg,#7b7fe0 0%,#5e5bc1 100%);
+  box-shadow:0 6px 24px rgba(99,102,241,0.5);
+  transform:translateY(-2px);
+}
+.lp-dstep-nav {
+  display:flex; align-items:center; gap:12px;
+}
+.lp-dstep-btn {
+  width:34px; height:34px; border-radius:8px;
+  background:rgba(18,22,40,0.8); border:1px solid rgba(133,136,230,0.22);
+  color:rgba(232,234,240,0.7); display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all 0.2s;
+}
+.lp-dstep-btn:hover:not(:disabled) {
+  background:rgba(99,102,241,0.2); border-color:rgba(133,136,230,0.45);
+  color:#ffffff;
+}
+.lp-dstep-btn:disabled { opacity:0.35; cursor:not-allowed; }
+.lp-dstep-dots { display:flex; gap:6px; }
+.lp-dstep-dot {
+  width:7px; height:7px; border-radius:50%; background:rgba(133,136,230,0.25);
+  cursor:pointer; transition:all 0.2s;
+}
+.lp-dstep-dot.active {
+  width:20px; border-radius:10px; background:#818cf8;
+}
+
+/* RIGHT PANEL: Docker-style Terminal & Code Sandbox */
+.lp-dpanel-right {
+  background:linear-gradient(180deg, #0a0c16 0%, #060810 100%);
+  border:1px solid rgba(133,136,230,0.24);
+  border-radius:22px; overflow:hidden;
+  box-shadow:0 30px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(99,102,241,0.12), inset 0 1px 0 rgba(255,255,255,0.08);
+  display:flex; flex-direction:column; position:relative; min-height:450px;
+}
+.lp-dterm-topbar {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:12px 18px;
+  background:rgba(15,18,34,0.92); border-bottom:1px solid rgba(133,136,230,0.14);
+  flex-wrap:wrap; gap:10px;
+}
+.lp-dterm-left {
+  display:flex; align-items:center; gap:16px;
+}
+.lp-dterm-dots {
+  display:flex; gap:6px;
+}
+.lp-dterm-dot {
+  width:10px; height:10px; border-radius:50%;
+}
+.lp-dterm-dot.red { background:#ef4444; }
+.lp-dterm-dot.yellow { background:#f59e0b; }
+.lp-dterm-dot.green { background:#10b981; }
+
+.lp-dterm-views {
+  display:flex; gap:4px;
+}
+.lp-dterm-view-btn {
+  background:transparent; border:none;
+  padding:5px 12px; border-radius:6px;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size:12px; color:rgba(232,234,240,0.55);
+  cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:6px;
+}
+.lp-dterm-view-btn:hover {
+  color:#f0f1f8; background:rgba(255,255,255,0.04);
+}
+.lp-dterm-view-btn.active {
+  background:rgba(99,102,241,0.18); border:1px solid rgba(99,102,241,0.32);
+  color:#e0e7ff; font-weight:600;
+}
+
+.lp-dterm-actions {
+  display:flex; align-items:center; gap:8px;
+}
+.lp-dterm-run-btn {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(74,222,128,0.12); border:1px solid rgba(74,222,128,0.3);
+  color:#4ade80; font-size:11.5px; font-weight:700;
+  padding:5px 12px; border-radius:6px; cursor:pointer;
+  transition:all 0.2s;
+}
+.lp-dterm-run-btn:hover {
+  background:rgba(74,222,128,0.22); border-color:#4ade80;
+  box-shadow:0 0 14px rgba(74,222,128,0.25);
+  transform:translateY(-1px);
+}
+.lp-dterm-copy-btn {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(133,136,230,0.08); border:1px solid rgba(133,136,230,0.2);
+  color:rgba(232,234,240,0.7); font-size:11.5px; font-weight:600;
+  padding:5px 10px; border-radius:6px; cursor:pointer;
+  transition:all 0.2s;
+}
+.lp-dterm-copy-btn:hover {
+  color:#ffffff; background:rgba(133,136,230,0.18); border-color:rgba(133,136,230,0.4);
+}
+
+.lp-dterm-body {
+  padding:20px 22px; flex:1; min-height:320px; max-height:430px; overflow-y:auto;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size:12.5px; line-height:1.7; color:#e2e8f0;
+  background:rgba(6,8,16,0.65);
+}
+.lp-dterm-code-pre {
+  margin:0; padding:0; white-space:pre-wrap; word-break:break-word;
+}
+.lp-code-line { display:block; }
+.lp-code-num {
+  display:inline-block; width:28px; color:rgba(232,234,240,0.22);
+  user-select:none; text-align:right; margin-right:16px;
+}
+/* Syntax Highlighting */
+.lp-kw   { color:#818cf8; font-weight:700; }
+.lp-fn   { color:#38bdf8; }
+.lp-str  { color:#4ade80; }
+.lp-num  { color:#fbbf24; }
+.lp-cmt  { color:#64748b; font-style:italic; }
+.lp-prop { color:#c084fc; }
+.lp-cmd  { color:#38bdf8; font-weight:700; }
+
+/* Simulation console log streams */
+.lp-sim-logs {
+  display:flex; flex-direction:column; gap:8px;
+}
+.lp-sim-line {
+  display:flex; align-items:flex-start; gap:10px;
+  animation:lp-sim-fade 0.3s ease-out both;
+}
+.lp-sim-time { color:rgba(232,234,240,0.35); font-size:11px; flex-shrink:0; }
+.lp-sim-tag {
+  font-size:10px; font-weight:800; letter-spacing:0.5px; padding:2px 6px;
+  border-radius:4px; text-transform:uppercase; flex-shrink:0;
+}
+.lp-sim-tag-info   { background:rgba(99,102,241,0.15); color:#818cf8; border:1px solid rgba(99,102,241,0.3); }
+.lp-sim-tag-ok     { background:rgba(74,222,128,0.15); color:#4ade80; border:1px solid rgba(74,222,128,0.3); }
+.lp-sim-tag-warn   { background:rgba(251,191,36,0.15); color:#fbbf24; border:1px solid rgba(251,191,36,0.3); }
+.lp-sim-tag-block  { background:rgba(248,113,113,0.15); color:#f87171; border:1px solid rgba(248,113,113,0.3); }
+.lp-sim-msg { color:rgba(232,234,240,0.88); font-size:12.5px; }
+
+@keyframes lp-sim-fade {
+  from { opacity:0; transform:translateY(6px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.lp-dterm-cursor {
+  display:inline-block; width:8px; height:15px; background:#818cf8;
+  vertical-align:middle; margin-left:4px;
+  animation:lp-cursor-blink 1s step-end infinite;
+}
+@keyframes lp-cursor-blink { 50% { opacity:0; } }
+
+.lp-dterm-footer {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:10px 18px;
+  background:rgba(12,15,28,0.95); border-top:1px solid rgba(133,136,230,0.12);
+  font-size:11.5px; color:rgba(232,234,240,0.5); flex-wrap:wrap; gap:10px;
+}
+.lp-dterm-status {
+  display:flex; align-items:center; gap:8px; font-weight:600;
+}
+.lp-dterm-status-dot {
+  width:7px; height:7px; border-radius:50%; background:#4ade80;
+  box-shadow:0 0 8px rgba(74,222,128,0.6);
+}
+.lp-dterm-meta {
+  display:flex; align-items:center; gap:16px;
+}
+
+/* ── DOCKER-STYLE BOTTOM PERFORMANCE METRICS ─────────────────────────── */
+.lp-docker-metrics {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:18px;
+  margin-bottom:60px; position:relative; z-index:1;
+}
+.lp-dmetric-card {
+  background:rgba(14,17,32,0.8);
+  border:1px solid rgba(133,136,230,0.18);
+  border-radius:16px; padding:22px 20px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
+  transition:all 0.25s;
+}
+.lp-dmetric-card:hover {
+  border-color:rgba(133,136,230,0.4);
+  background:rgba(18,22,42,0.92);
+  transform:translateY(-2px);
+}
+.lp-dmetric-val {
+  font-size:27px; font-weight:800; color:#f1f5f9; letter-spacing:-0.5px;
+  margin-bottom:6px; display:flex; align-items:center; gap:6px;
+}
+.lp-dmetric-val .accent {
+  background:linear-gradient(135deg,#818cf8,#a5b4fc);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.lp-dmetric-label {
+  font-size:13px; font-weight:700; color:#e2e8f0; margin-bottom:4px;
+}
+.lp-dmetric-desc {
+  font-size:12px; line-height:1.5; color:rgba(232,234,240,0.5); margin:0;
+}
+
+/* ── ORDER JOURNEY PIPELINE (UPGRADED) ───────────────────────────────── */
+.lp-journey { position:relative; z-index:1; }
+.lp-journey-header {
+  text-align:center; margin-bottom:28px;
+}
+.lp-journey-label {
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:11px; font-weight:800; letter-spacing:2px; text-transform:uppercase;
+  color:#818cf8; background:rgba(99,102,241,0.1);
+  border:1px solid rgba(99,102,241,0.22);
+  padding:4px 12px; border-radius:100px;
+}
+.lp-journey-track {
+  position:relative; display:grid; grid-template-columns:repeat(4,1fr); gap:16px;
 }
 .lp-journey-stage {
-  flex:1; padding:24px 20px; position:relative;
-  border-right:1px solid rgba(99,102,241,0.1);
+  background:rgba(13,16,30,0.85);
+  border:1px solid rgba(99,102,241,0.16);
+  border-radius:16px; padding:22px 18px; position:relative;
+  box-shadow:0 12px 36px rgba(0,0,0,0.35);
+  transition:border-color 0.25s, background 0.25s;
 }
-.lp-journey-stage:last-child { border-right:none; }
+.lp-journey-stage:hover {
+  border-color:rgba(133,136,230,0.35);
+  background:rgba(16,20,38,0.92);
+}
+.lp-journey-stage-top {
+  display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;
+}
 .lp-journey-stage-label {
-  font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
-  color:rgba(232,234,240,0.32); margin-bottom:16px;
+  font-size:11px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;
+  color:rgba(232,234,240,0.45);
+}
+.lp-journey-stage-badge {
+  font-size:10px; font-weight:700; color:#818cf8;
+  background:rgba(99,102,241,0.12); padding:2px 6px; border-radius:4px;
 }
 .lp-journey-card {
   background:rgba(18,22,40,0.92); border:1px solid rgba(99,102,241,0.16);
@@ -745,18 +1273,26 @@ html, body { margin:0; padding:0; }
   transition:all 0.2s;
 }
 .lp-journey-card:hover {
-  border-color:rgba(99,102,241,0.32);
-  background:rgba(22,27,50,0.96);
+  border-color:rgba(99,102,241,0.35);
+  background:rgba(24,29,54,0.98);
   transform:translateY(-1px);
 }
 .lp-journey-card-amt { font-size:15px; font-weight:700; color:#e8eaf0; }
-.lp-journey-card-hint { font-size:11px; color:rgba(232,234,240,0.48); margin-top:3px; }
+.lp-journey-card-hint { font-size:11.5px; color:rgba(232,234,240,0.5); margin-top:3px; }
 .lp-journey-card-result { margin-top:8px; }
-.lp-journey-arrow {
-  display:flex; align-items:center; justify-content:center;
-  padding:0 8px; color:rgba(129,140,248,0.4); font-size:18px;
-  border-right:1px solid rgba(99,102,241,0.1); flex-shrink:0; min-width:36px;
-  align-self:stretch;
+
+/* Responsive adjustments */
+@media (max-width: 960px) {
+  .lp-docker-stage { grid-template-columns:1fr; }
+  .lp-docker-metrics { grid-template-columns:repeat(2,1fr); }
+  .lp-journey-track { grid-template-columns:repeat(2,1fr); }
+}
+@media (max-width: 640px) {
+  .lp-docker-tabs { width:100%; border-radius:14px; }
+  .lp-dtab-btn { padding:8px 14px; font-size:12px; }
+  .lp-docker-metrics { grid-template-columns:1fr; }
+  .lp-journey-track { grid-template-columns:1fr; }
+  .lp-dpanel-left { padding:24px 20px; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -1998,6 +2534,1134 @@ function ZenoOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
   );
 }
 
+/* ── DOCKER-STYLE "HOW IT WORKS" WORKFLOW COMPONENT ──────────────────────── */
+interface WorkflowFeature {
+  title: string;
+  desc: string;
+}
+
+interface CodeView {
+  label: string;
+  filename: string;
+  lang: string;
+  code: string;
+}
+
+interface SimLine {
+  time: string;
+  tag: string;
+  tagType: 'info' | 'ok' | 'warn' | 'block';
+  msg: string;
+}
+
+interface WorkflowStep {
+  id: string;
+  num: string;
+  tabLabel: string;
+  kicker: string;
+  title: string;
+  desc: string;
+  features: WorkflowFeature[];
+  ctaText: string;
+  ctaHref: string;
+  views: CodeView[];
+  simLogs: SimLine[];
+}
+
+const WORKFLOW_STEPS: WorkflowStep[] = [
+  {
+    id: 'connect',
+    num: '01',
+    tabLabel: '01. Ingest & Connect',
+    kicker: 'STAGE 01 // STORE INTEGRATION',
+    title: 'Connect your storefront in 60 seconds with zero code',
+    desc: 'Seamlessly integrate Zeno with your existing store. Pre-built webhooks and SDKs listen for order events instantly with zero performance impact on checkout.',
+    features: [
+      {
+        title: 'Plug & Play Integration',
+        desc: 'Ready-to-use connectors for Shopify, WooCommerce, Stripe, and custom APIs.',
+      },
+      {
+        title: 'HMAC-SHA256 Signed',
+        desc: 'End-to-end cryptographic verification prevents spoofed or manipulated payloads.',
+      },
+      {
+        title: 'Zero Checkout Latency',
+        desc: 'Asynchronous event streaming ensures buyer checkout speed is completely unaffected.',
+      },
+    ],
+    ctaText: 'Connect Store Free',
+    ctaHref: '/register',
+    views: [
+      {
+        label: 'cURL / Webhook',
+        filename: 'webhook.sh',
+        lang: 'bash',
+        code: `# Ingest live storefront order via signed webhook
+$ curl -X POST https://api.zeno.protect/v1/webhooks/orders \\
+  -H "X-Zeno-Signature: sha256=d3b07384d113edec49eaa6238ad5ff00" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "event": "order.created",
+    "store_id": "sto_nordic_apparel",
+    "order": { "id": "#1048", "amount": 1249.00, "currency": "USD" }
+  }'
+
+✓ 200 OK — Ingested in 14ms · Streaming to Zeno AI Risk Mesh`,
+      },
+      {
+        label: 'zeno.config.ts',
+        filename: 'zeno.config.ts',
+        lang: 'typescript',
+        code: `import { createZenoClient } from '@zeno/sdk';
+
+export const zeno = createZenoClient({
+  apiKey: process.env.ZENO_API_KEY!,
+  storeId: 'sto_nordic_apparel',
+  webhookSecret: process.env.ZENO_WEBHOOK_SECRET!,
+  mode: 'protect', // 'audit' | 'protect'
+  thresholds: {
+    autoHoldScore: 0.65,
+    autoBlockScore: 0.92
+  }
+});`,
+      },
+      {
+        label: 'payload.json',
+        filename: 'order-payload.json',
+        lang: 'json',
+        code: `{
+  "event": "orders/create",
+  "store_id": "sto_nordic_apparel",
+  "order_id": "#1048",
+  "timestamp": "2026-09-05T12:44:01Z",
+  "amount": 1249.00,
+  "currency": "USD",
+  "customer": {
+    "email": "j.doe@unknown-mail.org",
+    "ip": "185.220.101.5",
+    "first_order": true
+  }
+}`,
+      },
+    ],
+    simLogs: [
+      { time: '12:44:01.012', tag: 'INFO', tagType: 'info', msg: 'Inbound webhook received from Shopify (Order #1048)' },
+      { time: '12:44:01.025', tag: 'VERIFY', tagType: 'ok', msg: 'Cryptographic signature verified (SHA-256 match)' },
+      { time: '12:44:01.036', tag: 'PARSER', tagType: 'ok', msg: 'Normalized schema: amount=$1,249.00, currency=USD' },
+      { time: '12:44:01.048', tag: 'STREAM', tagType: 'info', msg: 'Dispatched to Zeno Risk Mesh in 14ms' },
+    ],
+  },
+  {
+    id: 'watch',
+    num: '02',
+    tabLabel: '02. Stream & Detect',
+    kicker: 'STAGE 02 // REAL-TIME DETECTION',
+    title: 'Continuous behavioral telemetry & cluster matching',
+    desc: 'As orders flow in, Zeno instantly maps customer fingerprints across identity clusters, shared shipping vectors, disposable domains, and abnormal velocity.',
+    features: [
+      {
+        title: 'Identity Graph Clustering',
+        desc: 'Links IP, card hash, device fingerprint, and shipping geolocations across store network.',
+      },
+      {
+        title: 'Velocity & Bot Pattern Scanning',
+        desc: 'Detects rapid-fire card testing scripts and distributed synthetic buyer rings.',
+      },
+      {
+        title: 'Continuous Baseline Calibration',
+        desc: 'Automatically adapts to your store\'s normal seasonal traffic and buyer habits.',
+      },
+    ],
+    ctaText: 'Explore Risk Clusters',
+    ctaHref: '#features',
+    views: [
+      {
+        label: 'zeno watch --live',
+        filename: 'terminal: stream',
+        lang: 'bash',
+        code: `# Streaming live risk telemetry across incoming storefront traffic
+$ zeno stream --store=sto_nordic_apparel --format=json
+
+[12:44:01.082] ⚡ Event received: order.created (id: #1048)
+[12:44:01.094] 🌐 Geolocation: Bucharest, RO (Proxy/Tor Exit detected)
+[12:44:01.108] 🔗 Cluster Match: Card hash linked to 3 prior chargebacks
+[12:44:01.121] ⚠️ Velocity Alert: 4 orders submitted across 2 emails in 45s
+[12:44:01.134] 📊 Anomaly Vector Score: 0.94 (HIGH RISK)`,
+      },
+      {
+        label: 'cluster-graph.json',
+        filename: 'cluster-graph.json',
+        lang: 'json',
+        code: `{
+  "order_id": "#1048",
+  "cluster_id": "cls_8f912c",
+  "threat_level": "HIGH",
+  "shared_nodes": {
+    "disposable_email_domain": true,
+    "ip_vpn_flag": true,
+    "distance_billing_shipping_km": 4210,
+    "linked_cards_count": 3
+  },
+  "network_chargeback_frequency": 0.88
+}`,
+      },
+      {
+        label: 'telemetry.sh',
+        filename: 'telemetry.sh',
+        lang: 'bash',
+        code: `$ zeno-cli inspect-cluster --id=cls_8f912c --depth=2
+CLUSTER: cls_8f912c (Risk Level: CRITICAL)
+├── IP: 185.220.101.5 (Known datacenter proxy)
+├── Device Fingerprint: dfp_77a01e (Used in 12 failed checkouts)
+└── Drop Address: Str. Industriei 4, Bucharest, RO
+RESULT: Pattern matches coordinated card-testing ring`,
+      },
+    ],
+    simLogs: [
+      { time: '12:44:01.070', tag: 'STREAM', tagType: 'info', msg: 'Real-time event ingested: Order #1048 ($1,249.00)' },
+      { time: '12:44:01.085', tag: 'GEO', tagType: 'warn', msg: 'IP resolved: Bucharest, RO (Datacenter VPN detected)' },
+      { time: '12:44:01.104', tag: 'GRAPH', tagType: 'block', msg: 'Cluster match: Card hash linked to 3 prior chargebacks' },
+      { time: '12:44:01.122', tag: 'VELOCITY', tagType: 'warn', msg: 'High velocity: 4 orders in 45s across synthetic emails' },
+      { time: '12:44:01.138', tag: 'ANOMALY', tagType: 'block', msg: 'Risk Confidence: 94.2% · Flagged for review' },
+    ],
+  },
+  {
+    id: 'understand',
+    num: '03',
+    tabLabel: '03. AI Reason & Explain',
+    kicker: 'STAGE 03 // EXPLAINABLE AI',
+    title: 'Plain-language reasons instead of mysterious black-box scores',
+    desc: 'Zeno evaluates multidimensional risk signals and converts raw probabilities into clear, human-readable bullet points so merchants immediately understand what is happening.',
+    features: [
+      {
+        title: 'Explainable Evidence Cards',
+        desc: 'Know in seconds whether an address mismatch is a benign gift or stolen card.',
+      },
+      {
+        title: 'Transparent Confidence Vectors',
+        desc: 'Scoring breakdown shows account age, velocity weight, and reputation.',
+      },
+      {
+        title: 'Context-Aware Action Guides',
+        desc: 'Specific recommendations tell you whether to hold, ask for ID, or ship safely.',
+      },
+    ],
+    ctaText: 'Explore Reason Engine',
+    ctaHref: '#features',
+    views: [
+      {
+        label: 'risk-evaluation.json',
+        filename: 'risk-evaluation.json',
+        lang: 'json',
+        code: `{
+  "order_id": "#1048",
+  "decision": "REVIEW",
+  "confidence_score": 0.942,
+  "plain_reasons": [
+    "New customer — first order placed on this account ($1,249.00)",
+    "Shipping address is 4,200 km from billing credit card origin",
+    "Device fingerprint linked to coordinated reshipping drop address"
+  ],
+  "recommended_action": "HOLD_FULFILLMENT_REQUEST_ID",
+  "evaluated_at": "2026-09-05T12:44:01.162Z"
+}`,
+      },
+      {
+        label: 'zeno explain',
+        filename: 'terminal: explain',
+        lang: 'bash',
+        code: `$ zeno explain --order=1048
+--------------------------------------------------------------
+ORDER #1048 | CUSTOMER: Sarah K. (Unknown) | AMOUNT: $1,249.00
+--------------------------------------------------------------
+DECISION: REVIEW REQUIRED (Confidence: 94%)
+
+EVIDENCE SUMMARY:
+  1. [FIRST ORDER]    New account with unusually high cart value.
+  2. [GEO MISMATCH]   Card issued in US, shipping to Romania.
+  3. [DEVICE MATCH]   Device fingerprint flagged in chargeback cluster.
+
+RECOMMENDATION: Do not ship yet. Verify billing identity.`,
+      },
+      {
+        label: 'merchant-alert.md',
+        filename: 'merchant-alert.md',
+        lang: 'markdown',
+        code: `### Zeno Risk Brief: Order #1048
+- **Order Total**: $1,249.00 (Median store cart: $118.00)
+- **Customer Email**: j.doe@unknown-mail.org (New buyer)
+- **Primary Flag**: Shipping address doesn't match cardholder
+- **Zeno Advice**: Hold fulfillment before dispatch.`,
+      },
+    ],
+    simLogs: [
+      { time: '12:44:01.150', tag: 'REASON', tagType: 'info', msg: 'Synthesizing explainable decision vectors...' },
+      { time: '12:44:01.166', tag: 'SIGNAL', tagType: 'warn', msg: 'Fact 1: Account age 0 days, order value 10x store median' },
+      { time: '12:44:01.182', tag: 'SIGNAL', tagType: 'block', msg: 'Fact 2: Card country US != Shipping country RO (4,200 km)' },
+      { time: '12:44:01.198', tag: 'SIGNAL', tagType: 'block', msg: 'Fact 3: Device fingerprint matches known reshipping drop' },
+      { time: '12:44:01.214', tag: 'DECISION', tagType: 'warn', msg: 'Verdict: REVIEW (Plain explanation generated)' },
+    ],
+  },
+  {
+    id: 'decide',
+    num: '04',
+    tabLabel: '04. Automate & Protect',
+    kicker: 'STAGE 04 // AUTOMATED DEFENSE',
+    title: 'Instant protection with merchant in total command',
+    desc: 'Configure automated holds for high-confidence threats while greenlighting trusted buyers with zero friction. You always maintain full control to approve, cancel, or refund in one click.',
+    features: [
+      {
+        title: 'Automated Fulfillment Gate',
+        desc: 'Hold high-risk orders automatically in Shopify/WooCommerce in < 50ms.',
+      },
+      {
+        title: '1-Click Merchant Resolution',
+        desc: 'Approve safe orders or cancel and restock fraudulent items with one click.',
+      },
+      {
+        title: 'Closed-Loop Model Feedback',
+        desc: 'Every decision you make refines Zeno’s cluster models for your store.',
+      },
+    ],
+    ctaText: 'Protect Your Store',
+    ctaHref: '/register',
+    views: [
+      {
+        label: 'action-dispatcher.ts',
+        filename: 'action-dispatcher.ts',
+        lang: 'typescript',
+        code: `// Automated policy execution on rendered decision
+zeno.on('decision.rendered', async ({ orderId, decision, reasons }) => {
+  if (decision === 'SAFE') {
+    await shopify.fulfillment.release(orderId);
+  } else if (decision === 'REVIEW') {
+    await shopify.orders.addTags(orderId, ['zeno-hold', 'needs-review']);
+    await notifyTeam({ orderId, reasons, priority: 'HIGH' });
+  } else if (decision === 'BLOCKED') {
+    await shopify.orders.cancel(orderId, { reason: 'fraud' });
+  }
+});`,
+      },
+      {
+        label: 'zeno-policy.yml',
+        filename: 'zeno-policy.yml',
+        lang: 'yaml',
+        code: `version: "2.0"
+policies:
+  auto_hold:
+    enabled: true
+    min_confidence: 0.85
+    action: "HOLD_FULFILLMENT"
+    tags: ["zeno-hold", "review-required"]
+  notifications:
+    slack_channel: "#store-fraud-alerts"
+    sms_on_critical: true
+  merchant_override:
+    allow_instant_approve: true
+    retrain_on_override: true`,
+      },
+      {
+        label: 'audit.log',
+        filename: 'audit.log',
+        lang: 'bash',
+        code: `[12:44:01.220] POLICY_TRIGGER: Rule 'auto_hold_high_risk' matched
+[12:44:01.238] SHOPIFY_API: Tag 'zeno-hold' added to Order #1048 (18ms)
+[12:44:01.254] SLACK_ALERT: Push sent to #store-fraud-alerts
+[12:44:01.272] INVENTORY_SAVED: $1,249 protected from chargeback
+[12:44:01.285] AUDIT_STATE: Order paused awaiting merchant review`,
+      },
+    ],
+    simLogs: [
+      { time: '12:44:01.218', tag: 'POLICY', tagType: 'info', msg: 'Evaluation score 0.94 triggers policy: auto_hold' },
+      { time: '12:44:01.234', tag: 'API', tagType: 'ok', msg: 'Shopify fulfillment hold applied in 16ms' },
+      { time: '12:44:01.252', tag: 'ALERT', tagType: 'warn', msg: 'Instant alert pushed to Slack & dashboard' },
+      { time: '12:44:01.268', tag: 'SAVED', tagType: 'ok', msg: 'Inventory retained · $1,249 chargeback prevented' },
+      { time: '12:44:01.280', tag: 'ACTION', tagType: 'info', msg: 'Merchant action available: [APPROVE] or [BLOCK]' },
+    ],
+  },
+];
+
+function highlightSyntax(line: string) {
+  if (line.trim().startsWith('#') || line.trim().startsWith('//')) {
+    return <span className="lp-cmt">{line}</span>;
+  }
+  if (line.trim().startsWith('$')) {
+    const spaceIdx = line.indexOf(' ');
+    const cmd = spaceIdx !== -1 ? line.slice(0, spaceIdx + 1) : line;
+    const rest = spaceIdx !== -1 ? line.slice(spaceIdx + 1) : '';
+    return (
+      <>
+        <span className="lp-cmd">{cmd}</span>
+        <span>{rest}</span>
+      </>
+    );
+  }
+  if (line.includes('✓ 200 OK') || line.includes('RESULT:') || line.includes('DECISION:')) {
+    return <span className="lp-str" style={{ fontWeight: 600 }}>{line}</span>;
+  }
+  const parts = line.split(/(\b(?:import|from|export|const|async|await|return|if|else|version|policies|auto_hold|enabled|action|tags|true|false)\b|"[^"]*"|'[^']*'|\b\d+\.?\d*\b)/g);
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (/^(?:import|from|export|const|async|await|return|if|else|version|policies|auto_hold|enabled|action|tags)$/.test(part)) {
+          return <span key={i} className="lp-kw">{part}</span>;
+        }
+        if (/^(?:true|false)$/.test(part)) {
+          return <span key={i} className="lp-num">{part}</span>;
+        }
+        if (/^"[^"]*"$|^'[^']*'$/.test(part)) {
+          return <span key={i} className="lp-str">{part}</span>;
+        }
+        if (/^\d+\.?\d*$/.test(part)) {
+          return <span key={i} className="lp-num">{part}</span>;
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </>
+  );
+}
+
+const PRESENTER_SCRIPTS = [
+  {
+    step: 0,
+    speaker: "Presenter",
+    text: "Let's see what happens when a customer places an order. Here's incoming Order #1048 for $1,249.00 on your storefront. Click Inspect to see what Zeno does.",
+  },
+  {
+    step: 1,
+    speaker: "Presenter",
+    text: "In 18 milliseconds, Zeno streams and inspects 40+ telemetry signals — spotting a Bucharest datacenter proxy and velocity bursts across synthetic emails.",
+  },
+  {
+    step: 2,
+    speaker: "Presenter",
+    text: "Instead of an obscure score like '87', Zeno's AI translates everything into 3 plain-English reasons with clear recommendations for your team.",
+  },
+  {
+    step: 3,
+    speaker: "Presenter",
+    text: "Total control: You can hold fulfillment or let it ship. Notice how Zeno instantly tags Shopify and saves $1,249 in chargebacks.",
+  },
+];
+
+function DockerHowItWorks() {
+  const [activeStepIndex, setActiveStepIndex] = useState(0);
+  const [viewMode, setViewMode] = useState<'demo' | 'code'>('demo');
+  const [activeViewIndex, setActiveViewIndex] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const [simulating, setSimulating] = useState(false);
+  const [simStep, setSimStep] = useState<number | null>(null);
+  const [demoDecision, setDemoDecision] = useState<'idle' | 'holding' | 'held' | 'approved'>('idle');
+
+  const step = WORKFLOW_STEPS[activeStepIndex];
+  const view = step.views[activeViewIndex] || step.views[0];
+
+  const handleTabChange = useCallback((index: number) => {
+    setActiveStepIndex(index);
+    setActiveViewIndex(0);
+    setSimulating(false);
+    setSimStep(null);
+    if (index === 0) {
+      setDemoDecision('idle');
+    }
+  }, []);
+
+  const handleCopy = () => {
+    try {
+      navigator.clipboard.writeText(view.code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // fallback
+    }
+  };
+
+  const handleRunSimulation = () => {
+    if (simulating) return;
+    setViewMode('code');
+    if (simStep !== null) {
+      setSimStep(null);
+      return;
+    }
+    setSimulating(true);
+    setSimStep(1);
+    const total = step.simLogs.length;
+    let curr = 1;
+    const interval = setInterval(() => {
+      curr += 1;
+      setSimStep(curr);
+      if (curr >= total) {
+        clearInterval(interval);
+        setSimulating(false);
+      }
+    }, 280);
+  };
+
+  const codeLines = view.code.split('\n');
+
+  return (
+    <div className="lp-hiw-container">
+      {/* Interactive Presenter Bar */}
+      <div className="lp-presenter-bar lp-reveal">
+        <div className="lp-presenter-info">
+          <div className="lp-presenter-badge">
+            <span className="lp-presenter-pulse-dot" />
+            Interactive Walkthrough
+          </div>
+          <div className="lp-presenter-quote">
+            <span>{PRESENTER_SCRIPTS[activeStepIndex].speaker}:</span>
+            &ldquo;{PRESENTER_SCRIPTS[activeStepIndex].text}&rdquo;
+          </div>
+        </div>
+        <div className="lp-presenter-controls">
+          <button
+            className="lp-pres-btn lp-pres-btn-nav"
+            disabled={activeStepIndex === 0}
+            onClick={() => handleTabChange(Math.max(0, activeStepIndex - 1))}
+            title="Previous step"
+            aria-label="Previous step"
+          >
+            <ChevronLeft size={14} />
+          </button>
+
+          <div className="lp-pres-progress" role="tablist" aria-label="Walkthrough progress">
+            {WORKFLOW_STEPS.map((_, i) => (
+              <span
+                key={i}
+                className={`lp-pres-bar ${i === activeStepIndex ? 'active' : ''}`}
+                onClick={() => handleTabChange(i)}
+                style={{ cursor: 'pointer' }}
+                title={`Jump to Step 0${i + 1}`}
+              />
+            ))}
+          </div>
+
+          <button
+            className="lp-pres-btn lp-pres-btn-nav"
+            disabled={activeStepIndex === WORKFLOW_STEPS.length - 1}
+            onClick={() => handleTabChange(Math.min(WORKFLOW_STEPS.length - 1, activeStepIndex + 1))}
+            title="Next step"
+            aria-label="Next step"
+          >
+            <ChevronRight size={14} />
+          </button>
+
+          <button
+            className="lp-pres-btn lp-pres-btn-nav"
+            onClick={() => {
+              handleTabChange(0);
+              setDemoDecision('idle');
+            }}
+            title="Restart walkthrough demo"
+            aria-label="Restart demo"
+          >
+            <RotateCcw size={13} />
+          </button>
+        </div>
+      </div>
+
+      {/* Docker-Style Segmented Navigation Tabs */}
+      <div className="lp-docker-tabs-wrap lp-reveal">
+        <div className="lp-docker-tabs" role="tablist" aria-label="Zeno workflow stages">
+          {WORKFLOW_STEPS.map((s, idx) => {
+            const isActive = idx === activeStepIndex;
+            return (
+              <button
+                key={s.id}
+                role="tab"
+                aria-selected={isActive}
+                className={`lp-dtab-btn ${isActive ? 'active' : ''}`}
+                onClick={() => handleTabChange(idx)}
+              >
+                <span className="lp-dtab-icon" aria-hidden="true">
+                  {idx === 0 && <Layers size={13} />}
+                  {idx === 1 && <Terminal size={13} />}
+                  {idx === 2 && <Cpu size={13} />}
+                  {idx === 3 && <Shield size={13} />}
+                </span>
+                <span>{s.tabLabel}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 2-Column Showcase */}
+      <div className="lp-docker-stage lp-reveal lp-reveal-d1">
+        {/* Left Column: Story & Key Specs */}
+        <div className="lp-dpanel-left">
+          <div>
+            <div className="lp-dstep-kicker">
+              <span className="lp-dstep-kicker-dot" />
+              {step.kicker}
+            </div>
+            <h3 className="lp-dstep-title">{step.title}</h3>
+            <p className="lp-dstep-desc">{step.desc}</p>
+
+            <div className="lp-dfeature-list">
+              {step.features.map((feat, i) => (
+                <div className="lp-dfeature-item" key={i}>
+                  <div className="lp-dfeature-icon" aria-hidden="true">
+                    <Check size={13} />
+                  </div>
+                  <div className="lp-dfeature-body">
+                    <h4>{feat.title}</h4>
+                    <p>{feat.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="lp-dpanel-footer">
+            <Link to={step.ctaHref} className="lp-dstep-cta">
+              {step.ctaText} <ArrowRight size={14} />
+            </Link>
+
+            <div className="lp-dstep-nav">
+              <button
+                className="lp-dstep-btn"
+                disabled={activeStepIndex === 0}
+                onClick={() => handleTabChange(Math.max(0, activeStepIndex - 1))}
+                aria-label="Previous stage"
+              >
+                <ChevronLeft size={16} />
+              </button>
+
+              <div className="lp-dstep-dots">
+                {WORKFLOW_STEPS.map((_, i) => (
+                  <span
+                    key={i}
+                    className={`lp-dstep-dot ${i === activeStepIndex ? 'active' : ''}`}
+                    onClick={() => handleTabChange(i)}
+                  />
+                ))}
+              </div>
+
+              <button
+                className="lp-dstep-btn"
+                disabled={activeStepIndex === WORKFLOW_STEPS.length - 1}
+                onClick={() => handleTabChange(Math.min(WORKFLOW_STEPS.length - 1, activeStepIndex + 1))}
+                aria-label="Next stage"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Docker-style Terminal Sandbox */}
+        <div className="lp-dpanel-right">
+          {/* Terminal Window Header Bar */}
+          <div className="lp-dterm-topbar">
+            <div className="lp-dterm-left">
+              <div className="lp-dterm-dots" aria-hidden="true">
+                <span className="lp-dterm-dot red" />
+                <span className="lp-dterm-dot yellow" />
+                <span className="lp-dterm-dot green" />
+              </div>
+
+              {/* Sub-view switcher tabs */}
+              <div className="lp-dterm-views">
+                <button
+                  className={`lp-dterm-view-btn ${viewMode === 'demo' && simStep === null ? 'active' : ''}`}
+                  onClick={() => {
+                    setViewMode('demo');
+                    setSimStep(null);
+                  }}
+                  title="Interactive Storefront Order Demo"
+                >
+                  <Sparkles size={12} color="#818cf8" />
+                  Interactive Demo
+                </button>
+                {step.views.map((v, idx) => (
+                  <button
+                    key={v.filename}
+                    className={`lp-dterm-view-btn ${viewMode === 'code' && idx === activeViewIndex && simStep === null ? 'active' : ''}`}
+                    onClick={() => {
+                      setViewMode('code');
+                      setActiveViewIndex(idx);
+                      setSimStep(null);
+                    }}
+                  >
+                    <Code2 size={12} />
+                    {v.filename}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="lp-dterm-actions">
+              <button
+                className="lp-dterm-run-btn"
+                onClick={handleRunSimulation}
+                title="Run real-time order detection simulation"
+              >
+                {simulating ? (
+                  <>
+                    <RotateCcw size={12} className="animate-spin" />
+                    Streaming...
+                  </>
+                ) : simStep !== null ? (
+                  <>
+                    <RotateCcw size={12} />
+                    View Code
+                  </>
+                ) : (
+                  <>
+                    <Play size={12} fill="currentColor" />
+                    Simulate Log
+                  </>
+                )}
+              </button>
+
+              <button
+                className="lp-dterm-copy-btn"
+                onClick={handleCopy}
+                title="Copy snippet"
+              >
+                {copied ? (
+                  <>
+                    <Check size={12} color="#4ade80" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy size={12} />
+                    Copy
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Code Body / Simulated Logs / Interactive Demo */}
+          <div className="lp-dterm-body">
+            {simStep !== null ? (
+              <div className="lp-sim-logs">
+                {step.simLogs.slice(0, simStep).map((log, i) => (
+                  <div className="lp-sim-line" key={i}>
+                    <span className="lp-sim-time">{log.time}</span>
+                    <span className={`lp-sim-tag lp-sim-tag-${log.tagType}`}>{log.tag}</span>
+                    <span className="lp-sim-msg">{log.msg}</span>
+                  </div>
+                ))}
+                {simulating && (
+                  <div className="lp-sim-line">
+                    <span className="lp-sim-time">...</span>
+                    <span className="lp-dterm-cursor" />
+                  </div>
+                )}
+              </div>
+            ) : viewMode === 'demo' ? (
+              <div className="lp-demo-interactive">
+                {activeStepIndex === 0 && (
+                  <>
+                    <div>
+                      <div className="lp-demo-screen-header">
+                        <div className="lp-demo-order-badge">
+                          <ShoppingBag size={14} color="#818cf8" />
+                          <span>STAGE 01 // INBOUND STORE ORDER</span>
+                        </div>
+                        <div className="lp-demo-order-amount">$1,249.00</div>
+                      </div>
+
+                      <div className="lp-demo-order-box">
+                        <div className="lp-demo-order-row">
+                          <span className="lp-demo-order-label">Order Number</span>
+                          <span className="lp-demo-order-val">#1048 &bull; Shopify Plus Store</span>
+                        </div>
+                        <div className="lp-demo-order-row">
+                          <span className="lp-demo-order-label">Customer Profile</span>
+                          <span className="lp-demo-order-val">Sarah K. (New Buyer &bull; s.k***@relay-mail.com)</span>
+                        </div>
+                        <div className="lp-demo-order-row">
+                          <span className="lp-demo-order-label">Shipping Destination</span>
+                          <span className="lp-demo-order-val">Strada Industriei 4, Bucharest, RO</span>
+                        </div>
+                        <div className="lp-demo-order-row">
+                          <span className="lp-demo-order-label">Line Items</span>
+                          <span className="lp-demo-order-val">2x Arc&apos;teryx Alpha SV Jacket ($1,249.00)</span>
+                        </div>
+                        <div className="lp-demo-order-row">
+                          <span className="lp-demo-order-label">Card Origin</span>
+                          <span className="lp-demo-order-val">Visa •••• 4242 &bull; Issued in Ohio, USA</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <button
+                        className="lp-demo-trigger-btn"
+                        onClick={() => handleTabChange(1)}
+                      >
+                        <Eye size={15} />
+                        <span>Inspect Order Signals with Zeno &rarr;</span>
+                      </button>
+                      <div className="lp-presenter-click-hint" onClick={() => handleTabChange(1)}>
+                        👉 Click to inspect live telemetry &amp; signals
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {activeStepIndex === 1 && (
+                  <>
+                    <div>
+                      <div className="lp-demo-screen-header">
+                        <div className="lp-demo-order-badge">
+                          <Terminal size={14} color="#38bdf8" />
+                          <span>STAGE 02 // REAL-TIME TELEMETRY (18ms)</span>
+                        </div>
+                        <div className="lp-demo-pill-block">CONFIDENCE: 94.2%</div>
+                      </div>
+
+                      <div className="lp-demo-telemetry-grid">
+                        <div className="lp-demo-telemetry-item">
+                          <div className="lp-demo-telemetry-left">
+                            <Globe size={14} color="#f87171" />
+                            <span>IP Geolocation: Bucharest, RO (Datacenter Proxy/Tor exit)</span>
+                          </div>
+                          <span className="lp-demo-pill-block">PROXY DETECTED</span>
+                        </div>
+                        <div className="lp-demo-telemetry-item">
+                          <div className="lp-demo-telemetry-left">
+                            <Layers size={14} color="#fbbf24" />
+                            <span>Cluster Graph: Card hash linked to 3 prior chargebacks</span>
+                          </div>
+                          <span className="lp-demo-pill-warn">FRAUD CLUSTER</span>
+                        </div>
+                        <div className="lp-demo-telemetry-item">
+                          <div className="lp-demo-telemetry-left">
+                            <Cpu size={14} color="#fbbf24" />
+                            <span>Velocity Radar: 4 orders submitted across 2 emails in 45s</span>
+                          </div>
+                          <span className="lp-demo-pill-warn">HIGH VELOCITY</span>
+                        </div>
+                        <div className="lp-demo-telemetry-item">
+                          <div className="lp-demo-telemetry-left">
+                            <Shield size={14} color="#f87171" />
+                            <span>Distance Matrix: 4,200 km billing vs shipping discrepancy</span>
+                          </div>
+                          <span className="lp-demo-pill-block">GEO MISMATCH</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <button
+                        className="lp-demo-trigger-btn"
+                        onClick={() => handleTabChange(2)}
+                      >
+                        <Sparkles size={15} />
+                        <span>Generate Plain-Language Reasons &rarr;</span>
+                      </button>
+                      <div className="lp-presenter-click-hint" onClick={() => handleTabChange(2)}>
+                        👉 Click to view explainable AI decision
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {activeStepIndex === 2 && (
+                  <>
+                    <div>
+                      <div className="lp-demo-screen-header">
+                        <div className="lp-demo-order-badge">
+                          <Cpu size={14} color="#a855f7" />
+                          <span>STAGE 03 // EXPLAINABLE RISK BRIEF</span>
+                        </div>
+                        <div className="lp-demo-pill-warn" style={{ color: '#f59e0b', borderColor: 'rgba(245,158,11,0.4)', background: 'rgba(245,158,11,0.15)' }}>
+                          RECOMMENDATION: HOLD FULFILLMENT
+                        </div>
+                      </div>
+
+                      <div className="lp-demo-evidence-list">
+                        <div className="lp-demo-evidence-item">
+                          <strong>1. High-Value First-Time Buyer:</strong> Account created 3 minutes before checkout. Cart value ($1,249.00) is 10.5&times; higher than store average cart size ($118.00).
+                        </div>
+                        <div className="lp-demo-evidence-item">
+                          <strong>2. Severe Geographic Discrepancy:</strong> Card origin is Ohio, USA, but destination drop address is 4,200 km away in Bucharest, Romania through a known proxy.
+                        </div>
+                        <div className="lp-demo-evidence-item">
+                          <strong>3. Network Cluster Reputation:</strong> Device fingerprint matches a known automated card-testing cluster with 3 recent chargebacks in partner stores.
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <button
+                        className="lp-demo-trigger-btn"
+                        onClick={() => handleTabChange(3)}
+                      >
+                        <Shield size={15} />
+                        <span>Execute Automated Defense &rarr;</span>
+                      </button>
+                      <div className="lp-presenter-click-hint" onClick={() => handleTabChange(3)}>
+                        👉 Click to test merchant defense controls
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {activeStepIndex === 3 && (
+                  <>
+                    <div>
+                      <div className="lp-demo-screen-header">
+                        <div className="lp-demo-order-badge">
+                          <Shield size={14} color="#4ade80" />
+                          <span>STAGE 04 // MERCHANT DEFENSE GATE</span>
+                        </div>
+                        <div className="lp-demo-pill-block">RISK CONFIRMED</div>
+                      </div>
+
+                      {demoDecision === 'idle' && (
+                        <div>
+                          <div className="lp-demo-action-prompt">
+                            <div className="lp-demo-action-title">Zeno flagged Order #1048 for immediate action</div>
+                            <div className="lp-demo-action-sub">Choose a response to see live protection or automated policy in action:</div>
+                          </div>
+
+                          <div className="lp-demo-action-buttons">
+                            <button
+                              className="lp-demo-btn-hold"
+                              onClick={() => setDemoDecision('held')}
+                            >
+                              <Shield size={14} />
+                              <span>🛑 Hold Fulfillment (Shopify Tag)</span>
+                            </button>
+                            <button
+                              className="lp-demo-btn-approve"
+                              onClick={() => setDemoDecision('approved')}
+                            >
+                              <span>✅ Approve &amp; Release</span>
+                            </button>
+                          </div>
+
+                          <div className="lp-presenter-click-hint" onClick={() => setDemoDecision('held')}>
+                            👉 Click &ldquo;Hold Fulfillment&rdquo; to simulate live defense
+                          </div>
+                        </div>
+                      )}
+
+                      {demoDecision === 'held' && (
+                        <div className="lp-demo-success-banner">
+                          <div className="lp-demo-success-title">
+                            <CheckCircle2 size={18} color="#4ade80" />
+                            <span>THREAT INTERCEPTED &bull; ORDER PUT ON HOLD</span>
+                          </div>
+                          <div className="lp-demo-success-desc">
+                            Tag <code>zeno-hold</code> automatically attached to Shopify Order #1048 in <strong>18ms</strong>. Warehouse dispatch paused.
+                            <br />
+                            <strong style={{ color: '#4ade80' }}>$1,249.00 in chargeback loss and lost inventory protected!</strong>
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '10px' }}>
+                            <button
+                              className="lp-pres-btn lp-pres-btn-play"
+                              onClick={() => {
+                                setDemoDecision('idle');
+                                handleTabChange(0);
+                              }}
+                            >
+                              <RotateCcw size={13} />
+                              <span>Restart Walkthrough</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {demoDecision === 'approved' && (
+                        <div className="lp-demo-success-banner" style={{ borderColor: 'rgba(56,189,248,0.4)', background: 'rgba(14,165,233,0.15)' }}>
+                          <div className="lp-demo-success-title" style={{ color: '#38bdf8' }}>
+                            <Check size={18} color="#38bdf8" />
+                            <span>ORDER APPROVED &bull; FULFILLMENT RELEASED</span>
+                          </div>
+                          <div className="lp-demo-success-desc">
+                            Order #1048 approved by merchant. Zeno will continue tracking delivery confirmation telemetry.
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '10px' }}>
+                            <button
+                              className="lp-pres-btn lp-pres-btn-play"
+                              onClick={() => {
+                                setDemoDecision('idle');
+                                handleTabChange(0);
+                              }}
+                            >
+                              <RotateCcw size={13} />
+                              <span>Restart Walkthrough</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <pre className="lp-dterm-code-pre">
+                <code>
+                  {codeLines.map((line, lineIdx) => (
+                    <span className="lp-code-line" key={lineIdx}>
+                      <span className="lp-code-num">{lineIdx + 1}</span>
+                      {highlightSyntax(line)}
+                    </span>
+                  ))}
+                </code>
+              </pre>
+            )}
+          </div>
+
+          {/* Terminal Window Footer */}
+          <div className="lp-dterm-footer">
+            <div className="lp-dterm-status">
+              <span
+                className="lp-dterm-status-dot"
+                style={{
+                  background: simStep !== null && !simulating ? '#38bdf8' : simulating ? '#f59e0b' : '#4ade80',
+                  boxShadow: `0 0 8px ${simStep !== null && !simulating ? 'rgba(56,189,248,0.6)' : simulating ? 'rgba(245,158,11,0.6)' : 'rgba(74,222,128,0.6)'}`
+                }}
+              />
+              <span>
+                {simulating
+                  ? 'SIMULATING EVENT INGESTION...'
+                  : simStep !== null
+                  ? 'SIMULATION COMPLETE'
+                  : viewMode === 'demo'
+                  ? 'INTERACTIVE ORDER DEMO ACTIVE'
+                  : 'ZENO ENGINE ONLINE'}
+              </span>
+            </div>
+            <div className="lp-dterm-meta">
+              <span>⚡ Latency: 18ms</span>
+              <span>🔒 HMAC-SHA256</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Docker-Style Bottom Performance Metrics */}
+      <div className="lp-docker-metrics lp-reveal lp-reveal-d2">
+        <div className="lp-dmetric-card">
+          <div className="lp-dmetric-val"><span className="accent">&lt; 45ms</span></div>
+          <div className="lp-dmetric-label">Sub-Second Latency</div>
+          <p className="lp-dmetric-desc">Evaluated instantaneously before customer checkout completes.</p>
+        </div>
+        <div className="lp-dmetric-card">
+          <div className="lp-dmetric-val"><span className="accent">99.8%</span></div>
+          <div className="lp-dmetric-label">Threat Interception</div>
+          <p className="lp-dmetric-desc">Pinpoints card testing, synthetic buyers, and coordinated rings.</p>
+        </div>
+        <div className="lp-dmetric-card">
+          <div className="lp-dmetric-val"><span className="accent">0 Code</span></div>
+          <div className="lp-dmetric-label">Frictionless Setup</div>
+          <p className="lp-dmetric-desc">Native 1-click Shopify &amp; WooCommerce apps plus universal webhooks.</p>
+        </div>
+        <div className="lp-dmetric-card">
+          <div className="lp-dmetric-val"><span className="accent">100%</span></div>
+          <div className="lp-dmetric-label">Explainable Evidence</div>
+          <p className="lp-dmetric-desc">Every flag provides plain-language reasons, not cryptic scores.</p>
+        </div>
+      </div>
+
+      {/* Upgraded Transaction Lifecycle Pipeline */}
+      <div className="lp-journey lp-reveal lp-reveal-d3">
+        <div className="lp-journey-header">
+          <div className="lp-journey-label">
+            <Sparkles size={13} />
+            Watch an order move through Zeno
+          </div>
+        </div>
+
+        <div className="lp-journey-track">
+          {/* Stage 1: Ingest */}
+          <div className="lp-journey-stage">
+            <div className="lp-journey-stage-top">
+              <span className="lp-journey-stage-label">01 // Ingest</span>
+              <span className="lp-journey-stage-badge">Webhook</span>
+            </div>
+            <div className="lp-journey-card">
+              <div className="lp-journey-card-amt">$129.00</div>
+              <div className="lp-journey-card-hint">Sarah M. · returning buyer</div>
+            </div>
+            <div className="lp-journey-card">
+              <div className="lp-journey-card-amt">$890.00</div>
+              <div className="lp-journey-card-hint">New account · first order</div>
+            </div>
+            <div className="lp-journey-card">
+              <div className="lp-journey-card-amt">$1,499.00</div>
+              <div className="lp-journey-card-hint">Unknown · unusual shipping</div>
+            </div>
+          </div>
+
+          {/* Stage 2: Inspect */}
+          <div className="lp-journey-stage">
+            <div className="lp-journey-stage-top">
+              <span className="lp-journey-stage-label">02 // Inspect</span>
+              <span className="lp-journey-stage-badge">Telemetry</span>
+            </div>
+            <div className="lp-journey-card">
+              <div className="lp-journey-card-amt">$129.00</div>
+              <div className="lp-journey-card-hint">Order history ✓ · Matching card ✓</div>
+            </div>
+            <div className="lp-journey-card">
+              <div className="lp-journey-card-amt">$890.00</div>
+              <div className="lp-journey-card-hint">New customer · High value basket</div>
+            </div>
+            <div className="lp-journey-card">
+              <div className="lp-journey-card-amt">$1,499.00</div>
+              <div className="lp-journey-card-hint">No history · 4,200 km geo mismatch</div>
+            </div>
+          </div>
+
+          {/* Stage 3: Reason */}
+          <div className="lp-journey-stage">
+            <div className="lp-journey-stage-top">
+              <span className="lp-journey-stage-label">03 // Reason</span>
+              <span className="lp-journey-stage-badge">Explainable</span>
+            </div>
+            <div className="lp-journey-card">
+              <div className="lp-journey-card-amt">$129.00</div>
+              <div className="lp-journey-card-hint">"Trusted buyer, zero anomalies."</div>
+            </div>
+            <div className="lp-journey-card">
+              <div className="lp-journey-card-amt">$890.00</div>
+              <div className="lp-journey-card-hint">"Large first cart — check before ship."</div>
+            </div>
+            <div className="lp-journey-card">
+              <div className="lp-journey-card-amt">$1,499.00</div>
+              <div className="lp-journey-card-hint">"VPN proxy &amp; cluster flag. Hold order."</div>
+            </div>
+          </div>
+
+          {/* Stage 4: Resolve */}
+          <div className="lp-journey-stage">
+            <div className="lp-journey-stage-top">
+              <span className="lp-journey-stage-label">04 // Resolve</span>
+              <span className="lp-journey-stage-badge">Decision</span>
+            </div>
+            <div className="lp-journey-card">
+              <div className="lp-journey-card-result">
+                <div className="lp-badge lp-badge-safe"><span className="lp-badge-dot"/>SAFE ✓</div>
+              </div>
+            </div>
+            <div className="lp-journey-card">
+              <div className="lp-journey-card-result">
+                <div className="lp-badge lp-badge-review"><span className="lp-badge-dot"/>REVIEW</div>
+              </div>
+            </div>
+            <div className="lp-journey-card">
+              <div className="lp-journey-card-result">
+                <div className="lp-badge lp-badge-blocked"><span className="lp-badge-dot"/>BLOCKED ✗</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── ORDERS FLOW VISUAL (problem section) ────────────────────────────────── */
 function OrdersFlowVisual() {
   const orders = [
@@ -2479,133 +4143,19 @@ export function Landing() {
         </section>
 
         {/* ══════════════════════════════════════════════════════════════
-            HOW ZENO WORKS
+            HOW ZENO WORKS (DOCKER-STYLE DEVELOPER WORKFLOW)
         ══════════════════════════════════════════════════════════════ */}
         <section className="lp-hiw" id="how-it-works" aria-label="How Zeno works">
           <div className="wrap">
             <div className="lp-hiw-header lp-reveal">
               <div className="lp-eyebrow">How it works</div>
-              <h2 className="lp-section-h2">How Zeno protects<br />your store</h2>
-              <p className="lp-section-sub">Simple for you. Powerful behind the scenes.</p>
+              <h2 className="lp-section-h2">Accelerate how you detect,<br />analyze, and stop bad orders</h2>
+              <p className="lp-section-sub">
+                From checkout webhook to explainable risk mitigation in under 50ms — simple for merchants, powerful under the hood.
+              </p>
             </div>
 
-            <div className="lp-hiw-steps lp-reveal lp-reveal-d1">
-              {[
-                {
-                  num: '01',
-                  icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>,
-                  title: 'Connect',
-                  desc: 'Connect your store in a few clicks. No coding, no setup headaches.',
-                },
-                {
-                  num: '02',
-                  icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
-                  title: 'Watch',
-                  desc: 'Zeno checks every order the moment it comes in — automatically.',
-                },
-                {
-                  num: '03',
-                  icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
-                  title: 'Understand',
-                  desc: "You see what's safe and what needs a closer look, in plain language.",
-                },
-                {
-                  num: '04',
-                  icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
-                  title: 'Decide',
-                  desc: 'You always make the final call. Zeno recommends. You decide.',
-                },
-              ].map((step, i, arr) => (
-                <div className="lp-hiw-step" key={step.num}>
-                  <div className="lp-hiw-step-num">{step.num}</div>
-                  <div className="lp-hiw-step-icon" aria-hidden="true">{step.icon}</div>
-                  <h3>{step.title}</h3>
-                  <p>{step.desc}</p>
-                  {i < arr.length - 1 && <div className="lp-hiw-connector" aria-hidden="true" />}
-                </div>
-              ))}
-            </div>
-
-            {/* Order journey track */}
-            <div className="lp-journey lp-reveal lp-reveal-d2">
-              <div className="lp-journey-label">Watch an order move through Zeno</div>
-              <div className="lp-journey-track">
-
-                <div className="lp-journey-stage">
-                  <div className="lp-journey-stage-label">Incoming</div>
-                  <div className="lp-journey-card">
-                    <div className="lp-journey-card-amt">$129</div>
-                    <div className="lp-journey-card-hint">Sarah M. · returning buyer</div>
-                  </div>
-                  <div className="lp-journey-card">
-                    <div className="lp-journey-card-amt">$890</div>
-                    <div className="lp-journey-card-hint">New account · first order</div>
-                  </div>
-                  <div className="lp-journey-card">
-                    <div className="lp-journey-card-amt">$1,499</div>
-                    <div className="lp-journey-card-hint">Unknown · unusual shipping</div>
-                  </div>
-                </div>
-
-                <div className="lp-journey-arrow" aria-hidden="true">→</div>
-
-                <div className="lp-journey-stage">
-                  <div className="lp-journey-stage-label">Zeno checks it</div>
-                  <div className="lp-journey-card">
-                    <div className="lp-journey-card-amt">$129</div>
-                    <div className="lp-journey-card-hint">Order history ✓  ·  Matching info ✓</div>
-                  </div>
-                  <div className="lp-journey-card">
-                    <div className="lp-journey-card-amt">$890</div>
-                    <div className="lp-journey-card-hint">New customer ·  High value</div>
-                  </div>
-                  <div className="lp-journey-card">
-                    <div className="lp-journey-card-amt">$1,499</div>
-                    <div className="lp-journey-card-hint">No history ·  Address mismatch</div>
-                  </div>
-                </div>
-
-                <div className="lp-journey-arrow" aria-hidden="true">→</div>
-
-                <div className="lp-journey-stage">
-                  <div className="lp-journey-stage-label">Zeno explains it</div>
-                  <div className="lp-journey-card">
-                    <div className="lp-journey-card-amt">$129</div>
-                    <div className="lp-journey-card-hint">"Trusted customer, all good."</div>
-                  </div>
-                  <div className="lp-journey-card">
-                    <div className="lp-journey-card-amt">$890</div>
-                    <div className="lp-journey-card-hint">"Large first order — worth a check."</div>
-                  </div>
-                  <div className="lp-journey-card">
-                    <div className="lp-journey-card-amt">$1,499</div>
-                    <div className="lp-journey-card-hint">"Looks suspicious. Don't ship yet."</div>
-                  </div>
-                </div>
-
-                <div className="lp-journey-arrow" aria-hidden="true">→</div>
-
-                <div className="lp-journey-stage">
-                  <div className="lp-journey-stage-label">You decide</div>
-                  <div className="lp-journey-card">
-                    <div className="lp-journey-card-result">
-                      <div className="lp-badge lp-badge-safe"><span className="lp-badge-dot"/>SAFE ✓</div>
-                    </div>
-                  </div>
-                  <div className="lp-journey-card">
-                    <div className="lp-journey-card-result">
-                      <div className="lp-badge lp-badge-review"><span className="lp-badge-dot"/>REVIEW</div>
-                    </div>
-                  </div>
-                  <div className="lp-journey-card">
-                    <div className="lp-journey-card-result">
-                      <div className="lp-badge lp-badge-blocked"><span className="lp-badge-dot"/>BLOCKED ✗</div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
+            <DockerHowItWorks />
           </div>
         </section>
 
