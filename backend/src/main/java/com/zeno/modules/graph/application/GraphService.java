@@ -89,7 +89,7 @@ public class GraphService {
         return clusterRepository.findByMerchantId(merchantId, pageable)
                 .map(cluster -> {
                     List<ClusterMember> members = memberRepository.findAllByClusterId(cluster.getId());
-                    return ClusterResponse.from(cluster, members);
+                    return enrichWithCounts(merchantId, cluster, members);
                 });
     }
 
@@ -98,7 +98,43 @@ public class GraphService {
         RiskCluster cluster = clusterRepository.findByMerchantIdAndId(merchantId, clusterId)
                 .orElseThrow(() -> new ResourceNotFoundException("RiskCluster", clusterId));
         List<ClusterMember> members = memberRepository.findAllByClusterId(clusterId);
-        return ClusterResponse.from(cluster, members);
+        return enrichWithCounts(merchantId, cluster, members);
+    }
+
+    /**
+     * Computes device count, IP count, transaction count, and refund count
+     * for a cluster by querying payment data for each member customer.
+     * Uses existing payment repository methods — no new queries needed.
+     */
+    private ClusterResponse enrichWithCounts(UUID merchantId, RiskCluster cluster, List<ClusterMember> members) {
+        Set<UUID> customerIds = members.stream()
+                .filter(m -> m.getEntityType() == com.zeno.modules.graph.domain.NodeType.CUSTOMER)
+                .map(ClusterMember::getEntityId)
+                .collect(Collectors.toSet());
+
+        Set<String> devices = new HashSet<>();
+        Set<String> ips     = new HashSet<>();
+        int txCount     = 0;
+        int refundCount = 0;
+
+        for (UUID customerId : customerIds) {
+            List<com.zeno.modules.payment.domain.Payment> payments =
+                    paymentRepository.findAllByMerchantIdAndCustomerId(merchantId, customerId);
+            txCount += payments.size();
+            for (com.zeno.modules.payment.domain.Payment p : payments) {
+                if (p.getDeviceId() != null && !p.getDeviceId().isBlank()) {
+                    devices.add(p.getDeviceId());
+                }
+                if (p.getIpAddress() != null && !p.getIpAddress().isBlank()) {
+                    ips.add(p.getIpAddress());
+                }
+            }
+            refundCount += (int) refundRepository
+                    .findAllByMerchantIdAndCustomerId(merchantId, customerId).size();
+        }
+
+        return ClusterResponse.from(cluster, members,
+                devices.size(), ips.size(), txCount, refundCount);
     }
 
     @Transactional(readOnly = true)
