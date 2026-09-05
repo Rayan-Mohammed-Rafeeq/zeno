@@ -26,4 +26,10 @@ public interface JpaCustomerRepository extends JpaRepository<Customer, UUID>, Cu
     @Modifying
     @Query("DELETE FROM Customer c WHERE c.merchantId = :merchantId")
     void deleteAllByMerchantId(UUID merchantId);
+
+    /** Bulk lookup — fetch a set of customers by their internal IDs. */
+    List<Customer> findAllByMerchantIdAndIdIn(UUID merchantId, List<UUID> ids);
+
+    /** Text search on externalCustomerId (case-insensitive contains). */
+    Page<Customer> findByMerchantIdAndExternalCustomerIdContainingIgnoreCase(UUID merchantId, String search, Pageable pageable);
 }

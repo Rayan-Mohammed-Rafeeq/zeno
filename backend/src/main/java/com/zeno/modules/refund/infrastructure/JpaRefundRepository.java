@@ -25,4 +25,22 @@ public interface JpaRefundRepository extends JpaRepository<Refund, UUID>, Refund
     @Modifying
     @Query("DELETE FROM Refund r WHERE r.merchantId = :merchantId")
     void deleteAllByMerchantId(UUID merchantId);
+
+    /**
+     * Bulk refund count per customer for a given merchant.
+     * Returns [customerId, refundCount] in a single query.
+     */
+    @Query("""
+            SELECT r.customerId, COUNT(r)
+            FROM Refund r
+            WHERE r.merchantId = :merchantId
+            GROUP BY r.customerId
+            """)
+    List<Object[]> countByCustomerForMerchant(UUID merchantId);
+
+    /**
+     * Fetch refunds for a specific set of payment IDs in one query.
+     * Used to build a paymentId → Refund map for the transaction list.
+     */
+    List<Refund> findAllByMerchantIdAndPaymentIdIn(UUID merchantId, List<UUID> paymentIds);
 }

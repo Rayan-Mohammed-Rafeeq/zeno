@@ -13,4 +13,9 @@ public interface RiskAssessmentRepository {
     Page<RiskAssessment> findByMerchantIdAndRiskLevel(UUID merchantId, RiskLevel riskLevel, Pageable pageable);
     List<RiskAssessment> findAllByMerchantId(UUID merchantId);
     long countByMerchantIdAndRiskLevelIn(UUID merchantId, List<RiskLevel> levels);
+    /**
+     * Latest risk assessment per customer for a given merchant.
+     * Returns [customerId, riskScore, riskLevel] — one row per customer.
+     */
+    List<Object[]> latestRiskPerCustomerForMerchant(UUID merchantId);
 }

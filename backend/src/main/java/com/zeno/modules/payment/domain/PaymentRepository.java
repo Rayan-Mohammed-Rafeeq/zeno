@@ -21,4 +21,14 @@ public interface PaymentRepository {
     List<Payment> findByMerchantIdAndIpAddress(UUID merchantId, String ipAddress);
     /** Idempotency check — returns an existing payment by Razorpay payment ID. */
     Optional<Payment> findByMerchantIdAndExternalPaymentId(UUID merchantId, String externalPaymentId);
+    /**
+     * Bulk aggregation: returns one row per customer with
+     * [customerId, txnCount, totalAmount, lastPaymentAt, deviceCount, ipCount].
+     */
+    List<Object[]> aggregateByCustomerForMerchant(UUID merchantId);
+    /** Search by externalPaymentId (case-insensitive contains). */
+    Page<Payment> findByMerchantIdAndExternalPaymentIdContainingIgnoreCase(
+            UUID merchantId, String search, Pageable pageable);
+    /** Filter by a specific customerId. */
+    Page<Payment> findByMerchantIdAndCustomerId(UUID merchantId, UUID customerId, Pageable pageable);
 }

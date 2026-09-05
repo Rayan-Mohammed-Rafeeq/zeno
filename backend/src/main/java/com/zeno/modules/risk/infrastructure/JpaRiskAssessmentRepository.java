@@ -25,4 +25,22 @@ public interface JpaRiskAssessmentRepository extends JpaRepository<RiskAssessmen
     @Modifying
     @Query("DELETE FROM RiskAssessment r WHERE r.merchantId = :merchantId")
     void deleteAllByMerchantId(UUID merchantId);
+
+    /**
+     * Latest risk assessment per customer for a given merchant.
+     * Uses a subquery to get only the most recent assessment per customer.
+     * Returns [customerId, riskScore, riskLevel] in a single query.
+     */
+    @Query("""
+            SELECT r.customerId, r.riskScore, r.riskLevel
+            FROM RiskAssessment r
+            WHERE r.merchantId = :merchantId
+              AND r.createdAt = (
+                  SELECT MAX(r2.createdAt)
+                  FROM RiskAssessment r2
+                  WHERE r2.merchantId = r.merchantId
+                    AND r2.customerId = r.customerId
+              )
+            """)
+    List<Object[]> latestRiskPerCustomerForMerchant(UUID merchantId);
 }

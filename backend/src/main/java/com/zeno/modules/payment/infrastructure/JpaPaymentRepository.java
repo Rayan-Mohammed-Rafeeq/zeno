@@ -30,4 +30,29 @@ public interface JpaPaymentRepository extends JpaRepository<Payment, UUID>, Paym
     @Modifying
     @Query("DELETE FROM Payment p WHERE p.merchantId = :merchantId")
     void deleteAllByMerchantId(UUID merchantId);
+
+    /**
+     * Bulk payment aggregation per customer for a given merchant.
+     * Returns [customerId, txnCount, totalAmount, lastPaymentAt, deviceCount, ipCount]
+     * using a single query to avoid N+1 when building the customer summary list.
+     */
+    @Query("""
+            SELECT p.customerId,
+                   COUNT(p),
+                   COALESCE(SUM(p.amount), 0),
+                   MAX(p.timestamp),
+                   COUNT(DISTINCT p.deviceId),
+                   COUNT(DISTINCT p.ipAddress)
+            FROM Payment p
+            WHERE p.merchantId = :merchantId
+            GROUP BY p.customerId
+            """)
+    List<Object[]> aggregateByCustomerForMerchant(UUID merchantId);
+
+    /** Search by externalPaymentId (case-insensitive contains). */
+    Page<Payment> findByMerchantIdAndExternalPaymentIdContainingIgnoreCase(
+            UUID merchantId, String search, Pageable pageable);
+
+    /** Filter by a specific customerId (for customer-detail transaction tab). */
+    Page<Payment> findByMerchantIdAndCustomerId(UUID merchantId, UUID customerId, Pageable pageable);
 }

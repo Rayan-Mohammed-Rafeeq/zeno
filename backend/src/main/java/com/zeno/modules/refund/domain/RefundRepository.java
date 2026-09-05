@@ -16,4 +16,15 @@ public interface RefundRepository {
     long countByMerchantIdAndCustomerId(UUID merchantId, UUID customerId);
     /** Idempotency check — returns existing refund by Razorpay refund ID. */
     java.util.Optional<Refund> findByMerchantIdAndExternalRefundId(UUID merchantId, String externalRefundId);
+    /**
+     * Bulk refund count per customer for a given merchant.
+     * Returns [customerId, refundCount] in a single query.
+     */
+    List<Object[]> countByCustomerForMerchant(UUID merchantId);
+
+    /**
+     * Fetch refunds for a specific set of payment IDs in one query.
+     * Used to build a paymentId → Refund map for the transaction list.
+     */
+    List<Refund> findAllByMerchantIdAndPaymentIdIn(UUID merchantId, List<UUID> paymentIds);
 }

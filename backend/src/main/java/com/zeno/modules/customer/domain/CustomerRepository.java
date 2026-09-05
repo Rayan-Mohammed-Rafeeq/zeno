@@ -16,4 +16,8 @@ public interface CustomerRepository {
     List<Customer> findAllByMerchantId(UUID merchantId);
     /** Webhook upsert — look up an existing customer by merchant's external customer ID. */
     Optional<Customer> findByMerchantIdAndExternalCustomerId(UUID merchantId, String externalCustomerId);
+    /** Bulk lookup — fetch a set of customers by their internal IDs. */
+    List<Customer> findAllByMerchantIdAndIdIn(UUID merchantId, List<UUID> ids);
+    /** Text search on externalCustomerId (case-insensitive contains). */
+    Page<Customer> findByMerchantIdAndExternalCustomerIdContainingIgnoreCase(UUID merchantId, String search, Pageable pageable);
 }
