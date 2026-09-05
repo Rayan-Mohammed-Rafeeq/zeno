@@ -232,10 +232,11 @@ export function LiveEvents() {
             </div>
             <div className="text-xs max-w-xs" style={{ color: 'var(--fg-subtle)' }}>
               <p className="font-semibold mb-1" style={{ color: 'var(--fg-muted)' }}>
-                Test card numbers:
+                Test card numbers (Indian):
               </p>
-              <p>Success: <span className="font-mono">4111 1111 1111 1111</span></p>
-              <p>Failure: <span className="font-mono">4000 0000 0000 0002</span></p>
+              <p>Visa: <span className="font-mono">4718 6092 0520 5274</span></p>
+              <p>Mastercard: <span className="font-mono">5267 3181 8797 5449</span></p>
+              <p>Rupay: <span className="font-mono">6073 8499 9927 3954</span></p>
               <p>CVV: any 3 digits · Expiry: any future date</p>
             </div>
           </div>
