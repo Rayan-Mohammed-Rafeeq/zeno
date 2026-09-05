@@ -11,6 +11,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useForceDark } from '@/hooks/useForceDark';
 import { ZenoVisualization } from '@/components/brand/ZenoVisualization';
+import { AuthPurpleDecorations } from '@/components/brand/AuthPurpleDecorations';
 import {
   AlertCircle, CheckCircle, Eye, EyeOff, ArrowRight,
   Mail, Lock, User, Building2, ShieldCheck,
@@ -210,28 +211,100 @@ const REGISTER_STYLES = `
   }
   .zeno-auth::-webkit-scrollbar { display: none; }
 
-  .zeno-auth::before {
-    content: '';
+  /* ═══════════════════════════════════════════
+     PURPLE CYBER DESIGN DECORATIONS
+  ═══════════════════════════════════════════ */
+  .zeno-purple-decor-root {
     position: absolute;
-    top: -140px; right: -100px;
-    width: 420px; height: 420px;
-    border-radius: 50%;
-    background: var(--auth-bloom-1);
-    filter: blur(90px);
+    inset: 0;
     pointer-events: none;
+    overflow: hidden;
     z-index: 0;
   }
 
-  .zeno-auth::after {
-    content: '';
+  /* Multi-layer ambient purple background */
+  .zeno-auth-grid {
     position: absolute;
-    bottom: -80px; left: -60px;
-    width: 280px; height: 280px;
-    border-radius: 50%;
-    background: var(--auth-bloom-2);
-    filter: blur(70px);
+    inset: 0;
+    background-image:
+      radial-gradient(circle, rgba(168, 85, 247, 0.22) 1.2px, transparent 1.2px),
+      linear-gradient(rgba(147, 51, 234, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(147, 51, 234, 0.045) 1px, transparent 1px);
+    background-size: 30px 30px, 30px 30px, 30px 30px;
+    opacity: 0.85;
     pointer-events: none;
     z-index: 0;
+    mask-image: radial-gradient(ellipse 90% 85% at 50% 50%, black 25%, transparent 88%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 85% at 50% 50%, black 25%, transparent 88%);
+  }
+
+  .zeno-aurora-bloom {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(85px);
+    z-index: 0;
+    animation: zeno-aurora-drift 10s ease-in-out infinite alternate;
+  }
+  .zeno-aurora-1 {
+    top: -120px;
+    right: -80px;
+    width: 440px;
+    height: 440px;
+    background: radial-gradient(circle, var(--auth-bloom-1) 0%, rgba(139, 92, 246, 0.12) 50%, transparent 70%);
+  }
+  .zeno-aurora-2 {
+    bottom: -100px;
+    left: -80px;
+    width: 420px;
+    height: 420px;
+    background: radial-gradient(circle, var(--auth-bloom-2) 0%, rgba(99, 102, 241, 0.12) 50%, transparent 70%);
+    animation-delay: -5s;
+  }
+  .zeno-aurora-3 {
+    top: 35%;
+    left: 25%;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, var(--auth-bloom-3) 0%, transparent 70%);
+    animation-delay: -2.5s;
+  }
+  @keyframes zeno-aurora-drift {
+    0%   { transform: scale(1) translate(0, 0); opacity: 0.85; }
+    50%  { transform: scale(1.08) translate(12px, -8px); opacity: 1; }
+    100% { transform: scale(0.95) translate(-8px, 10px); opacity: 0.85; }
+  }
+
+  /* Vector decorative layers */
+  .zeno-auth-vector-top {
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 380px;
+    height: 380px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.85;
+  }
+  .zeno-auth-vector-bottom {
+    position: absolute;
+    bottom: -20px;
+    left: -20px;
+    width: 360px;
+    height: 360px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.8;
+  }
+  .zeno-orbit-spinner {
+    animation: zeno-spin 22s linear infinite;
+  }
+  .zeno-orbit-spinner-rev {
+    animation: zeno-spin-rev 16s linear infinite;
+  }
+  @keyframes zeno-spin-rev {
+    from { transform: rotate(360deg); }
+    to   { transform: rotate(0deg); }
   }
 
   .zeno-auth-inner {
@@ -249,8 +322,8 @@ const REGISTER_STYLES = `
     border-radius: 18px;
     padding: 22px 28px 18px;
     box-shadow: var(--card-shadow);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     position: relative;
     overflow: hidden;
   }
@@ -258,10 +331,22 @@ const REGISTER_STYLES = `
   .zeno-auth-card::before {
     content: '';
     position: absolute;
-    top: 0; left: 10%; right: 10%;
-    height: 1px;
+    top: 0; left: 8%; right: 8%;
+    height: 1.5px;
     background: linear-gradient(90deg, transparent, var(--card-top-shine), transparent);
     border-radius: 100%;
+  }
+
+  /* Subtle bottom corner ambient glow */
+  .zeno-auth-card::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; right: -40px;
+    width: 160px; height: 160px;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.16) 0%, transparent 70%);
+    pointer-events: none;
+    border-radius: 50%;
+    filter: blur(20px);
   }
 
   /* ── Card header ── */
@@ -547,34 +632,35 @@ const REGISTER_STYLES = `
     --login-page-bg:      #0d0f1e;
 
     --auth-panel-bg:      #f0f1f5;
-    --auth-bloom-1:       rgba(133, 136, 230, 0.10);
-    --auth-bloom-2:       rgba(94, 91, 193, 0.07);
+    --auth-bloom-1:       rgba(168, 85, 247, 0.16);
+    --auth-bloom-2:       rgba(124, 58, 237, 0.12);
+    --auth-bloom-3:       rgba(99, 102, 241, 0.08);
 
     --card-bg:            rgba(255, 255, 255, 0.97);
-    --card-border:        rgba(94, 91, 193, 0.14);
-    --card-shadow:        0 8px 40px rgba(94, 91, 193, 0.13), 0 1px 3px rgba(0,0,0,0.06);
-    --card-top-shine:     rgba(140, 138, 230, 0.5);
-    --card-divider:       rgba(94, 91, 193, 0.10);
+    --card-border:        rgba(147, 51, 234, 0.16);
+    --card-shadow:        0 8px 40px rgba(124, 58, 237, 0.12), 0 1px 3px rgba(0,0,0,0.06);
+    --card-top-shine:     rgba(168, 85, 247, 0.5);
+    --card-divider:       rgba(147, 51, 234, 0.10);
 
-    --pill-bg:            rgba(94, 91, 193, 0.08);
-    --pill-border:        rgba(94, 91, 193, 0.18);
+    --pill-bg:            rgba(147, 51, 234, 0.08);
+    --pill-border:        rgba(147, 51, 234, 0.20);
 
     --auth-heading:       #16183a;
     --auth-sub:           rgba(40, 50, 100, 0.55);
     --auth-label:         rgba(30, 35, 90, 0.60);
-    --auth-accent:        #5e5bc1;
+    --auth-accent:        #7c3aed;
 
-    --btn-bg:             linear-gradient(135deg, #7375d8 0%, #5048b8 100%);
-    --btn-shadow:         0 4px 22px rgba(94, 91, 193, 0.32);
-    --btn-shadow-hover:   0 8px 30px rgba(94, 91, 193, 0.42);
+    --btn-bg:             linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+    --btn-shadow:         0 4px 22px rgba(124, 58, 237, 0.32);
+    --btn-shadow-hover:   0 8px 30px rgba(124, 58, 237, 0.45);
 
     --input-bg:           rgba(248, 248, 255, 0.9);
     --input-bg-focus:     #ffffff;
-    --input-border:       rgba(94, 91, 193, 0.18);
-    --input-border-hover: rgba(94, 91, 193, 0.38);
-    --input-focus-ring:   rgba(94, 91, 193, 0.13);
-    --input-placeholder:  rgba(80, 85, 150, 0.36);
-    --input-icon:         rgba(94, 91, 193, 0.40);
+    --input-border:       rgba(147, 51, 234, 0.18);
+    --input-border-hover: rgba(147, 51, 234, 0.40);
+    --input-focus-ring:   rgba(147, 51, 234, 0.13);
+    --input-placeholder:  rgba(80, 85, 150, 0.38);
+    --input-icon:         rgba(124, 58, 237, 0.50);
 
     --danger:             #e53e5e;
     --danger-bg:          rgba(229, 62, 94, 0.07);
@@ -595,48 +681,50 @@ const REGISTER_STYLES = `
     --hero-dot:           rgba(94, 91, 193, 0.45);
     --hero-logo-text:     #1a1f45;
     --hero-headline:      #16183a;
-    --hero-accent:        #5e5bc1;
+    --hero-accent:        #7c3aed;
     --hero-sub:           rgba(40, 45, 100, 0.65);
     --divider-color:      rgba(94, 91, 193, 0.15);
     --login-page-bg:      #edeafc;
 
-    --auth-panel-bg:      #edeafc;
-    --auth-bloom-1:       rgba(107, 104, 212, 0.14);
-    --auth-bloom-2:       rgba(130, 127, 210, 0.09);
+    --auth-panel-bg:      #f0f1f5;
+    --auth-bloom-1:       rgba(168, 85, 247, 0.16);
+    --auth-bloom-2:       rgba(124, 58, 237, 0.12);
+    --auth-bloom-3:       rgba(99, 102, 241, 0.08);
 
-    --card-bg:            rgba(255, 255, 255, 0.92);
-    --card-border:        rgba(94, 91, 193, 0.13);
-    --card-shadow:        0 8px 40px rgba(94, 91, 193, 0.11), 0 1px 3px rgba(0,0,0,0.04);
-    --card-top-shine:     rgba(140, 138, 230, 0.45);
-    --card-divider:       rgba(94, 91, 193, 0.09);
+    --card-bg:            rgba(255, 255, 255, 0.97);
+    --card-border:        rgba(147, 51, 234, 0.16);
+    --card-shadow:        0 8px 40px rgba(124, 58, 237, 0.12), 0 1px 3px rgba(0,0,0,0.06);
+    --card-top-shine:     rgba(168, 85, 247, 0.5);
+    --card-divider:       rgba(147, 51, 234, 0.10);
 
-    --pill-bg:            rgba(94, 91, 193, 0.07);
-    --pill-border:        rgba(94, 91, 193, 0.15);
+    --pill-bg:            rgba(147, 51, 234, 0.08);
+    --pill-border:        rgba(147, 51, 234, 0.20);
 
     --auth-heading:       #16183a;
     --auth-sub:           rgba(40, 50, 100, 0.55);
     --auth-label:         rgba(30, 35, 90, 0.60);
-    --auth-accent:        #5e5bc1;
+    --auth-accent:        #7c3aed;
 
-    --btn-bg:             linear-gradient(135deg, #6b68d4 0%, #5048b8 100%);
-    --btn-shadow:         0 4px 22px rgba(94, 91, 193, 0.30);
-    --btn-shadow-hover:   0 8px 30px rgba(94, 91, 193, 0.40);
+    --btn-bg:             linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+    --btn-shadow:         0 4px 22px rgba(124, 58, 237, 0.32);
+    --btn-shadow-hover:   0 8px 30px rgba(124, 58, 237, 0.45);
 
-    --input-bg:           rgba(245, 244, 252, 0.9);
+    --input-bg:           rgba(248, 248, 255, 0.9);
     --input-bg-focus:     #ffffff;
-    --input-border:       rgba(94, 91, 193, 0.18);
-    --input-border-hover: rgba(94, 91, 193, 0.36);
-    --input-focus-ring:   rgba(94, 91, 193, 0.12);
-    --input-placeholder:  rgba(80, 85, 150, 0.35);
-    --input-icon:         rgba(94, 91, 193, 0.38);
+    --input-border:       rgba(147, 51, 234, 0.18);
+    --input-border-hover: rgba(147, 51, 234, 0.40);
+    --input-focus-ring:   rgba(147, 51, 234, 0.13);
+    --input-placeholder:  rgba(80, 85, 150, 0.38);
+    --input-icon:         rgba(124, 58, 237, 0.50);
 
     --danger:             #e53e5e;
-    --danger-bg:          rgba(229, 62, 94, 0.06);
-    --danger-border:      rgba(229, 62, 94, 0.20);
+    --danger-bg:          rgba(229, 62, 94, 0.07);
+    --danger-border:      rgba(229, 62, 94, 0.22);
 
     --success:            #0d9e6e;
-    --success-bg:         rgba(13, 158, 110, 0.06);
-    --success-border:     rgba(13, 158, 110, 0.20);
+    --success-bg:         rgba(13, 158, 110, 0.07);
+    --success-border:     rgba(13, 158, 110, 0.22);
+  }
   }
 
   /* ════════════════════════════════════
@@ -888,6 +976,8 @@ export function Register() {
 
         {/* ══ RIGHT — Registration form ══ */}
         <div className="zeno-auth">
+          <AuthPurpleDecorations />
+
           <div className="zeno-auth-inner">
 
             {/* Mobile-only logo */}
@@ -1043,8 +1133,6 @@ export function Register() {
                 </button>
 
               </form>
-
-
 
             </div>{/* /card */}
 

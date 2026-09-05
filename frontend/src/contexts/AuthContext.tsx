@@ -46,9 +46,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    await authApi.logout();
-    setUser(null);
-    navigate('/login');
+    try {
+      await authApi.logout();
+    } catch (err) {
+      console.warn('Logout error:', err);
+    } finally {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      setUser(null);
+      navigate('/login');
+    }
   };
 
   return (

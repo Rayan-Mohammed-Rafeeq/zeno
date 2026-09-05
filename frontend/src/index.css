@@ -9,6 +9,8 @@
 
 /* ---------- LIGHT THEME (default) ---------- */
 :root {
+  interpolate-size: allow-keywords;
+
   /* Page & surfaces */
   --bg:               #eef2f7;   /* cool blue-gray page background */
   --surface:          #ffffff;   /* card / panel surface */
@@ -228,6 +230,9 @@ body {
   50%      { box-shadow: 0 0 16px 4px rgba(133,136,230,0.18); }
 }
 @keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+@keyframes spin {
   to { transform: rotate(360deg); }
 }
 @keyframes count-up-glow {
