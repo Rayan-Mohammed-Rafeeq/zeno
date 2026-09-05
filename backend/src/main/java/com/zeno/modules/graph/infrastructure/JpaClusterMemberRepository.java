@@ -14,6 +14,9 @@ import java.util.UUID;
 public interface JpaClusterMemberRepository extends JpaRepository<ClusterMember, UUID>, ClusterMemberRepository {
     List<ClusterMember> findAllByClusterId(UUID clusterId);
 
+    /** Find all cluster memberships for a specific entity (e.g. a customer). */
+    List<ClusterMember> findAllByEntityId(UUID entityId);
+
     @Modifying
     @Query("DELETE FROM ClusterMember m WHERE m.clusterId = :clusterId")
     void deleteAllByClusterId(UUID clusterId);

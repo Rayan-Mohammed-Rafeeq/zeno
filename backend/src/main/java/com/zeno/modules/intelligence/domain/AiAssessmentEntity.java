@@ -39,6 +39,7 @@ public class AiAssessmentEntity {
     @Column(name = "confidence")
     private Double confidence;
 
+    /** Legacy flat reasons list — kept for backwards compat */
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "reasons", columnDefinition = "jsonb")
     private List<String> reasons;
@@ -53,7 +54,69 @@ public class AiAssessmentEntity {
     @Column(name = "prompt_summary", length = 500)
     private String promptSummary;
 
+    /**
+     * Full structured assessment result stored as JSONB.
+     * Populated when the LLM returns parseable structured output.
+     * Null if AI failed — deterministic assessment still available via other fields.
+     */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "structured_result", columnDefinition = "jsonb")
+    private StructuredResult structuredResult;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
+
+    // ── Embedded structured result ────────────────────────────────────────
+
+    /**
+     * SHAP-grounded structured assessment as returned by the LLM.
+     * Matches the JSON schema required in the prompt.
+     */
+    @lombok.Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class StructuredResult {
+
+        private String assessment;          // HIGH_RISK | MEDIUM_RISK | LOW_RISK | INCONCLUSIVE
+        private Integer confidence;         // 0-100
+        private String recommendedAction;
+        private String summary;
+        private List<ReasonEntry> reasons;
+        private MlEvidence mlEvidence;
+        private NetworkEvidence networkEvidence;
+        private List<String> limitations;
+        private String analystNote;
+        /** true = full LLM structured output; false = deterministic fallback */
+        private boolean aiGenerated;
+
+        @lombok.Data
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class ReasonEntry {
+            private String signal;
+            private String observed;
+            private String baseline;
+            private String interpretation;
+        }
+
+        @lombok.Data
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class MlEvidence {
+            private Double fraudProbability;
+            private List<String> topShapDrivers;
+            private String modelVersion;
+            private String disclaimer;
+        }
+
+        @lombok.Data
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class NetworkEvidence {
+            private Boolean clusterDetected;
+            private Integer clusterSize;
+            private String relationshipSummary;
+        }
+    }
 }

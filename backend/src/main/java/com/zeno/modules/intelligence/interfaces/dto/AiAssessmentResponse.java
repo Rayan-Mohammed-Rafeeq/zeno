@@ -7,6 +7,15 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Response DTO for an AI evidence assessment.
+ *
+ * structuredResult is the primary output when AI succeeded.
+ * When null, the caller should use the flat assessmentType/confidence/reasons fields
+ * which are always populated (deterministic fallback).
+ *
+ * disclaimer is always included and must be surfaced in the UI.
+ */
 public record AiAssessmentResponse(
         UUID id,
         UUID merchantId,
@@ -17,6 +26,8 @@ public record AiAssessmentResponse(
         List<String> reasons,
         String recommendedAction,
         String provider,
+        /** Full structured result — null when LLM failed, deterministic fallback used instead */
+        AiAssessmentEntity.StructuredResult structuredResult,
         /** Advisory disclaimer — always included */
         String disclaimer,
         Instant createdAt
@@ -31,6 +42,8 @@ public record AiAssessmentResponse(
                 e.getId(), e.getMerchantId(), e.getSubjectType(), e.getSubjectId(),
                 e.getAssessmentType(), e.getConfidence() != null ? e.getConfidence() : 0.0,
                 e.getReasons(), e.getRecommendedAction(), e.getProvider(),
-                DISCLAIMER, e.getCreatedAt());
+                e.getStructuredResult(),
+                DISCLAIMER,
+                e.getCreatedAt());
     }
 }

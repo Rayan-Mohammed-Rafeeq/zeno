@@ -13,13 +13,15 @@ import java.util.UUID;
  * Structured evidence bundle assembled from observable signals.
  * Passed to the AI provider for interpretation — never includes ground truth.
  *
- * All values are computed from deterministic signals.
+ * All values are computed from deterministic signals or ML model output.
  * The AI interprets this evidence; it does NOT determine fraud.
  *
  * ML fields (fraudProbability, anomalyScore, shapContributions) are nullable —
  * they are populated when the ML service is enabled, and absent otherwise.
  * The LLM prompt must explicitly distinguish ML-derived quantities from
  * rule-based signals, and must not invent values for absent fields.
+ *
+ * Graph/cluster fields are nullable — populated when graph analysis has run.
  */
 @Getter
 @Builder
@@ -31,6 +33,9 @@ public class EvidenceBundle {
     private final int riskScore;
     private final RiskLevel riskLevel;
     private final List<SignalType> triggeredSignals;
+
+    /** Enriched signal entries with observed/baseline values */
+    private final List<SignalDetail> signalDetails;
 
     private final double refundRate;
     private final double merchantBaselineRefundRate;
@@ -64,4 +69,33 @@ public class EvidenceBundle {
      * Null or empty when ML service disabled.
      */
     private final List<String> shapContributions;
+
+    // ── Graph/cluster fields (nullable — populated when cluster detection has run) ──
+
+    /** Number of connected high-risk entity IDs in the same cluster */
+    private final Integer connectedHighRiskCount;
+
+    /** Brief description of how this subject connects to other cluster members */
+    private final String clusterRelationshipSummary;
+
+    // ── Benchmark metrics (always available for context) ──
+    private final String benchmarkPrecision;
+    private final String benchmarkRecall;
+    private final String benchmarkAuprc;
+
+    /**
+     * Enriched signal detail carrying observed + baseline values.
+     * Used to produce evidence-grounded LLM reasoning.
+     */
+    @Getter
+    @Builder
+    public static class SignalDetail {
+        private final String signalName;
+        private final String signalType;
+        private final String severity;
+        private final double observedValue;
+        private final double baselineValue;
+        private final int scoreContribution;
+        private final String explanation;
+    }
 }

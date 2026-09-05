@@ -14,4 +14,6 @@ public interface CustomerRepository {
     long countByMerchantId(UUID merchantId);
     long countByMerchantIdAndStatus(UUID merchantId, CustomerStatus status);
     List<Customer> findAllByMerchantId(UUID merchantId);
+    /** Webhook upsert — look up an existing customer by merchant's external customer ID. */
+    Optional<Customer> findByMerchantIdAndExternalCustomerId(UUID merchantId, String externalCustomerId);
 }

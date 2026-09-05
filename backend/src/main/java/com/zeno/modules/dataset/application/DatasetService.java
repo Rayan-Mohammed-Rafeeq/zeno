@@ -37,14 +37,13 @@ public class DatasetService {
         int count = Math.min(Math.max(request.recordCount(), MIN_RECORD_COUNT), MAX_RECORD_COUNT);
         long seed = request.seed() != null ? request.seed() : System.currentTimeMillis();
 
-        // Clear existing data for this merchant so the new dataset is clean
+        // Clear existing data for this merchant
         log.info("Clearing existing synthetic data for merchant {}", merchantId);
         refundRepository.deleteAllByMerchantId(merchantId);
         paymentRepository.deleteAllByMerchantId(merchantId);
         customerRepository.deleteAllByMerchantId(merchantId);
         groundTruthLabelRepository.deleteAllByMerchantId(merchantId);
 
-        // Create the run record
         DatasetRun run = DatasetRun.builder()
                 .merchantId(merchantId)
                 .recordCount(count)
@@ -54,11 +53,18 @@ public class DatasetService {
         run = datasetRunRepository.save(run);
 
         try {
-            SyntheticDataGenerator.GeneratedDataset dataset =
-                    generator.generate(merchantId, run.getId(), count, seed);
+            // Pass saver functions so customers and payments are persisted inline,
+            // giving them real DB IDs before refunds reference payment.getId().
+            java.util.function.Function<com.zeno.modules.customer.domain.Customer, com.zeno.modules.customer.domain.Customer>
+                    customerSaver = customerRepository::saveAndFlush;
+            java.util.function.Function<com.zeno.modules.payment.domain.Payment, com.zeno.modules.payment.domain.Payment>
+                    paymentSaver  = paymentRepository::saveAndFlush;
 
-            customerRepository.saveAll(dataset.customers());
-            paymentRepository.saveAll(dataset.payments());
+            SyntheticDataGenerator.GeneratedDataset dataset =
+                    generator.generate(merchantId, run.getId(), count, seed, customerSaver, paymentSaver);
+
+            // Customers and payments are already persisted by the savers above.
+            // Only save refunds and labels in bulk.
             refundRepository.saveAll(dataset.refunds());
             groundTruthLabelRepository.saveAll(dataset.labels());
 

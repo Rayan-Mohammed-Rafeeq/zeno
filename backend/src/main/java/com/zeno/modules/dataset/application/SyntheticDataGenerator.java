@@ -46,6 +46,24 @@ public class SyntheticDataGenerator {
     private static final RefundReason[] REASONS = RefundReason.values();
 
     public GeneratedDataset generate(UUID merchantId, UUID datasetRunId, int recordCount, long seed) {
+        return generate(merchantId, datasetRunId, recordCount, seed, c -> c);
+    }
+
+    /**
+     * Main generate method. customerSaver is called for each customer immediately after it is built,
+     * ensuring the customer has a real DB-assigned ID before payments are constructed that reference it.
+     * paymentSaver is called for each payment so refunds can reference real payment IDs.
+     * When called from DatasetService, pass repository::saveAndFlush for both.
+     * When called from tests, pass {@code c -> c} (identity) for both.
+     */
+    public GeneratedDataset generate(UUID merchantId, UUID datasetRunId, int recordCount, long seed,
+                                     java.util.function.Function<Customer, Customer> customerSaver) {
+        return generate(merchantId, datasetRunId, recordCount, seed, customerSaver, p -> p);
+    }
+
+    public GeneratedDataset generate(UUID merchantId, UUID datasetRunId, int recordCount, long seed,
+                                     java.util.function.Function<Customer, Customer> customerSaver,
+                                     java.util.function.Function<Payment, Payment> paymentSaver) {
         Random rng = new Random(seed);
         Instant now = Instant.now();
 
@@ -73,30 +91,24 @@ public class SyntheticDataGenerator {
 
         // ---------- 1. Normal customers ----------
         for (int i = 0; i < normalCustomerCount; i++) {
-            Customer c = buildCustomer(merchantId, rng, now, "NORMAL", 30, 3650);
+            Customer c = customerSaver.apply(buildCustomer(merchantId, rng, now, "NORMAL", 30, 3650));
             customers.add(c);
             int txCount = 2 + rng.nextInt(8);
-            List<Payment> txs = buildPayments(merchantId, c, rng, now, txCount,
-                    randomDevice(rng), randomIp(rng), false);
-            payments.addAll(txs);
-            // ~10% refund rate for normal customers
+            List<Payment> txs = saveEach(buildPayments(merchantId, c, rng, now, txCount,
+                    randomDevice(rng), randomIp(rng), false), paymentSaver, payments);
             if (!txs.isEmpty() && rng.nextDouble() < 0.10) {
-                Payment tx = txs.get(rng.nextInt(txs.size()));
-                refunds.add(buildRefund(merchantId, c.getId(), tx, rng, now));
+                refunds.add(buildRefund(merchantId, c.getId(), txs.get(rng.nextInt(txs.size())), rng, now));
             }
             labels.add(groundTruth(datasetRunId, merchantId, "CUSTOMER", c.getId(), false, null, SCENARIO_NORMAL));
         }
 
         // ---------- 2. Solo refund-abuse customers ----------
         for (int i = 0; i < abuseCustomerCount; i++) {
-            // New accounts (0–30 days), high refund rate
-            Customer c = buildCustomer(merchantId, rng, now, "REFUND_ABUSER", 0, 30);
+            Customer c = customerSaver.apply(buildCustomer(merchantId, rng, now, "REFUND_ABUSER", 0, 30));
             customers.add(c);
             int txCount = 3 + rng.nextInt(6);
-            List<Payment> txs = buildPayments(merchantId, c, rng, now, txCount,
-                    randomDevice(rng), randomIp(rng), false);
-            payments.addAll(txs);
-            // 60–100% refund rate
+            List<Payment> txs = saveEach(buildPayments(merchantId, c, rng, now, txCount,
+                    randomDevice(rng), randomIp(rng), false), paymentSaver, payments);
             double refundRate = 0.6 + rng.nextDouble() * 0.4;
             for (Payment tx : txs) {
                 if (rng.nextDouble() < refundRate) {
@@ -117,13 +129,11 @@ public class SyntheticDataGenerator {
             if (membersInGroup <= 0) break;
 
             for (int m = 0; m < membersInGroup; m++) {
-                Customer c = buildCustomer(merchantId, rng, now, "COORDINATOR", 0, 60);
+                Customer c = customerSaver.apply(buildCustomer(merchantId, rng, now, "COORDINATOR", 0, 60));
                 customers.add(c);
                 int txCount = 2 + rng.nextInt(5);
-                List<Payment> txs = buildPayments(merchantId, c, rng, now, txCount,
-                        sharedDevice, sharedIp, true);
-                payments.addAll(txs);
-                // High refund rate for cluster members
+                List<Payment> txs = saveEach(buildPayments(merchantId, c, rng, now, txCount,
+                        sharedDevice, sharedIp, true), paymentSaver, payments);
                 double refundRate = 0.5 + rng.nextDouble() * 0.4;
                 for (Payment tx : txs) {
                     if (rng.nextDouble() < refundRate) {
@@ -137,18 +147,18 @@ public class SyntheticDataGenerator {
 
         // ---------- 4. High-velocity customers ----------
         for (int i = 0; i < velocityCustomerCount; i++) {
-            Customer c = buildCustomer(merchantId, rng, now, "HIGH_VELOCITY", 0, 90);
+            Customer c = customerSaver.apply(buildCustomer(merchantId, rng, now, "HIGH_VELOCITY", 0, 90));
             customers.add(c);
             // 15–30 transactions in a short window
             int txCount = 15 + rng.nextInt(15);
-            List<Payment> txs = buildPayments(merchantId, c, rng, now, txCount,
+            List<Payment> rawTxs = buildPayments(merchantId, c, rng, now, txCount,
                     randomDevice(rng), randomIp(rng), false);
             // Make timestamps very close together (velocity signal)
             Instant burstStart = now.minus(2, ChronoUnit.HOURS);
-            for (int t = 0; t < txs.size(); t++) {
-                txs.get(t).setTimestamp(burstStart.plus(t * 3L, ChronoUnit.MINUTES));
+            for (int t = 0; t < rawTxs.size(); t++) {
+                rawTxs.get(t).setTimestamp(burstStart.plus(t * 3L, ChronoUnit.MINUTES));
             }
-            payments.addAll(txs);
+            List<Payment> txs = saveEach(rawTxs, paymentSaver, payments);
             // Moderate refund rate
             double refundRate = 0.3 + rng.nextDouble() * 0.3;
             for (Payment tx : txs) {
@@ -164,6 +174,21 @@ public class SyntheticDataGenerator {
                 customers.size(), payments.size(), refunds.size(), labels.size(), seed);
 
         return new GeneratedDataset(customers, payments, refunds, labels);
+    }
+
+    // ---- helpers ----
+
+    /** Saves each entity using the provided saver, appends to the accumulator, and returns saved list. */
+    private <T> List<T> saveEach(List<T> items,
+                                  java.util.function.Function<T, T> saver,
+                                  List<T> accumulator) {
+        List<T> saved = new ArrayList<>(items.size());
+        for (T item : items) {
+            T s = saver.apply(item);
+            saved.add(s);
+            accumulator.add(s);
+        }
+        return saved;
     }
 
     // ---- builders ----
