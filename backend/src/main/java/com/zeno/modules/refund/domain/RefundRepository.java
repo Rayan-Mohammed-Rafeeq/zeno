@@ -14,4 +14,6 @@ public interface RefundRepository {
     List<Refund> findAllByMerchantIdAndPaymentId(UUID merchantId, UUID paymentId);
     List<Refund> findAllByMerchantId(UUID merchantId);
     long countByMerchantIdAndCustomerId(UUID merchantId, UUID customerId);
+    /** Idempotency check — returns existing refund by Razorpay refund ID. */
+    java.util.Optional<Refund> findByMerchantIdAndExternalRefundId(UUID merchantId, String externalRefundId);
 }

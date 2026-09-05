@@ -97,3 +97,9 @@ zeno:
     service-url: ${ML_SERVICE_URL:http://localhost:8001}
     timeout-seconds: ${ML_SERVICE_TIMEOUT_SECONDS:5}
     max-retries: ${ML_SERVICE_MAX_RETRIES:1}
+
+  razorpay:
+    webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:}
+    enabled: ${RAZORPAY_WEBHOOK_ENABLED:false}
+    key-id: ${RAZORPAY_KEY_ID:}
+    key-secret: ${RAZORPAY_KEY_SECRET:}

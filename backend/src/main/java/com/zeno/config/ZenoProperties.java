@@ -19,6 +19,7 @@ public class ZenoProperties {
     private Risk risk = new Risk();
     private Evaluation evaluation = new Evaluation();
     private Ml ml = new Ml();
+    private Razorpay razorpay = new Razorpay();
 
     @Getter
     @Setter
@@ -98,5 +99,44 @@ public class ZenoProperties {
 
         /** Number of retry attempts on connection failure before falling back to rule-based scoring. */
         private int maxRetries = 1;
+    }
+
+    /**
+     * Configuration for Razorpay webhook integration.
+     *
+     * Test Mode only — never claim IEEE-CIS model metrics represent Razorpay production performance.
+     * All incoming events are clearly labeled as TEST_MODE in the UI.
+     */
+    @Getter
+    @Setter
+    public static class Razorpay {
+        /**
+         * Webhook secret configured in Razorpay Dashboard → Settings → Webhooks.
+         * Used for HMAC-SHA256 signature verification of incoming webhook events.
+         * Set via env var RAZORPAY_WEBHOOK_SECRET.
+         */
+        private String webhookSecret = "";
+
+        /**
+         * Razorpay API Key ID (rzp_test_xxx / rzp_live_xxx).
+         * Safe to include in error messages but must not be sent to the frontend via API responses.
+         * Frontend uses its own VITE_RAZORPAY_KEY_ID env var.
+         * Set via env var RAZORPAY_KEY_ID.
+         */
+        private String keyId = "";
+
+        /**
+         * Razorpay API Key Secret.
+         * MUST NEVER be exposed to the frontend or logged.
+         * Used only for: order creation (Basic Auth) and payment signature verification (HMAC-SHA256).
+         * Set via env var RAZORPAY_KEY_SECRET.
+         */
+        private String keySecret = "";
+
+        /**
+         * Whether webhook processing is enabled.
+         * Set false to disable all webhook handling without removing config.
+         */
+        private boolean enabled = false;
     }
 }

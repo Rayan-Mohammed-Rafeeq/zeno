@@ -19,4 +19,6 @@ public interface PaymentRepository {
     long countByMerchantIdAndIpAddress(UUID merchantId, String ipAddress);
     List<Payment> findByMerchantIdAndDeviceId(UUID merchantId, String deviceId);
     List<Payment> findByMerchantIdAndIpAddress(UUID merchantId, String ipAddress);
+    /** Idempotency check — returns an existing payment by Razorpay payment ID. */
+    Optional<Payment> findByMerchantIdAndExternalPaymentId(UUID merchantId, String externalPaymentId);
 }

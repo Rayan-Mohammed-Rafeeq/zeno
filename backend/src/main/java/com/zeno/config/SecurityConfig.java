@@ -41,6 +41,9 @@ public class SecurityConfig {
                             "/api/v1/auth/resend-verification",
                             "/api/v1/auth/forgot-password",
                             "/api/v1/auth/reset-password").permitAll()
+                    // Razorpay webhooks — no JWT, authenticated by HMAC-SHA256 signature
+                    // The webhook controller performs its own signature verification.
+                    .requestMatchers(HttpMethod.POST, "/api/v1/webhooks/**").permitAll()
                     // Admin endpoints — ROLE_ADMIN required at the filter-chain level
                     // (controllers also use @PreAuthorize as defence-in-depth)
                     .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")

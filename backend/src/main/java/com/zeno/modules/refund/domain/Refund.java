@@ -30,6 +30,10 @@ public class Refund {
     @Column(name = "customer_id", nullable = false)
     private UUID customerId;
 
+    /** Razorpay refund ID (rfnd_xxx) — null for synthetic data. Used for idempotency. */
+    @Column(name = "external_refund_id", length = 64)
+    private String externalRefundId;
+
     @Column(nullable = false, precision = 18, scale = 2)
     private BigDecimal amount;
 
