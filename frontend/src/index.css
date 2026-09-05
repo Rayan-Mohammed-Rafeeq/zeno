@@ -56,6 +56,25 @@
   --shadow-sm:        0 1px 3px 0 rgb(0 0 0 / .08), 0 1px 2px -1px rgb(0 0 0 / .08);
   --shadow:           0 4px 6px -1px rgb(0 0 0 / .08), 0 2px 4px -2px rgb(0 0 0 / .08);
   --shadow-lg:        0 10px 15px -3px rgb(0 0 0 / .08), 0 4px 6px -4px rgb(0 0 0 / .08);
+
+  /* Glass card */
+  --glass-bg:         rgba(255, 255, 255, 0.72);
+  --glass-border:     rgba(94, 91, 193, 0.13);
+  --glass-shadow:     0 4px 24px rgb(94 91 193 / .08), 0 1px 3px rgb(0 0 0 / .06);
+  --glass-shine:      rgba(94, 91, 193, 0.35);
+
+  /* Ambient page glow */
+  --ambient-a:        rgba(94, 91, 193, 0.05);
+  --ambient-b:        rgba(100, 180, 255, 0.03);
+
+  /* KPI number gradient */
+  --kpi-gradient:     linear-gradient(135deg, #5e5bc1 0%, #8588e6 100%);
+
+  /* Table row hover */
+  --row-hover-bg:     rgba(94, 91, 193, 0.04);
+
+  /* Progress bar */
+  --bar-gradient:     linear-gradient(90deg, #8588e6, #5e5bc1);
 }
 
 /* ---------- DARK THEME ---------- */
@@ -105,6 +124,25 @@
   --shadow-sm:        0 1px 3px 0 rgb(0 0 0 / .3), 0 1px 2px -1px rgb(0 0 0 / .3);
   --shadow:           0 4px 6px -1px rgb(0 0 0 / .3), 0 2px 4px -2px rgb(0 0 0 / .3);
   --shadow-lg:        0 10px 15px -3px rgb(0 0 0 / .35), 0 4px 6px -4px rgb(0 0 0 / .35);
+
+  /* Glass card */
+  --glass-bg:         rgba(30, 31, 40, 0.7);
+  --glass-border:     rgba(133, 136, 230, 0.14);
+  --glass-shadow:     0 4px 24px rgb(0 0 0 / .25), 0 1px 3px rgb(0 0 0 / .3);
+  --glass-shine:      rgba(133, 136, 230, 0.4);
+
+  /* Ambient page glow */
+  --ambient-a:        rgba(133, 136, 230, 0.06);
+  --ambient-b:        rgba(60, 120, 200, 0.04);
+
+  /* KPI number gradient */
+  --kpi-gradient:     linear-gradient(135deg, #a5a8f4 0%, #8588e6 100%);
+
+  /* Table row hover */
+  --row-hover-bg:     rgba(133, 136, 230, 0.07);
+
+  /* Progress bar */
+  --bar-gradient:     linear-gradient(90deg, #a5a8f4, #8588e6);
 }
 
 /* ============================================================
@@ -167,6 +205,37 @@ body {
 }
 
 /* ============================================================
+   PREMIUM ANIMATION KEYFRAMES
+   ============================================================ */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes shimmer-sweep {
+  0%   { transform: translateX(-120%) skewX(-12deg); }
+  100% { transform: translateX(220%)  skewX(-12deg); }
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 currentColor; }
+  50%      { opacity: 0.7; transform: scale(1.15); box-shadow: 0 0 0 4px transparent; }
+}
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(133,136,230,0); }
+  50%      { box-shadow: 0 0 16px 4px rgba(133,136,230,0.18); }
+}
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+@keyframes count-up-glow {
+  0%   { opacity: 0; filter: blur(4px); }
+  100% { opacity: 1; filter: blur(0); }
+}
+
+/* ============================================================
    TAILWIND UTILITY SHIMS
    Map CSS variables → Tailwind custom utilities
    ============================================================ */
@@ -189,4 +258,101 @@ body {
   .shadow-zeno-sm  { box-shadow: var(--shadow-sm); }
   .shadow-zeno     { box-shadow: var(--shadow); }
   .shadow-zeno-lg  { box-shadow: var(--shadow-lg); }
+
+  /* Hide scrollbar visually without removing overflow behaviour. */
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+
+  /* ── Staggered fade-up animations ── */
+  .animate-fade-up        { animation: fade-up 0.5s ease both; }
+  .animate-fade-up-d1     { animation: fade-up 0.5s 0.07s ease both; }
+  .animate-fade-up-d2     { animation: fade-up 0.5s 0.14s ease both; }
+  .animate-fade-up-d3     { animation: fade-up 0.5s 0.21s ease both; }
+  .animate-fade-up-d4     { animation: fade-up 0.5s 0.28s ease both; }
+  .animate-fade-up-d5     { animation: fade-up 0.5s 0.35s ease both; }
+  .animate-fade-in        { animation: fade-in 0.4s ease both; }
+
+  /* ── Glass card surface ── */
+  .glass-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: var(--glass-shadow);
+    border-radius: var(--radius-lg);
+    position: relative;
+    overflow: hidden;
+  }
+  /* top-edge shimmer line */
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--glass-shine), transparent);
+    border-radius: 100%;
+    pointer-events: none;
+  }
+
+  /* ── KPI value gradient text ── */
+  .kpi-value {
+    background: var(--kpi-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: count-up-glow 0.6s ease both;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Pulsing status dot ── */
+  .pulse-dot {
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  /* ── Page ambient background ── */
+  .page-ambient {
+    position: relative;
+  }
+  .page-ambient::before {
+    content: '';
+    position: fixed;
+    top: 0; right: 0;
+    width: 600px; height: 600px;
+    background: radial-gradient(ellipse at top right, var(--ambient-a), transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .page-ambient::after {
+    content: '';
+    position: fixed;
+    bottom: 0; left: 0;
+    width: 500px; height: 500px;
+    background: radial-gradient(ellipse at bottom left, var(--ambient-b), transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Table row glow on hover ── */
+  .table-row-hover {
+    transition: background 0.15s, box-shadow 0.15s;
+  }
+  .table-row-hover:hover {
+    background: var(--row-hover-bg) !important;
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+
+  /* ── Stat progress bar ── */
+  .stat-bar-track {
+    height: 4px;
+    border-radius: 99px;
+    background: var(--surface-3);
+    overflow: hidden;
+  }
+  .stat-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: var(--bar-gradient);
+    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
 }
+

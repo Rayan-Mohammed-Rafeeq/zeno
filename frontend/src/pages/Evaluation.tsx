@@ -3,6 +3,8 @@ import { evaluationApi, monitoringApi } from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
+// KpiCard removed — not used in this file
+import { PageHeader } from '@/components/ui/PageHeader';
 import { formatNumber, formatPercent, formatCurrency } from '@/lib/utils';
 import { AlertTriangle, Target, TrendingUp, BarChart3, Activity, CheckCircle, XCircle } from 'lucide-react';
 import {
@@ -13,9 +15,16 @@ import {
 function ChartTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg px-3 py-2 text-xs shadow-lg"
-      style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--fg)' }}>
-      {label && <div className="font-semibold mb-1" style={{ color: 'var(--fg-muted)' }}>{label}</div>}
+    <div
+      className="rounded-xl px-4 py-3 text-xs shadow-xl"
+      style={{
+        background: 'var(--glass-bg)',
+        border: '1px solid var(--glass-border)',
+        backdropFilter: 'blur(12px)',
+        color: 'var(--fg)',
+      }}
+    >
+      {label && <div className="font-bold mb-1.5" style={{ color: 'var(--fg-muted)' }}>{label}</div>}
       {payload.map((p: any, i: number) => (
         <div key={i}>{p.name}: <strong>{typeof p.value === 'number' && p.value < 2 ? formatPercent(p.value) : p.value}</strong></div>
       ))}
@@ -46,9 +55,10 @@ function MetricCard({
 }
 
 export function Evaluation() {
-  const { data: metrics }  = useQuery({ queryKey: ['evaluation-metrics'],  queryFn: evaluationApi.getMetrics });
-  const { data: signals }  = useQuery({ queryKey: ['signal-performance'],  queryFn: evaluationApi.getSignalPerformance });
-  const { data: fps }      = useQuery({ queryKey: ['false-positives'],     queryFn: evaluationApi.getFalsePositives });
+  const { data: metrics, isError: metricsError }  = useQuery({ queryKey: ['evaluation-metrics'],  queryFn: evaluationApi.getMetrics,        retry: false });
+  const { data: signals }  = useQuery({ queryKey: ['signal-performance'],  queryFn: evaluationApi.getSignalPerformance, retry: false });
+  const { data: fps }      = useQuery({ queryKey: ['false-positives'],     queryFn: evaluationApi.getFalsePositives,   retry: false });
+  const { data: modelMetrics } = useQuery({ queryKey: ['model-metrics'], queryFn: evaluationApi.getModelMetrics, retry: false });
   const { data: monitoring } = useQuery({
     queryKey: ['monitoring-health'],
     queryFn:  monitoringApi.getHealth,
@@ -69,13 +79,11 @@ export function Evaluation() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--fg)' }}>Detector Evaluation</h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--fg-muted)' }}>
-          Measure performance against held-out synthetic ground truth.
-        </p>
-      </div>
+      <PageHeader
+        icon={BarChart3}
+        title="Detector Evaluation"
+        subtitle="Measure performance against held-out synthetic ground truth."
+      />
 
       {/* Limitations banner */}
       <div className="flex items-start gap-3 px-5 py-4 rounded-xl"
@@ -91,6 +99,75 @@ export function Evaluation() {
           </p>
         </div>
       </div>
+
+      {/* ── IEEE-CIS Real Benchmark Metrics ─────────────────────────── */}
+      {modelMetrics && (
+        <Card style={{ border: '2px solid var(--accent)' }}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5" style={{ color: 'var(--accent)' }} />
+              XGBoost Model — IEEE-CIS Held-Out Test Metrics
+            </CardTitle>
+            <p className="text-xs mt-1" style={{ color: 'var(--fg-muted)' }}>
+              {modelMetrics.nTest.toLocaleString()} real transactions · Threshold {modelMetrics.threshold.toFixed(3)} ·
+              cost-optimised (FP=${modelMetrics.fpCost} FN=${modelMetrics.fnCost}) · evaluated once
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-4">
+              {[
+                { label: 'AUPRC',     value: (modelMetrics.auprc   * 100).toFixed(1) + '%', color: 'var(--accent)' },
+                { label: 'Precision', value: (modelMetrics.precision * 100).toFixed(1) + '%', color: 'var(--success)' },
+                { label: 'Recall',    value: (modelMetrics.recall   * 100).toFixed(1) + '%', color: 'var(--success)' },
+                { label: 'F1',        value: (modelMetrics.f1       * 100).toFixed(1) + '%', color: 'var(--success)' },
+                { label: 'ROC-AUC',   value: (modelMetrics.rocAuc   * 100).toFixed(1) + '%', color: 'var(--fg)' },
+                { label: 'FP Rate',   value: (modelMetrics.fpr      * 100).toFixed(2) + '%', color: 'var(--warning)' },
+              ].map(({ label, value, color }) => (
+                <div key={label} className="rounded-xl p-3 text-center" style={{ background: 'var(--surface-2)' }}>
+                  <div className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--fg-subtle)' }}>{label}</div>
+                  <div className="text-xl font-bold" style={{ color }}>{value}</div>
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-4 gap-2 text-center text-sm mb-4">
+              {[
+                { label: 'TP', value: modelMetrics.truePositives,  color: 'var(--success)',  bg: 'var(--success-bg)'    },
+                { label: 'FP', value: modelMetrics.falsePositives, color: 'var(--risk-high)', bg: 'var(--risk-high-bg)' },
+                { label: 'TN', value: modelMetrics.trueNegatives,  color: 'var(--success)',  bg: 'var(--success-bg)'    },
+                { label: 'FN', value: modelMetrics.falseNegatives, color: 'var(--danger)',    bg: 'var(--danger-bg)'     },
+              ].map(({ label, value, color, bg }) => (
+                <div key={label} className="rounded-lg p-2" style={{ background: bg, border: `1px solid ${color}` }}>
+                  <div className="font-bold text-lg" style={{ color }}>{value.toLocaleString()}</div>
+                  <div className="text-xs" style={{ color }}>{label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center justify-between flex-wrap gap-2 text-xs px-3 py-2 rounded-lg"
+              style={{ background: 'var(--surface-2)', color: 'var(--fg-subtle)' }}>
+              <span>Dataset: {modelMetrics.datasetName} · Train: {modelMetrics.nTrain.toLocaleString()} rows ({(modelMetrics.trainFraudRate*100).toFixed(2)}% fraud)</span>
+              <span>Model: {modelMetrics.modelVersion} · Features: {modelMetrics.nFeatures}</span>
+            </div>
+            <p className="text-xs mt-2 px-3 py-2 rounded-lg" style={{ background: 'var(--warning-bg)', color: 'var(--warning)' }}>
+              {modelMetrics.disclaimer}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* No evaluation run yet */}
+      {metricsError && (
+        <div className="flex items-start gap-3 px-5 py-4 rounded-xl"
+          style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+          <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0" style={{ color: 'var(--fg-subtle)' }} />
+          <div>
+            <div className="text-sm font-bold mb-1" style={{ color: 'var(--fg)' }}>No synthetic evaluation data yet</div>
+            <p className="text-sm" style={{ color: 'var(--fg-muted)' }}>
+              Go to <strong>Dataset</strong>, generate a dataset, run risk analysis, then come back here to see
+              the confusion matrix and signal performance. The IEEE-CIS benchmark metrics above are always available.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Dataset summary */}
       <div className="grid gap-3 grid-cols-3">
@@ -406,9 +483,9 @@ export function Evaluation() {
           <CardContent>
             <div className="grid grid-cols-3 gap-4 text-center">
               {[
-                { label: 'Mean Fraud Probability', val: monitoring.predMean !== null ? formatPercent(monitoring.predMean) : '—' },
-                { label: 'Std Dev',                val: monitoring.predStd  !== null ? monitoring.predStd.toFixed(4) : '—' },
-                { label: 'High-Risk Fraction',     val: monitoring.highRiskFraction !== null ? formatPercent(monitoring.highRiskFraction) : '—' },
+                { label: 'Mean Fraud Probability', val: monitoring.predMean != null ? formatPercent(monitoring.predMean) : '—' },
+                { label: 'Std Dev',                val: monitoring.predStd  != null ? monitoring.predStd.toFixed(4) : '—' },
+                { label: 'High-Risk Fraction',     val: monitoring.highRiskFraction != null ? formatPercent(monitoring.highRiskFraction) : '—' },
               ].map(({ label, val }) => (
                 <div key={label} className="rounded-xl p-4" style={{ background: 'var(--surface-2)' }}>
                   <div className="text-xs uppercase tracking-wider mb-1"

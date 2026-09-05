@@ -3,12 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { transactionApi } from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { formatCurrency, formatRelativeTime, formatNumber } from '@/lib/utils';
+import { formatCurrency, formatRelativeTime } from '@/lib/utils';
 import {
   ArrowLeft, Receipt, AlertTriangle, Activity,
-  Smartphone, Globe, CreditCard, ShieldAlert, Brain,
+  Smartphone, Globe, CreditCard,
 } from 'lucide-react';
-import type { RiskLevel } from '@/types';
 
 const STATUS_COLORS: Record<string, string> = {
   COMPLETED: 'var(--success)',

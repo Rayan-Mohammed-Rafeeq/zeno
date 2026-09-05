@@ -5,9 +5,41 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Zeno - Risk Intelligence Platform</title>
+    <!--
+      Blocking theme script — runs synchronously before React renders.
+      Public pages (landing, login, register, etc.) are always dark.
+      Authenticated app pages use the user's stored preference.
+    -->
+    <script>
+      (function () {
+        var PUBLIC_PATHS = ['/', '/login', '/register', '/forgot-password', '/verify-email', '/reset-password'];
+        var path = window.location.pathname;
+        var isPublic = PUBLIC_PATHS.indexOf(path) !== -1;
+
+        var root = document.documentElement;
+        root.classList.remove('light', 'dark');
+
+        if (isPublic) {
+          root.classList.add('dark');
+        } else {
+          var saved = localStorage.getItem('theme') || 'system';
+          if (saved === 'dark') {
+            root.classList.add('dark');
+          } else if (saved === 'light') {
+            root.classList.add('light');
+          } else {
+            root.classList.add(
+              window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+            );
+          }
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <!-- Razorpay Standard Checkout SDK — loaded once globally -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

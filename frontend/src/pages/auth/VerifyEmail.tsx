@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { MailCheck, CheckCircle, XCircle, Loader2, ArrowLeft } from 'lucide-react';
 import { authApi } from '@/services/api';
+import { useForceDark } from '@/hooks/useForceDark';
 
 type State = 'pending' | 'verifying' | 'success' | 'error';
 
@@ -9,6 +10,7 @@ export function VerifyEmail() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
 
+  useForceDark();
   const [state, setState] = useState<State>(token ? 'verifying' : 'pending');
   const [errorMsg, setErrorMsg] = useState('');
   const [resendEmail, setResendEmail] = useState('');

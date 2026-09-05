@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { auditApi } from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { KpiCard } from '@/components/ui/KpiCard';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { formatDateTime } from '@/lib/utils';
 import {
   FileText, Database, Activity, Network, FileSearch,
@@ -31,35 +33,19 @@ export function AuditTrail() {
   );
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--fg)' }}>Audit Trail</h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--fg-muted)' }}>
-            Immutable chronological log of all system and analyst actions.
-          </p>
-        </div>
-        <div className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0"
-          style={{ background: 'var(--accent-muted)' }}>
-          <FileText className="h-4 w-4" style={{ color: 'var(--accent)' }} />
-        </div>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        icon={FileText}
+        title="Audit Trail"
+        subtitle="Immutable chronological log of all system and analyst actions."
+      />
 
-      {/* Summary */}
-      <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
-        {[
-          { label: 'Total Events',   val: data?.total ?? 0 },
-          { label: 'System Actions', val: events.filter((e) => e.actorType === 'SYSTEM').length },
-          { label: 'Analyst Actions', val: events.filter((e) => e.actorType === 'USER').length },
-          { label: 'Risk Detections', val: events.filter((e) => ['RISK_SIGNAL_DETECTED','CLUSTER_IDENTIFIED'].includes(e.eventType)).length },
-        ].map((s) => (
-          <Card key={s.label}>
-            <CardContent className="pt-5 pb-4">
-              <div className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--fg-subtle)' }}>{s.label}</div>
-              <div className="text-2xl font-bold" style={{ color: 'var(--fg)' }}>{s.val}</div>
-            </CardContent>
-          </Card>
-        ))}
+      {/* Summary KPI strip */}
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+        <KpiCard icon={Activity}    label="Total Events"    value={data?.total ?? 0}                                                                 delay="animate-fade-up-d1" />
+        <KpiCard icon={Cpu}         label="System Actions"  value={events.filter((e) => e.actorType === 'SYSTEM').length}                            delay="animate-fade-up-d2" />
+        <KpiCard icon={User}        label="Analyst Actions" value={events.filter((e) => e.actorType === 'USER').length}                              delay="animate-fade-up-d3" />
+        <KpiCard icon={ShieldCheck} label="Risk Detections" value={events.filter((e) => ['RISK_SIGNAL_DETECTED','CLUSTER_IDENTIFIED'].includes(e.eventType)).length} accent="danger" delay="animate-fade-up-d4" />
       </div>
 
       {/* Timeline */}

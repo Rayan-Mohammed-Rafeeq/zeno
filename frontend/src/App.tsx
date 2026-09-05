@@ -27,6 +27,7 @@ import { AuditTrail }           from '@/pages/AuditTrail';
 import { Dataset }              from '@/pages/Dataset';
 import { Settings }             from '@/pages/Settings';
 import { Landing }              from '@/pages/Landing';
+import { LiveEvents }           from '@/pages/LiveEvents';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,45 +42,52 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <ThemeProvider>
-          <AuthProvider>
-            <Routes>
-              {/* Public */}
-              <Route path="/"                element={<Landing />}        />
-              <Route path="/login"           element={<Login />}          />
-              <Route path="/register"        element={<Register />}       />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/verify-email"    element={<VerifyEmail />}    />
-              <Route path="/reset-password"  element={<ResetPassword />}  />
+        <AuthProvider>
+          <Routes>
+            {/* ── Public pages ────────────────────────────────────────────
+                No ThemeProvider here — useTheme() returns the dark fallback,
+                so these pages are always dark with no theme toggle.
+                The blocking script in index.html ensures dark class is set on
+                <html> before React even renders (no flash on F5). */}
+            <Route path="/"                element={<Landing />}        />
+            <Route path="/login"           element={<Login />}          />
+            <Route path="/register"        element={<Register />}       />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verify-email"    element={<VerifyEmail />}    />
+            <Route path="/reset-password"  element={<ResetPassword />}  />
 
-              {/* Protected */}
-              <Route
-                path="/*"
-                element={
-                  <ProtectedRoute>
+            {/* ── Protected pages ─────────────────────────────────────────
+                ThemeProvider lives here only — theme switching is available
+                after sign-in and respects the user's stored preference. */}
+            <Route
+              path="/*"
+              element={
+                <ProtectedRoute>
+                  <ThemeProvider>
                     <AppLayout>
                       <Routes>
-                        <Route path="/dashboard"              element={<Dashboard />}      />
-                        <Route path="/customers"              element={<Customers />}      />
-                        <Route path="/customers/:id"          element={<CustomerDetail />} />
-                        <Route path="/transactions"           element={<Transactions />}         />
-                        <Route path="/transactions/:id"       element={<TransactionDetail />}     />
-                        <Route path="/clusters"               element={<Clusters />}              />
-                        <Route path="/clusters/:id"           element={<ClusterDetail />}         />
-                        <Route path="/investigations"         element={<Investigations />}        />
-                        <Route path="/investigations/:id"     element={<InvestigationDetail />}   />
-                        <Route path="/evaluation"             element={<Evaluation />}     />
-                        <Route path="/audit"                  element={<AuditTrail />}     />
-                        <Route path="/dataset"                element={<Dataset />}        />
-                        <Route path="/settings"               element={<Settings />}       />
+                        <Route path="/dashboard"              element={<Dashboard />}          />
+                        <Route path="/customers"              element={<Customers />}          />
+                        <Route path="/customers/:id"          element={<CustomerDetail />}     />
+                        <Route path="/transactions"           element={<Transactions />}       />
+                        <Route path="/transactions/:id"       element={<TransactionDetail />}  />
+                        <Route path="/clusters"               element={<Clusters />}           />
+                        <Route path="/clusters/:id"           element={<ClusterDetail />}      />
+                        <Route path="/investigations"         element={<Investigations />}     />
+                        <Route path="/investigations/:id"     element={<InvestigationDetail />}/>
+                        <Route path="/evaluation"             element={<Evaluation />}         />
+                        <Route path="/audit"                  element={<AuditTrail />}         />
+                        <Route path="/dataset"                element={<Dataset />}            />
+                        <Route path="/settings"               element={<Settings />}           />
+                        <Route path="/live-events"            element={<LiveEvents />}         />
                       </Routes>
                     </AppLayout>
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </AuthProvider>
-        </ThemeProvider>
+                  </ThemeProvider>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );

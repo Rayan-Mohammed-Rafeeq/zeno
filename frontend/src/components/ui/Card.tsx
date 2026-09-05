@@ -1,14 +1,31 @@
 import { cn } from '@/lib/utils';
 import React from 'react';
 
-export function Card({ className, style, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** 'default' = solid surface  |  'glass' = glassmorphism  |  'elevated' = deeper shadow */
+  variant?: 'default' | 'glass' | 'elevated';
+}
+
+export function Card({ className, style, variant = 'default', children, ...props }: CardProps) {
+  if (variant === 'glass') {
+    return (
+      <div
+        className={cn('glass-card', className)}
+        style={style}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn('rounded-xl border', className)}
       style={{
         background: 'var(--surface)',
         borderColor: 'var(--border)',
-        boxShadow: 'var(--shadow-sm)',
+        boxShadow: variant === 'elevated' ? 'var(--shadow)' : 'var(--shadow-sm)',
         ...style,
       }}
       {...props}

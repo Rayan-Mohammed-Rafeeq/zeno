@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ArrowRight, Menu, X } from 'lucide-react';
 import { ZenoLogo } from '@/components/brand/Logo';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useForceDark } from '@/hooks/useForceDark';
 import { ZenoVisualization } from '@/components/brand/ZenoVisualization';
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -513,72 +513,119 @@ html, body { margin:0; padding:0; }
 /* ── TRUST BAR ───────────────────────────────────────────────────────── */
 .lp-trust {
   border-top:1px solid rgba(133,136,230,0.08);
-  border-bottom:1px solid rgba(133,136,230,0.08);
-  background:rgba(133,136,230,0.03);
+  border-bottom:1px solid rgba(0,0,0,0.06);
+  background:linear-gradient(180deg, #0c0d14 0%, #11131e 70%, #181b2a 100%);
   padding:28px 0;
 }
 .lp-trust-inner { display:flex; justify-content:center; gap:60px; flex-wrap:wrap; }
 .lp-trust-item {
   display:flex; align-items:center; gap:10px;
-  font-size:13px; font-weight:600; color:rgba(232,234,240,0.5);
+  font-size:13px; font-weight:600; color:rgba(232,234,240,0.65);
   letter-spacing:0.3px;
 }
 .lp-trust-icon {
   width:32px; height:32px; border-radius:8px;
-  background:rgba(133,136,230,0.1); border:1px solid rgba(133,136,230,0.18);
+  background:rgba(133,136,230,0.12); border:1px solid rgba(133,136,230,0.22);
   display:flex; align-items:center; justify-content:center; flex-shrink:0;
-  color:#8588e6;
+  color:#a5a8f4;
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   PROBLEM SECTION
+   PROBLEM SECTION (LIGHT SECTION)
 ══════════════════════════════════════════════════════════════════════ */
-.lp-problem { padding:120px 0; }
-.lp-problem-header { max-width:640px; margin:0 auto 80px; text-align:center; }
-.lp-section-h2 {
-  font-size:clamp(32px,3.5vw,50px); font-weight:800; line-height:1.1;
-  letter-spacing:-1px; color:#f0f1f8; margin:0 0 20px;
+.lp-problem {
+  padding:120px 0; position:relative;
+  background:linear-gradient(180deg, #edf1f7 0%, #f4f6fa 40%, #eef1f7 100%);
+  color:#0f172a;
+  overflow:hidden;
 }
-.lp-section-sub {
-  font-size:18px; line-height:1.65; color:rgba(232,234,240,0.5); margin:0;
+.lp-problem::before {
+  content:''; position:absolute; top:5%; right:-8%; width:980px; height:760px;
+  background:
+    radial-gradient(circle at 60% 45%, rgba(133,136,230,0.16) 0%, rgba(99,102,241,0.07) 35%, rgba(165,168,244,0.03) 60%, transparent 72%),
+    radial-gradient(circle at 85% 20%, rgba(165,168,244,0.12) 0%, transparent 55%);
+  pointer-events:none; z-index:0;
+}
+.lp-problem::after {
+  content:''; position:absolute; bottom:5%; left:-10%; width:640px; height:640px;
+  background:radial-gradient(circle, rgba(165,168,244,0.09) 0%, rgba(133,136,230,0.04) 45%, transparent 68%);
+  pointer-events:none; z-index:0;
+}
+.lp-decor-problem {
+  position:absolute; inset:0; pointer-events:none; z-index:0; overflow:hidden;
+}
+.lp-problem-header { max-width:640px; margin:0 auto 80px; text-align:center; position:relative; z-index:1; }
+.lp-problem .lp-eyebrow { color:#4f46e5; }
+.lp-problem .lp-eyebrow::before { background:#4f46e5; }
+.lp-problem .lp-section-h2 {
+  font-size:clamp(32px,3.5vw,50px); font-weight:800; line-height:1.1;
+  letter-spacing:-1px; color:#0f172a; margin:0 0 20px;
+}
+.lp-problem .lp-section-sub {
+  font-size:18px; line-height:1.65; color:#475569; margin:0;
 }
 .lp-problem-layout {
   display:grid; grid-template-columns:1fr 1.1fr; gap:80px; align-items:center;
+  position:relative; z-index:1;
 }
 .lp-problem-items { display:flex; flex-direction:column; gap:36px; }
 .lp-problem-item { display:flex; gap:20px; align-items:flex-start; }
 .lp-problem-icon-wrap {
   width:44px; height:44px; border-radius:11px; flex-shrink:0; margin-top:2px;
   display:flex; align-items:center; justify-content:center; font-size:19px;
-  background:rgba(133,136,230,0.07); border:1px solid rgba(133,136,230,0.15);
+  background:rgba(99,102,241,0.07); border:1px solid rgba(99,102,241,0.2);
+  color:#4f46e5;
+  box-shadow:0 2px 10px rgba(99,102,241,0.06);
 }
-.lp-problem-text h3 { font-size:17px; font-weight:700; color:#e8eaf0; margin:0 0 7px; }
-.lp-problem-text p { font-size:14px; line-height:1.65; color:rgba(232,234,240,0.45); margin:0; }
+.lp-problem-text h3 { font-size:17px; font-weight:700; color:#0f172a; margin:0 0 7px; }
+.lp-problem-text p { font-size:14px; line-height:1.65; color:#475569; margin:0; }
 
-/* ── ORDERS FLOW VISUAL ──────────────────────────────────────────────── */
+/* ── ORDERS FLOW VISUAL (LIGHT EMBED) ────────────────────────────────── */
 .lp-orders-flow {
-  position:relative; background:rgba(15,16,26,0.6);
-  border:1px solid rgba(133,136,230,0.15); border-radius:20px;
-  padding:28px; overflow:hidden;
+  position:relative; background:#ffffff;
+  border:1px solid rgba(133,136,230,0.28); border-radius:22px;
+  padding:30px; overflow:hidden;
+  box-shadow:
+    0 24px 60px -12px rgba(99,102,241,0.12),
+    0 4px 16px rgba(15,23,42,0.04),
+    inset 0 1px 0 rgba(255,255,255,0.95),
+    inset 0 0 24px rgba(133,136,230,0.03);
+  transition:all 0.3s cubic-bezier(0.16,1,0.3,1);
 }
 .lp-orders-flow::before {
-  content:''; position:absolute; top:0; left:0; right:0; height:1px;
-  background:linear-gradient(90deg,transparent,rgba(133,136,230,0.3),transparent);
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg,transparent,rgba(133,136,230,0.85),transparent);
+}
+.lp-orders-flow:hover {
+  border-color:rgba(133,136,230,0.45);
+  box-shadow:
+    0 32px 75px -14px rgba(99,102,241,0.18),
+    0 6px 20px rgba(15,23,42,0.05),
+    inset 0 1px 0 #ffffff;
 }
 .lp-flow-label {
   font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
-  color:rgba(232,234,240,0.3); margin-bottom:20px; display:flex; align-items:center; gap:8px;
+  color:#64748b; margin-bottom:20px; display:flex; align-items:center; gap:8px;
 }
 .lp-flow-label::after {
-  content:''; flex:1; height:1px; background:rgba(133,136,230,0.1);
+  content:''; flex:1; height:1px; background:#e2e8f0;
 }
 .lp-flow-orders { display:flex; flex-direction:column; gap:10px; }
 .lp-flow-order {
   display:flex; justify-content:space-between; align-items:center;
   padding:12px 16px; border-radius:10px;
-  border:1px solid rgba(133,136,230,0.12);
-  background:rgba(20,21,34,0.8);
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+  box-shadow:0 2px 6px rgba(15,23,42,0.03);
   animation:lp-slide-in 0.6s ease both;
+  transition:border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.lp-flow-order:hover {
+  border-color:rgba(133,136,230,0.4);
+  background:#ffffff;
+  transform:translateX(2px);
+  box-shadow:0 4px 14px rgba(99,102,241,0.08);
 }
 .lp-flow-order:nth-child(1) { animation-delay:0.1s; }
 .lp-flow-order:nth-child(2) { animation-delay:0.3s; }
@@ -586,231 +633,399 @@ html, body { margin:0; padding:0; }
 .lp-flow-order:nth-child(4) { animation-delay:0.7s; }
 .lp-flow-order:nth-child(5) { animation-delay:0.9s; }
 .lp-flow-left { display:flex; flex-direction:column; gap:3px; }
-.lp-flow-order-id { font-size:11px; color:rgba(232,234,240,0.3); font-weight:600; letter-spacing:0.5px; }
-.lp-flow-order-amt { font-size:15px; font-weight:700; color:#e8eaf0; }
-.lp-flow-order-hint { font-size:11px; color:rgba(232,234,240,0.4); margin-top:1px; }
+.lp-flow-order-id { font-size:11px; color:#64748b; font-weight:600; letter-spacing:0.5px; }
+.lp-flow-order-amt { font-size:15px; font-weight:700; color:#0f172a; }
+.lp-flow-order-hint { font-size:11px; color:#64748b; margin-top:1px; }
 
 /* watching indicator */
 .lp-flow-watching {
   margin-top:18px; display:flex; align-items:center; gap:10px;
   padding:10px 16px; border-radius:10px;
-  background:rgba(133,136,230,0.06); border:1px solid rgba(133,136,230,0.12);
+  background:rgba(99,102,241,0.05); border:1px solid rgba(99,102,241,0.18);
 }
 .lp-flow-watching-dot {
-  width:8px; height:8px; border-radius:50%; background:#8588e6;
+  width:8px; height:8px; border-radius:50%; background:#6366f1;
   animation:lp-hero-pulse 2s infinite; flex-shrink:0;
 }
-.lp-flow-watching span { font-size:12px; color:rgba(232,234,240,0.4); font-weight:500; }
+.lp-flow-watching span { font-size:12px; color:#475569; font-weight:500; }
+
+/* Light badge overrides */
+.lp-problem .lp-badge-safe { background:rgba(22,163,74,0.1); color:#16a34a; border:1px solid rgba(22,163,74,0.25); }
+.lp-problem .lp-badge-review { background:rgba(217,119,6,0.1); color:#d97706; border:1px solid rgba(217,119,6,0.25); }
+.lp-problem .lp-badge-blocked { background:rgba(220,38,38,0.1); color:#dc2626; border:1px solid rgba(220,38,38,0.25); }
 
 /* ══════════════════════════════════════════════════════════════════════
-   HOW IT WORKS
+   HOW IT WORKS (DARK TECHNICAL SECTION)
 ══════════════════════════════════════════════════════════════════════ */
-.lp-hiw { padding:120px 0; background:rgba(133,136,230,0.02); }
-.lp-hiw-header { max-width:600px; margin:0 auto 80px; text-align:center; }
+.lp-hiw {
+  padding:120px 0; position:relative;
+  background:linear-gradient(180deg, #090b14 0%, #0d1020 50%, #090b14 100%);
+  color:#e8eaf0;
+  box-shadow:inset 0 20px 40px -10px rgba(0,0,0,0.5);
+}
+.lp-hiw::before {
+  content:''; position:absolute; top:25%; left:50%; transform:translateX(-50%);
+  width:800px; height:500px;
+  background:radial-gradient(ellipse, rgba(99,102,241,0.07) 0%, rgba(59,130,246,0.035) 45%, transparent 75%);
+  pointer-events:none; z-index:0;
+}
+.lp-hiw-header { max-width:600px; margin:0 auto 80px; text-align:center; position:relative; z-index:1; }
+.lp-hiw .lp-eyebrow { color:#818cf8; }
+.lp-hiw .lp-eyebrow::before { background:#818cf8; }
+.lp-hiw .lp-section-h2 { color:#f0f1f8; }
+.lp-hiw .lp-section-sub { color:rgba(232,234,240,0.5); }
 .lp-hiw-steps {
   display:grid; grid-template-columns:repeat(4,1fr); gap:2px;
-  background:rgba(133,136,230,0.08); border-radius:20px; overflow:hidden;
-  border:1px solid rgba(133,136,230,0.12);
+  background:rgba(99,102,241,0.12); border-radius:20px; overflow:hidden;
+  border:1px solid rgba(99,102,241,0.18);
+  box-shadow:0 24px 60px rgba(0,0,0,0.45);
+  position:relative; z-index:1;
 }
 .lp-hiw-step {
-  background:#0e0f1c; padding:40px 28px;
-  position:relative; transition:background 0.3s;
+  background:#0c0e1e; padding:40px 28px;
+  position:relative; transition:all 0.3s;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
 }
-.lp-hiw-step:hover { background:rgba(133,136,230,0.06); }
+.lp-hiw-step:hover {
+  background:#101328;
+  box-shadow:inset 0 0 30px rgba(99,102,241,0.08), inset 0 1px 0 rgba(165,180,252,0.12);
+}
 .lp-hiw-step-num {
-  font-size:11px; font-weight:800; letter-spacing:2px; color:rgba(133,136,230,0.4);
-  margin-bottom:24px;
+  font-size:12px; font-weight:800; letter-spacing:2.5px; color:#818cf8;
+  margin-bottom:24px; opacity:0.85;
 }
 .lp-hiw-step-icon {
   width:48px; height:48px; border-radius:12px;
-  background:rgba(133,136,230,0.1); border:1px solid rgba(133,136,230,0.2);
+  background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.25);
   display:flex; align-items:center; justify-content:center;
-  font-size:22px; margin-bottom:20px;
+  font-size:22px; margin-bottom:20px; color:#a5b4fc;
+  box-shadow:0 0 16px rgba(99,102,241,0.1);
+  transition:transform 0.25s, border-color 0.25s;
+}
+.lp-hiw-step:hover .lp-hiw-step-icon {
+  transform:translateY(-2px) scale(1.05);
+  border-color:rgba(99,102,241,0.45);
+  box-shadow:0 0 22px rgba(99,102,241,0.22);
 }
 .lp-hiw-step h3 { font-size:16px; font-weight:700; color:#e8eaf0; margin:0 0 10px; }
-.lp-hiw-step p { font-size:13px; line-height:1.65; color:rgba(232,234,240,0.45); margin:0; }
+.lp-hiw-step p { font-size:13px; line-height:1.65; color:rgba(232,234,240,0.5); margin:0; }
 .lp-hiw-connector {
   position:absolute; right:-1px; top:50%; transform:translateY(-50%);
-  width:2px; height:40px; background:linear-gradient(to bottom,transparent,rgba(133,136,230,0.3),transparent);
+  width:2px; height:44px; background:linear-gradient(to bottom,transparent,rgba(129,140,248,0.45),transparent);
   z-index:2;
 }
 
 /* ── ORDER JOURNEY ───────────────────────────────────────────────────── */
-.lp-journey { margin-top:64px; }
+.lp-journey { margin-top:64px; position:relative; z-index:1; }
 .lp-journey-label { text-align:center; font-size:12px; font-weight:600; letter-spacing:2px;
-  text-transform:uppercase; color:rgba(232,234,240,0.25); margin-bottom:28px; }
+  text-transform:uppercase; color:rgba(232,234,240,0.32); margin-bottom:28px; }
 .lp-journey-track {
   position:relative; display:flex; gap:0; align-items:stretch;
-  background:rgba(15,16,26,0.7); border:1px solid rgba(133,136,230,0.12);
+  background:rgba(13,16,30,0.85); border:1px solid rgba(99,102,241,0.16);
   border-radius:16px; overflow:hidden;
+  box-shadow:0 18px 48px rgba(0,0,0,0.4);
 }
 .lp-journey-track::before {
   content:''; position:absolute; top:0; left:0; right:0; height:1px;
-  background:linear-gradient(90deg,transparent,rgba(133,136,230,0.25),transparent);
+  background:linear-gradient(90deg,transparent,rgba(129,140,248,0.35),transparent);
 }
 .lp-journey-stage {
   flex:1; padding:24px 20px; position:relative;
-  border-right:1px solid rgba(133,136,230,0.08);
+  border-right:1px solid rgba(99,102,241,0.1);
 }
 .lp-journey-stage:last-child { border-right:none; }
 .lp-journey-stage-label {
   font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
-  color:rgba(232,234,240,0.25); margin-bottom:16px;
+  color:rgba(232,234,240,0.32); margin-bottom:16px;
 }
 .lp-journey-card {
-  background:rgba(20,21,36,0.9); border:1px solid rgba(133,136,230,0.15);
+  background:rgba(18,22,40,0.92); border:1px solid rgba(99,102,241,0.16);
   border-radius:10px; padding:12px 14px; margin-bottom:8px;
+  box-shadow:0 4px 14px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
+  transition:all 0.2s;
+}
+.lp-journey-card:hover {
+  border-color:rgba(99,102,241,0.32);
+  background:rgba(22,27,50,0.96);
+  transform:translateY(-1px);
 }
 .lp-journey-card-amt { font-size:15px; font-weight:700; color:#e8eaf0; }
-.lp-journey-card-hint { font-size:11px; color:rgba(232,234,240,0.4); margin-top:3px; }
+.lp-journey-card-hint { font-size:11px; color:rgba(232,234,240,0.48); margin-top:3px; }
 .lp-journey-card-result { margin-top:8px; }
 .lp-journey-arrow {
   display:flex; align-items:center; justify-content:center;
-  padding:0 8px; color:rgba(133,136,230,0.3); font-size:18px;
-  border-right:1px solid rgba(133,136,230,0.08); flex-shrink:0; min-width:36px;
+  padding:0 8px; color:rgba(129,140,248,0.4); font-size:18px;
+  border-right:1px solid rgba(99,102,241,0.1); flex-shrink:0; min-width:36px;
   align-self:stretch;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   PRODUCT SHOWCASE
+   PRODUCT SHOWCASE (DARK CONSOLE)
 ══════════════════════════════════════════════════════════════════════ */
-.lp-product { padding:120px 0; }
+.lp-product {
+  padding:120px 0; position:relative;
+  background:#090b14;
+}
 .lp-product-layout { display:grid; grid-template-columns:1fr 1.15fr; gap:80px; align-items:start; }
 .lp-product-copy { padding-top:20px; }
+.lp-product .lp-eyebrow { color:#818cf8; }
+.lp-product .lp-eyebrow::before { background:#818cf8; }
 .lp-product-copy h2 { font-size:clamp(28px,3vw,44px); font-weight:800; letter-spacing:-0.8px; color:#f0f1f8; margin:0 0 18px; line-height:1.1; }
-.lp-product-copy p { font-size:17px; line-height:1.7; color:rgba(232,234,240,0.5); margin:0 0 36px; }
+.lp-product-copy p { font-size:17px; line-height:1.7; color:rgba(232,234,240,0.52); margin:0 0 36px; }
 .lp-product-checks { display:flex; flex-direction:column; gap:14px; }
-.lp-product-check { display:flex; align-items:center; gap:12px; font-size:14px; color:rgba(232,234,240,0.6); }
+.lp-product-check { display:flex; align-items:center; gap:12px; font-size:14px; color:rgba(232,234,240,0.65); }
 .lp-product-check-icon { width:20px; height:20px; border-radius:50%; background:rgba(74,222,128,0.15); border:1px solid rgba(74,222,128,0.3); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#4ade80; font-size:10px; font-weight:800; }
 
 /* ── DASHBOARD MOCKUP ────────────────────────────────────────────────── */
 .lp-dash {
-  background:rgba(12,13,22,0.95); border:1px solid rgba(133,136,230,0.2);
+  background:linear-gradient(180deg, rgba(14,16,28,0.98) 0%, rgba(10,12,22,0.96) 100%);
+  border:1px solid rgba(99,102,241,0.22);
   border-radius:18px; overflow:hidden;
-  box-shadow:0 24px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(133,136,230,0.08);
+  box-shadow:0 30px 90px rgba(0,0,0,0.65), 0 0 0 1px rgba(99,102,241,0.12), inset 0 1px 0 rgba(255,255,255,0.08);
+  position:relative;
+}
+.lp-dash::before {
+  content:''; position:absolute; top:0; left:15%; right:15%; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(129,140,248,0.45),transparent);
 }
 .lp-dash-topbar {
   display:flex; gap:6px; padding:14px 18px;
-  background:rgba(133,136,230,0.04); border-bottom:1px solid rgba(133,136,230,0.1);
+  background:rgba(99,102,241,0.05); border-bottom:1px solid rgba(99,102,241,0.12);
 }
 .lp-dash-dot { width:10px; height:10px; border-radius:50%; }
-.lp-dash-title { margin-left:auto; font-size:12px; color:rgba(232,234,240,0.25); font-weight:500; }
+.lp-dash-title { margin-left:auto; font-size:12px; color:rgba(232,234,240,0.3); font-weight:500; }
 .lp-dash-body { padding:20px; }
 .lp-dash-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:18px; }
 .lp-dash-stat {
-  background:rgba(133,136,230,0.06); border:1px solid rgba(133,136,230,0.1);
+  background:rgba(18,21,38,0.72); border:1px solid rgba(99,102,241,0.14);
   border-radius:10px; padding:14px 16px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
 }
-.lp-dash-stat-label { font-size:10px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:rgba(232,234,240,0.3); margin-bottom:6px; }
+.lp-dash-stat-label { font-size:10px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:rgba(232,234,240,0.35); margin-bottom:6px; }
 .lp-dash-stat-val { font-size:20px; font-weight:800; }
 .lp-dash-stat-val.green { color:#4ade80; }
 .lp-dash-stat-val.amber { color:#fbbf24; }
 .lp-dash-stat-val.red   { color:#f87171; }
-.lp-dash-orders-label { font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:rgba(232,234,240,0.25); margin-bottom:10px; }
+.lp-dash-orders-label { font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:rgba(232,234,240,0.3); margin-bottom:10px; }
 .lp-dash-order-row {
   display:flex; justify-content:space-between; align-items:center;
   padding:11px 14px; border-radius:8px; margin-bottom:6px;
-  background:rgba(20,21,34,0.8); border:1px solid rgba(133,136,230,0.08);
-  transition:border-color 0.2s;
+  background:rgba(18,20,34,0.78); border:1px solid rgba(99,102,241,0.1);
+  box-shadow:0 2px 8px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.02);
+  transition:all 0.2s;
 }
-.lp-dash-order-row:hover { border-color:rgba(133,136,230,0.2); }
+.lp-dash-order-row:hover { border-color:rgba(99,102,241,0.3); transform:translateX(2px); background:rgba(22,25,44,0.88); }
 .lp-dash-order-info { display:flex; flex-direction:column; gap:2px; }
 .lp-dash-order-id { font-size:12px; font-weight:600; color:#e8eaf0; }
-.lp-dash-order-meta { font-size:11px; color:rgba(232,234,240,0.35); }
+.lp-dash-order-meta { font-size:11px; color:rgba(232,234,240,0.4); }
 .lp-dash-order-right { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
 .lp-dash-order-amt { font-size:13px; font-weight:700; color:#e8eaf0; }
 
 /* ══════════════════════════════════════════════════════════════════════
-   EXPLAINABLE DECISIONS
+   EXPLAINABLE DECISIONS (DARK CONSOLE)
 ══════════════════════════════════════════════════════════════════════ */
-.lp-explain { padding:120px 0; background:rgba(133,136,230,0.02); }
+.lp-explain {
+  padding:120px 0; position:relative;
+  background:linear-gradient(180deg, #090b14 0%, #0d1020 100%);
+}
+.lp-explain .lp-eyebrow { color:#818cf8; }
+.lp-explain .lp-eyebrow::before { background:#818cf8; }
 .lp-explain-layout { display:grid; grid-template-columns:1.1fr 1fr; gap:80px; align-items:center; }
 .lp-explain-copy h2 { font-size:clamp(28px,3vw,46px); font-weight:800; letter-spacing:-0.8px; color:#f0f1f8; margin:0 0 18px; line-height:1.1; }
-.lp-explain-copy p { font-size:17px; line-height:1.7; color:rgba(232,234,240,0.5); margin:0 0 32px; }
+.lp-explain-copy p { font-size:17px; line-height:1.7; color:rgba(232,234,240,0.52); margin:0 0 32px; }
 .lp-explain-tagline {
-  font-size:14px; color:rgba(232,234,240,0.55); line-height:1.6;
+  font-size:14px; color:rgba(232,234,240,0.6); line-height:1.6;
   padding:16px 20px; border-radius:10px;
-  border-left:2px solid #8588e6;
-  background:rgba(133,136,230,0.06);
+  border-left:2px solid #818cf8;
+  background:rgba(99,102,241,0.06);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.03);
 }
 
 /* ── REASON CARD ──────────────────────────────────────────────────────── */
 .lp-reason-card {
-  background:rgba(12,13,22,0.95); border:1px solid rgba(133,136,230,0.2);
+  background:linear-gradient(180deg, rgba(14,16,28,0.98) 0%, rgba(10,12,22,0.96) 100%);
+  border:1px solid rgba(99,102,241,0.22);
   border-radius:18px; overflow:hidden;
-  box-shadow:0 20px 60px rgba(0,0,0,0.4);
+  box-shadow:0 26px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(99,102,241,0.1), inset 0 1px 0 rgba(255,255,255,0.08);
+  position:relative;
+}
+.lp-reason-card::before {
+  content:''; position:absolute; top:0; left:15%; right:15%; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(129,140,248,0.45),transparent);
 }
 .lp-reason-top {
   padding:20px 22px;
-  background:rgba(133,136,230,0.04); border-bottom:1px solid rgba(133,136,230,0.1);
+  background:rgba(99,102,241,0.05); border-bottom:1px solid rgba(99,102,241,0.12);
   display:flex; justify-content:space-between; align-items:center;
 }
 .lp-reason-order { display:flex; flex-direction:column; gap:3px; }
-.lp-reason-order-num { font-size:11px; color:rgba(232,234,240,0.35); font-weight:600; letter-spacing:0.5px; }
+.lp-reason-order-num { font-size:11px; color:rgba(232,234,240,0.38); font-weight:600; letter-spacing:0.5px; }
 .lp-reason-order-amt { font-size:22px; font-weight:800; color:#f0f1f8; }
 .lp-reason-body { padding:22px; }
 .lp-reason-why-label {
   font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
-  color:rgba(232,234,240,0.25); margin-bottom:16px;
+  color:rgba(232,234,240,0.3); margin-bottom:16px;
 }
 .lp-reason-items { display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
 .lp-reason-item {
   display:flex; align-items:center; gap:12px; padding:12px 14px;
-  border-radius:8px; background:rgba(251,191,36,0.06); border:1px solid rgba(251,191,36,0.15);
+  border-radius:8px; background:rgba(251,191,36,0.07); border:1px solid rgba(251,191,36,0.16);
+  box-shadow:0 2px 8px rgba(0,0,0,0.2);
 }
 .lp-reason-item-dot { width:6px; height:6px; border-radius:50%; background:#fbbf24; flex-shrink:0; }
-.lp-reason-item span { font-size:13px; color:rgba(232,234,240,0.65); }
+.lp-reason-item span { font-size:13px; color:rgba(232,234,240,0.68); }
 .lp-reason-action {
   display:flex; align-items:center; gap:8px; padding:12px 14px;
-  border-radius:8px; background:rgba(133,136,230,0.08); border:1px solid rgba(133,136,230,0.2);
-  font-size:13px; color:#a5a8f4; font-weight:600;
+  border-radius:8px; background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.22);
+  font-size:13px; color:#a5b4fc; font-weight:600;
+  box-shadow:0 2px 8px rgba(0,0,0,0.2);
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   BENTO FEATURES
+   BENTO FEATURES (LIGHT SECTION)
 ══════════════════════════════════════════════════════════════════════ */
-.lp-features { padding:120px 0; }
-.lp-features-header { max-width:560px; margin:0 auto 64px; text-align:center; }
+.lp-features {
+  padding:120px 0; position:relative;
+  background:linear-gradient(180deg, #eef2f7 0%, #f5f6fb 50%, #ebf0f6 100%);
+  color:#0f172a;
+  overflow:hidden;
+}
+.lp-features::before {
+  content:''; position:absolute; top:8%; left:25%; width:1100px; height:740px;
+  background:
+    radial-gradient(ellipse at 45% 35%, rgba(133,136,230,0.16) 0%, rgba(99,102,241,0.07) 35%, rgba(165,168,244,0.03) 60%, transparent 75%),
+    radial-gradient(circle at 20% 60%, rgba(165,168,244,0.09) 0%, transparent 50%);
+  pointer-events:none; z-index:0;
+}
+.lp-features::after {
+  content:''; position:absolute; bottom:5%; right:-5%; width:680px; height:680px;
+  background:radial-gradient(circle, rgba(139,92,246,0.09) 0%, rgba(99,102,241,0.03) 45%, transparent 68%);
+  pointer-events:none; z-index:0;
+}
+.lp-decor-features {
+  position:absolute; inset:0; pointer-events:none; z-index:0; overflow:hidden;
+}
+.lp-features-header { max-width:560px; margin:0 auto 64px; text-align:center; position:relative; z-index:1; }
+.lp-features .lp-eyebrow { color:#4f46e5; justify-content:center; }
+.lp-features .lp-eyebrow::before { background:#4f46e5; }
+.lp-features .lp-section-h2 { color:#0f172a; }
 .lp-bento {
   display:grid;
   grid-template-columns:repeat(12,1fr);
   grid-template-rows:auto auto;
-  gap:12px;
+  gap:16px; position:relative; z-index:1;
 }
 .lp-bento-cell {
-  background:rgba(14,15,26,0.9); border:1px solid rgba(133,136,230,0.12);
-  border-radius:16px; padding:28px; position:relative; overflow:hidden;
-  transition:border-color 0.3s, transform 0.25s;
+  background:#ffffff; border:1px solid #e2e8f0;
+  border-radius:18px; padding:30px; position:relative; overflow:hidden;
+  box-shadow:
+    0 6px 24px -2px rgba(15,23,42,0.05),
+    0 2px 8px -1px rgba(99,102,241,0.03),
+    inset 0 1px 0 #ffffff;
+  transition:all 0.35s cubic-bezier(0.16,1,0.3,1);
 }
-.lp-bento-cell:hover { border-color:rgba(133,136,230,0.28); transform:translateY(-3px); }
+.lp-bento-cell:hover {
+  border-color:#cbd5e1; transform:translateY(-4px);
+  box-shadow:
+    0 18px 40px -4px rgba(15,23,42,0.1),
+    0 4px 12px -1px rgba(99,102,241,0.06),
+    inset 0 1px 0 #ffffff;
+}
 .lp-bento-cell::before {
-  content:''; position:absolute; top:0; left:0; right:0; height:1px;
-  background:linear-gradient(90deg,transparent,rgba(133,136,230,0.15),transparent);
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg,transparent,rgba(99,102,241,0.45),transparent);
   opacity:0; transition:opacity 0.3s;
 }
 .lp-bento-cell:hover::before { opacity:1; }
 .lp-bento-icon {
   width:44px; height:44px; border-radius:11px;
-  background:rgba(133,136,230,0.1); border:1px solid rgba(133,136,230,0.2);
   display:flex; align-items:center; justify-content:center;
   font-size:20px; margin-bottom:18px;
 }
-.lp-bento-cell h3 { font-size:15px; font-weight:700; color:#e8eaf0; margin:0 0 8px; }
-.lp-bento-cell p { font-size:13px; line-height:1.65; color:rgba(232,234,240,0.45); margin:0; }
+.lp-bento-cell h3 { font-size:16px; font-weight:700; color:#0f172a; margin:0 0 8px; }
+.lp-bento-cell p { font-size:14px; line-height:1.65; color:#475569; margin:0; }
 
-/* Span definitions */
-.lp-bento-a { grid-column:span 5; }
-.lp-bento-b { grid-column:span 4; }
-.lp-bento-c { grid-column:span 3; }
-.lp-bento-d { grid-column:span 4; }
-.lp-bento-e { grid-column:span 4; }
-.lp-bento-f { grid-column:span 4; }
+/* Bento light surface variations — Cell A is flagship focal point */
+.lp-bento-a {
+  grid-column:span 5;
+  background:linear-gradient(160deg, #ffffff 0%, #fafaff 55%, #f3f5fd 100%);
+  border:1px solid rgba(133,136,230,0.48);
+  box-shadow:
+    0 12px 38px -4px rgba(99,102,241,0.13),
+    0 2px 8px -1px rgba(15,23,42,0.03),
+    inset 0 1px 0 #ffffff,
+    inset 0 0 28px rgba(133,136,230,0.06);
+}
+.lp-bento-a::before {
+  opacity:0.9;
+  background:linear-gradient(90deg,transparent,rgba(133,136,230,0.9),transparent);
+}
+.lp-bento-a:hover {
+  border-color:rgba(133,136,230,0.75); transform:translateY(-5px);
+  box-shadow:
+    0 24px 55px -6px rgba(99,102,241,0.22),
+    0 6px 16px rgba(15,23,42,0.04),
+    inset 0 1px 0 #ffffff,
+    inset 0 0 36px rgba(133,136,230,0.09);
+}
+.lp-bento-a .lp-bento-icon {
+  background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.28);
+}
+.lp-bento-a .lp-bento-icon svg { stroke:#4f46e5; }
 
-/* ── bento accent visuals ─────────────────────────────────────────────── */
+.lp-bento-b {
+  grid-column:span 4;
+}
+.lp-bento-b .lp-bento-icon {
+  background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.2);
+}
+.lp-bento-b .lp-bento-icon svg { stroke:#2563eb; }
+
+.lp-bento-c {
+  grid-column:span 3;
+}
+.lp-bento-c .lp-bento-icon {
+  background:rgba(14,165,233,0.08); border:1px solid rgba(14,165,233,0.2);
+}
+.lp-bento-c .lp-bento-icon svg { stroke:#0284c7; }
+
+.lp-bento-d {
+  grid-column:span 4;
+}
+.lp-bento-d .lp-bento-icon {
+  background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2);
+}
+.lp-bento-d .lp-bento-icon svg { stroke:#d97706; }
+
+.lp-bento-e {
+  grid-column:span 4;
+  border-color:rgba(168,85,247,0.22);
+  box-shadow:0 4px 20px -2px rgba(168,85,247,0.05), 0 2px 6px -1px rgba(15,23,42,0.03);
+}
+.lp-bento-e:hover {
+  border-color:rgba(168,85,247,0.45);
+}
+.lp-bento-e .lp-bento-icon {
+  background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.2);
+}
+.lp-bento-e .lp-bento-icon svg { stroke:#7c3aed; }
+
+.lp-bento-f {
+  grid-column:span 4;
+}
+.lp-bento-f .lp-bento-icon {
+  background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2);
+}
+.lp-bento-f .lp-bento-icon svg { stroke:#059669; }
+
+/* ── bento accent visuals (light) ─────────────────────────────────────── */
 .lp-mini-order-list { margin-top:20px; display:flex; flex-direction:column; gap:7px; }
 .lp-mini-order-row { display:flex; justify-content:space-between; align-items:center;
-  padding:8px 12px; border-radius:7px; background:rgba(133,136,230,0.05); border:1px solid rgba(133,136,230,0.08); }
-.lp-mini-order-row span { font-size:12px; color:rgba(232,234,240,0.5); }
+  padding:8px 12px; border-radius:7px; background:rgba(255,255,255,0.85); border:1px solid rgba(133,136,230,0.16); }
+.lp-mini-order-row span { font-size:12px; color:#334155; font-weight:500; }
+
+.lp-features .lp-badge-safe { background:rgba(22,163,74,0.1); color:#16a34a; border:1px solid rgba(22,163,74,0.25); }
+.lp-features .lp-badge-review { background:rgba(217,119,6,0.1); color:#d97706; border:1px solid rgba(217,119,6,0.25); }
 
 .lp-memory-dots { margin-top:20px; display:flex; gap:8px; flex-wrap:wrap; }
 .lp-memory-dot { width:9px; height:9px; border-radius:50%; }
@@ -840,43 +1055,120 @@ html, body { margin:0; padding:0; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   BEFORE / AFTER
+   BEFORE / AFTER (COMPARISON - DARK)
 ══════════════════════════════════════════════════════════════════════ */
-.lp-results { padding:120px 0; background:rgba(133,136,230,0.02); }
-.lp-results-header { max-width:580px; margin:0 auto 64px; text-align:center; }
-.lp-ba-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; max-width:860px; margin:0 auto; }
+.lp-results {
+  padding:120px 0; position:relative;
+  background:linear-gradient(180deg, #0b0d18 0%, #0e1122 50%, #0b0d18 100%);
+  border-top:1px solid rgba(255,255,255,0.06);
+}
+.lp-results::before {
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(circle at 25% 50%, rgba(248,113,113,0.035) 0%, transparent 60%),
+    radial-gradient(circle at 75% 50%, rgba(74,222,128,0.045) 0%, transparent 60%);
+}
+.lp-results-header { max-width:580px; margin:0 auto 64px; text-align:center; position:relative; z-index:1; }
+.lp-results .lp-eyebrow { color:#4ade80; justify-content:center; }
+.lp-results .lp-eyebrow::before { background:#4ade80; }
+.lp-results .lp-section-h2 { color:#f0f1f8; }
+.lp-ba-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; max-width:880px; margin:0 auto; position:relative; z-index:1; }
 .lp-ba-card {
   border-radius:18px; padding:36px;
-  border:1px solid rgba(133,136,230,0.12);
+  transition:all 0.3s cubic-bezier(0.16,1,0.3,1);
 }
-.lp-ba-before { background:rgba(248,113,113,0.04); border-color:rgba(248,113,113,0.15); }
-.lp-ba-after  { background:rgba(74,222,128,0.04); border-color:rgba(74,222,128,0.15); }
+.lp-ba-before {
+  background:linear-gradient(165deg, rgba(26,17,22,0.85) 0%, rgba(18,15,22,0.95) 100%);
+  border:1px solid rgba(248,113,113,0.22);
+  box-shadow:0 14px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(248,113,113,0.12);
+}
+.lp-ba-before:hover {
+  border-color:rgba(248,113,113,0.35); transform:translateY(-2px);
+}
+.lp-ba-after {
+  background:linear-gradient(165deg, rgba(16,28,22,0.85) 0%, rgba(14,22,19,0.96) 100%);
+  border:1px solid rgba(74,222,128,0.28);
+  box-shadow:0 18px 48px rgba(0,0,0,0.45), 0 0 32px rgba(74,222,128,0.06), inset 0 1px 0 rgba(74,222,128,0.25);
+  position:relative;
+}
+.lp-ba-after::before {
+  content:''; position:absolute; top:0; left:15%; right:15%; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(74,222,128,0.5),transparent);
+}
+.lp-ba-after:hover {
+  border-color:rgba(74,222,128,0.45); transform:translateY(-3px);
+  box-shadow:0 22px 56px rgba(0,0,0,0.5), 0 0 40px rgba(74,222,128,0.1), inset 0 1px 0 rgba(74,222,128,0.35);
+}
 .lp-ba-header { font-size:11px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; margin-bottom:24px; display:flex; align-items:center; gap:8px; }
-.lp-ba-before .lp-ba-header { color:rgba(248,113,113,0.6); }
-.lp-ba-after  .lp-ba-header { color:rgba(74,222,128,0.7); }
+.lp-ba-before .lp-ba-header { color:#f87171; }
+.lp-ba-after  .lp-ba-header { color:#4ade80; }
 .lp-ba-list { display:flex; flex-direction:column; gap:14px; }
-.lp-ba-item { display:flex; align-items:flex-start; gap:12px; font-size:14px; line-height:1.5; color:rgba(232,234,240,0.6); }
-.lp-ba-item-icon { font-size:14px; margin-top:1px; flex-shrink:0; }
+.lp-ba-item { display:flex; align-items:flex-start; gap:12px; font-size:14px; line-height:1.5; color:rgba(232,234,240,0.7); }
+.lp-ba-before .lp-ba-item-icon { color:#f87171; font-size:13px; margin-top:1px; flex-shrink:0; }
+.lp-ba-after  .lp-ba-item-icon { color:#4ade80; font-size:13px; margin-top:1px; flex-shrink:0; }
 
 /* ══════════════════════════════════════════════════════════════════════
-   TESTIMONIALS
+   TESTIMONIALS (LIGHT)
 ══════════════════════════════════════════════════════════════════════ */
-.lp-testi { padding:120px 0; }
-.lp-testi-header { max-width:560px; margin:0 auto 64px; text-align:center; }
-.lp-testi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
-.lp-testi-card {
-  background:rgba(14,15,26,0.9); border:1px solid rgba(133,136,230,0.12);
-  border-radius:18px; padding:32px;
-  display:flex; flex-direction:column;
-  transition:border-color 0.3s, transform 0.25s;
+.lp-testi {
+  padding:120px 0; position:relative;
+  background:linear-gradient(180deg, #f0f3f8 0%, #f6f7fb 45%, #edf0f6 100%);
+  color:#0f172a;
+  border-top:1px solid #e2e8f0;
+  border-bottom:1px solid #e2e8f0;
+  overflow:hidden;
 }
-.lp-testi-card:hover { border-color:rgba(133,136,230,0.28); transform:translateY(-4px); }
+.lp-testi::before {
+  content:''; position:absolute; top:18%; left:50%; transform:translateX(-50%);
+  width:980px; height:560px;
+  background:
+    radial-gradient(ellipse at center, rgba(133,136,230,0.14) 0%, rgba(99,102,241,0.05) 45%, transparent 72%),
+    radial-gradient(circle at 75% 25%, rgba(165,168,244,0.08) 0%, transparent 55%);
+  pointer-events:none; z-index:0;
+}
+.lp-testi::after {
+  content:''; position:absolute; bottom:5%; left:5%; width:550px; height:550px;
+  background:radial-gradient(circle, rgba(165,168,244,0.06) 0%, transparent 60%);
+  pointer-events:none; z-index:0;
+}
+.lp-decor-testi {
+  position:absolute; inset:0; pointer-events:none; z-index:0; overflow:hidden;
+}
+.lp-testi-header { max-width:560px; margin:0 auto 64px; text-align:center; position:relative; z-index:1; }
+.lp-testi .lp-eyebrow { color:#4f46e5; justify-content:center; }
+.lp-testi .lp-eyebrow::before { background:#4f46e5; }
+.lp-testi .lp-section-h2 { color:#0f172a; }
+.lp-testi .lp-section-sub { color:#64748b; }
+.lp-testi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; position:relative; z-index:1; }
+.lp-testi-card {
+  background:#ffffff; border:1px solid #e2e8f0;
+  border-radius:20px; padding:36px 32px;
+  display:flex; flex-direction:column;
+  box-shadow:
+    0 8px 30px -4px rgba(15,23,42,0.06),
+    0 2px 8px rgba(99,102,241,0.03),
+    inset 0 1px 0 #ffffff;
+  transition:all 0.35s cubic-bezier(0.16,1,0.3,1);
+  position:relative; overflow:hidden;
+}
+.lp-testi-card::before {
+  content:''; position:absolute; top:0; left:15%; right:15%; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(133,136,230,0.5),transparent);
+  opacity:0.85;
+}
+.lp-testi-card:hover {
+  border-color:rgba(133,136,230,0.45); transform:translateY(-6px);
+  box-shadow:
+    0 22px 50px -8px rgba(99,102,241,0.13),
+    0 4px 14px rgba(15,23,42,0.04),
+    inset 0 1px 0 #ffffff;
+}
 .lp-testi-quote {
-  font-size:32px; line-height:1; color:rgba(133,136,230,0.3); margin-bottom:16px;
+  font-size:38px; line-height:1; color:rgba(133,136,230,0.32); margin-bottom:16px;
   font-family:Georgia,serif;
 }
 .lp-testi-text {
-  font-size:15px; line-height:1.7; color:rgba(232,234,240,0.65);
+  font-size:15px; line-height:1.7; color:#334155;
   flex:1; margin-bottom:28px;
 }
 .lp-testi-author { display:flex; align-items:center; gap:12px; }
@@ -884,51 +1176,59 @@ html, body { margin:0; padding:0; }
   width:40px; height:40px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
   font-size:15px; font-weight:800; color:#fff; flex-shrink:0;
+  box-shadow:0 2px 8px rgba(0,0,0,0.12);
 }
-.lp-testi-name { font-size:14px; font-weight:700; color:#e8eaf0; display:block; margin-bottom:2px; }
-.lp-testi-store { font-size:12px; color:rgba(232,234,240,0.35); }
+.lp-testi-name { font-size:14px; font-weight:700; color:#0f172a; display:block; margin-bottom:2px; }
+.lp-testi-store { font-size:12px; color:#64748b; }
 
 /* ══════════════════════════════════════════════════════════════════════
    FINAL CTA
 ══════════════════════════════════════════════════════════════════════ */
-.lp-cta { padding:120px 0; }
+.lp-cta {
+  padding:120px 0; position:relative;
+  background:linear-gradient(180deg, rgba(11,13,22,0.85) 0%, rgba(14,18,36,0.96) 50%, rgba(10,11,18,1) 100%);
+}
+.lp-cta .lp-eyebrow { color:#a5b4fc; }
+.lp-cta .lp-eyebrow::before { background:#a5b4fc; }
 .lp-cta-inner {
   position:relative; border-radius:24px; padding:80px 60px;
-  background:rgba(14,15,26,0.95);
-  border:1px solid rgba(133,136,230,0.2);
+  background:linear-gradient(145deg, rgba(18,22,46,0.96) 0%, rgba(14,16,32,0.98) 100%);
+  border:1px solid rgba(129,140,248,0.28);
+  box-shadow:0 32px 90px rgba(0,0,0,0.65), 0 0 50px rgba(99,102,241,0.1), inset 0 1px 0 rgba(255,255,255,0.1);
   text-align:center; overflow:hidden;
 }
 .lp-cta-inner::before {
-  content:''; position:absolute; top:-60%; left:50%; transform:translateX(-50%);
-  width:600px; height:600px;
-  background:radial-gradient(circle,rgba(133,136,230,0.08) 0%,transparent 60%);
+  content:''; position:absolute; top:-50%; left:50%; transform:translateX(-50%);
+  width:720px; height:720px;
+  background:radial-gradient(circle, rgba(99,102,241,0.14) 0%, rgba(59,130,246,0.05) 45%, transparent 70%);
   pointer-events:none;
 }
 .lp-cta-inner::after {
-  content:''; position:absolute; top:0; left:0; right:0; height:1px;
-  background:linear-gradient(90deg,transparent,rgba(133,136,230,0.4),transparent);
+  content:''; position:absolute; top:0; left:10%; right:10%; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(165,180,252,0.6),transparent);
 }
 .lp-cta-orb-wrap {
   position:absolute; inset:0; display:flex; justify-content:center; align-items:center;
-  pointer-events:none; opacity:0.5;
+  pointer-events:none; opacity:0.6;
 }
 .lp-cta-orb {
-  width:300px; height:300px; border-radius:50%;
-  background:radial-gradient(circle,rgba(133,136,230,0.08) 0%,transparent 70%);
-  border:1px solid rgba(133,136,230,0.08);
+  width:320px; height:320px; border-radius:50%;
+  background:radial-gradient(circle,rgba(99,102,241,0.12) 0%,rgba(59,130,246,0.04) 50%,transparent 70%);
+  border:1px solid rgba(129,140,248,0.16);
   animation:lp-orb-breathe 6s ease-in-out infinite;
 }
 .lp-cta-content { position:relative; z-index:2; }
 .lp-cta-content h2 { font-size:clamp(32px,4vw,54px); font-weight:800; letter-spacing:-1px; color:#f0f1f8; margin:0 0 20px; line-height:1.1; }
-.lp-cta-content p { font-size:18px; color:rgba(232,234,240,0.5); margin:0 auto 40px; max-width:500px; line-height:1.6; }
+.lp-cta-content p { font-size:18px; color:rgba(232,234,240,0.55); margin:0 auto 40px; max-width:500px; line-height:1.6; }
 .lp-cta-actions { display:flex; justify-content:center; gap:16px; flex-wrap:wrap; margin-bottom:24px; }
-.lp-cta-reassurance { font-size:13px; color:rgba(232,234,240,0.3); }
+.lp-cta-reassurance { font-size:13px; color:rgba(232,234,240,0.35); }
 
 /* ══════════════════════════════════════════════════════════════════════
    FOOTER
 ══════════════════════════════════════════════════════════════════════ */
 .lp-footer {
-  border-top:1px solid rgba(133,136,230,0.08);
+  border-top:1px solid rgba(133,136,230,0.1);
+  background:#0a0b12;
   padding:48px 0 32px;
 }
 .lp-footer-inner {
@@ -1041,6 +1341,61 @@ html, body { margin:0; padding:0; }
   33%  { transform:translate(8px,-14px); opacity:0.3; }
   66%  { transform:translate(-6px,-22px); opacity:0.5; }
   100% { transform:translate(4px,-36px); opacity:0; }
+}
+@keyframes lp-node-glow {
+  0%, 100% { opacity:0.3; transform:scale(1); }
+  50% { opacity:0.85; transform:scale(1.3); }
+}
+@keyframes lp-stream-flow {
+  0%   { stroke-dashoffset: 600; }
+  100% { stroke-dashoffset: 0; }
+}
+@keyframes lp-stream-flow-rev {
+  0%   { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 600; }
+}
+@keyframes lp-beam-breathe {
+  0%, 100% { opacity: 0.65; }
+  50%      { opacity: 0.95; }
+}
+@keyframes lp-detection-ping {
+  0%   { r: 3px; opacity: 0.9; }
+  70%  { r: 16px; opacity: 0; }
+  100% { r: 16px; opacity: 0; }
+}
+@keyframes lp-orbit-spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes lp-orbit-spin-rev {
+  from { transform: rotate(360deg); }
+  to   { transform: rotate(0deg); }
+}
+
+.lp-stream-pulse {
+  stroke-dasharray: 20 160;
+  animation: lp-stream-flow 12s linear infinite;
+}
+.lp-stream-pulse-fast {
+  stroke-dasharray: 24 200;
+  animation: lp-stream-flow 8s linear infinite;
+}
+.lp-stream-pulse-rev {
+  stroke-dasharray: 18 180;
+  animation: lp-stream-flow-rev 14s linear infinite;
+}
+.lp-beam-anim {
+  animation: lp-beam-breathe 7s ease-in-out infinite;
+}
+.lp-detection-ping-circle {
+  animation: lp-detection-ping 2.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+  transform-origin: center;
+}
+.lp-orbit-slow-1 {
+  animation: lp-orbit-spin-slow 65s linear infinite;
+}
+.lp-orbit-slow-2 {
+  animation: lp-orbit-spin-rev 85s linear infinite;
 }
 
 /* ── PARTICLES ────────────────────────────────────────────────────────── */
@@ -1608,7 +1963,7 @@ function ZenoOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
 
             {/* Logo as mouth */}
             <div className={`lp-orb-mouth ${mouthClass}`}>
-              <ZenoLogo height={52} forceVariant={logoVariant} />
+              <ZenoLogo height={72} forceVariant={logoVariant} />
             </div>
 
           </div>
@@ -1789,10 +2144,10 @@ function Nav({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
   const close = useCallback(() => setOpen(false), []);
 
   const links = [
-    { href:'#features',      label:'Features' },
     { href:'#how-it-works',  label:'How It Works' },
-    { href:'#security',      label:'Security' },
+    { href:'#features',      label:'Features' },
     { href:'#testimonials',  label:'Testimonials' },
+    { href:'#security',      label:'Security' },
   ];
 
   return (
@@ -1842,7 +2197,7 @@ function Nav({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
    MAIN LANDING PAGE EXPORT
 ───────────────────────────────────────────────────────────────────────────── */
 export function Landing() {
-  useTheme(); // keeps ThemeProvider context alive; landing always renders in dark style
+  useForceDark();
   useRevealOnScroll();
 
   // Force body to match the landing dark background — prevents any gap or flash
@@ -1959,9 +2314,114 @@ export function Landing() {
         </div>
 
         {/* ══════════════════════════════════════════════════════════════
-            PROBLEM SECTION
+            PROBLEM SECTION (LIGHT SECTION)
         ══════════════════════════════════════════════════════════════ */}
-        <section className="lp-problem" id="features" aria-label="The problem">
+        <section className="lp-problem" id="problem" aria-label="The problem">
+          {/* Futuristic risk intelligence & detection background */}
+          <div className="lp-decor-problem" aria-hidden="true">
+            <svg width="100%" height="100%" viewBox="0 0 1200 680" fill="none" preserveAspectRatio="xMidYMid slice">
+              <defs>
+                <filter id="lp-prob-beam-blur" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="22" />
+                </filter>
+                <filter id="lp-prob-sphere-blur" x="-30%" y="-30%" width="160%" height="160%">
+                  <feGaussianBlur stdDeviation="30" />
+                </filter>
+                <linearGradient id="lp-prob-beam-grad" x1="100%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#8588e6" stopOpacity="0" />
+                  <stop offset="30%" stopColor="#8588e6" stopOpacity="0.3" />
+                  <stop offset="55%" stopColor="#6366f1" stopOpacity="0.45" />
+                  <stop offset="75%" stopColor="#a5b4fc" stopOpacity="0.25" />
+                  <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+                </linearGradient>
+                <radialGradient id="lp-prob-sphere-grad" cx="40%" cy="35%" r="60%">
+                  <stop offset="0%" stopColor="#a5a8f4" stopOpacity="0.22" />
+                  <stop offset="45%" stopColor="#8588e6" stopOpacity="0.1" />
+                  <stop offset="80%" stopColor="#6366f1" stopOpacity="0.02" />
+                  <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+                </radialGradient>
+              </defs>
+
+              {/* Luminous purple light beam curving through background */}
+              <path
+                d="M 1180 20 Q 860 220 720 380 T 320 660"
+                stroke="url(#lp-prob-beam-grad)"
+                strokeWidth="60"
+                fill="none"
+                filter="url(#lp-prob-beam-blur)"
+                className="lp-beam-anim"
+              />
+              <path
+                d="M 1180 20 Q 860 220 720 380 T 320 660"
+                stroke="rgba(133,136,230,0.3)"
+                strokeWidth="1.5"
+                fill="none"
+              />
+
+              {/* Translucent 3D radar sphere behind orders visual */}
+              <circle cx="890" cy="340" r="140" fill="url(#lp-prob-sphere-grad)" filter="url(#lp-prob-sphere-blur)" />
+
+              {/* Orbital Risk Radar rings */}
+              <g className="lp-orbit-slow-1" style={{ transformOrigin: '890px 340px' }}>
+                <ellipse cx="890" cy="340" rx="380" ry="260" stroke="rgba(133,136,230,0.18)" strokeWidth="1" strokeDasharray="4 12" />
+                <circle cx="1270" cy="340" r="3" fill="#8588e6" className="lp-node-glow" />
+                <circle cx="510" cy="340" r="2.5" fill="#a5a8f4" className="lp-node-glow-alt" />
+              </g>
+              <g className="lp-orbit-slow-2" style={{ transformOrigin: '890px 340px' }}>
+                <ellipse cx="890" cy="340" rx="270" ry="185" stroke="rgba(99,102,241,0.14)" strokeWidth="1" strokeDasharray="8 16" />
+                <circle cx="890" cy="155" r="3" fill="#6366f1" className="lp-node-glow" />
+                <circle cx="890" cy="525" r="2.5" fill="#8588e6" className="lp-node-glow-alt" />
+              </g>
+              <ellipse cx="890" cy="340" rx="160" ry="110" stroke="rgba(133,136,230,0.22)" strokeWidth="1" />
+              <ellipse cx="890" cy="340" rx="70" ry="50" stroke="rgba(133,136,230,0.15)" strokeWidth="0.8" strokeDasharray="2 4" />
+
+              {/* Animated flowing data streams */}
+              <path
+                d="M 60 380 C 300 320, 520 440, 780 340 C 960 270, 1080 330, 1180 280"
+                stroke="rgba(133,136,230,0.2)"
+                strokeWidth="1.2"
+                fill="none"
+              />
+              <path
+                d="M 60 380 C 300 320, 520 440, 780 340 C 960 270, 1080 330, 1180 280"
+                stroke="#6366f1"
+                strokeWidth="2"
+                fill="none"
+                className="lp-stream-pulse"
+              />
+              <path
+                d="M 120 490 Q 420 400 680 430 T 1140 370"
+                stroke="#8588e6"
+                strokeWidth="1.5"
+                fill="none"
+                className="lp-stream-pulse-rev"
+              />
+
+              {/* Risk Anomaly Detection Nodes */}
+              <g transform="translate(680, 430)">
+                <circle cx="0" cy="0" r="4" fill="#f59e0b" />
+                <circle cx="0" cy="0" r="10" stroke="#f59e0b" strokeWidth="1" strokeOpacity="0.4" className="lp-detection-ping-circle" />
+              </g>
+              <g transform="translate(980, 245)">
+                <circle cx="0" cy="0" r="4.5" fill="#ef4444" />
+                <circle cx="0" cy="0" r="14" stroke="#ef4444" strokeWidth="1.2" strokeOpacity="0.6" className="lp-detection-ping-circle" />
+                <circle cx="0" cy="0" r="22" stroke="#ef4444" strokeWidth="0.8" strokeOpacity="0.3" className="lp-detection-ping-circle" style={{ animationDelay: '0.8s' }} />
+              </g>
+
+              {/* Purple Intelligence Nodes */}
+              <circle cx="340" cy="355" r="3.5" fill="#8588e6" className="lp-node-glow" />
+              <circle cx="520" cy="425" r="3" fill="#6366f1" className="lp-node-glow-alt" />
+              <circle cx="780" cy="340" r="4" fill="#8588e6" className="lp-node-glow" />
+
+              {/* Minimal Coordinate Crosshairs */}
+              <g stroke="rgba(133,136,230,0.3)" strokeWidth="0.8">
+                <path d="M 772 340 h 16 M 780 332 v 16" />
+                <path d="M 332 355 h 16 M 340 347 v 16" />
+                <path d="M 972 245 h 16 M 980 237 v 16" />
+              </g>
+            </svg>
+          </div>
+
           <div className="wrap">
             <div className="lp-problem-header lp-reveal">
               <div className="lp-eyebrow">The problem</div>
@@ -2217,9 +2677,116 @@ export function Landing() {
         </section>
 
         {/* ══════════════════════════════════════════════════════════════
-            BENTO FEATURES
+            BENTO FEATURES (LIGHT SECTION)
         ══════════════════════════════════════════════════════════════ */}
-        <section className="lp-features" id="features-grid" aria-label="Features">
+        <section className="lp-features" id="features" aria-label="Features">
+          {/* Grand Zeno purple orbital system, 3D gradient sphere & flowing data streams behind bento grid */}
+          <div className="lp-decor-features" aria-hidden="true">
+            <svg width="100%" height="100%" viewBox="0 0 1200 680" fill="none" preserveAspectRatio="xMidYMid slice">
+              <defs>
+                {/* Diagonal curved purple light beam */}
+                <linearGradient id="lp-feat-beam-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#8588e6" stopOpacity="0" />
+                  <stop offset="25%" stopColor="#a5a8f4" stopOpacity="0.24" />
+                  <stop offset="60%" stopColor="#6366f1" stopOpacity="0.1" />
+                  <stop offset="100%" stopColor="#4338ca" stopOpacity="0" />
+                </linearGradient>
+                <filter id="lp-feat-beam-blur" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="30" />
+                </filter>
+
+                {/* 3D-like translucent gradient sphere */}
+                <radialGradient id="lp-feat-sphere-grad" cx="38%" cy="32%" r="62%">
+                  <stop offset="0%" stopColor="#e0e7ff" stopOpacity="0.45" />
+                  <stop offset="25%" stopColor="#c7d2fe" stopOpacity="0.3" />
+                  <stop offset="60%" stopColor="#818cf8" stopOpacity="0.14" />
+                  <stop offset="85%" stopColor="#6366f1" stopOpacity="0.05" />
+                  <stop offset="100%" stopColor="#4f46e5" stopOpacity="0" />
+                </radialGradient>
+                <filter id="lp-feat-sphere-blur" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="16" />
+                </filter>
+
+                {/* Flowing animated stream gradients */}
+                <linearGradient id="lp-feat-stream-1" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#6366f1" stopOpacity="0.05" />
+                  <stop offset="30%" stopColor="#8588e6" stopOpacity="0.55" />
+                  <stop offset="70%" stopColor="#c7d2fe" stopOpacity="0.65" />
+                  <stop offset="100%" stopColor="#8588e6" stopOpacity="0.05" />
+                </linearGradient>
+                <linearGradient id="lp-feat-stream-2" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#8588e6" stopOpacity="0.05" />
+                  <stop offset="50%" stopColor="#a5a8f4" stopOpacity="0.5" />
+                  <stop offset="100%" stopColor="#6366f1" stopOpacity="0.05" />
+                </linearGradient>
+              </defs>
+
+              {/* Wide ambient angled purple light beam */}
+              <path
+                d="M -120 60 Q 420 190 1320 380"
+                stroke="url(#lp-feat-beam-grad)"
+                strokeWidth="130"
+                strokeLinecap="round"
+                filter="url(#lp-feat-beam-blur)"
+                className="lp-beam-anim"
+              />
+
+              {/* 3D translucent gradient sphere sitting behind center/right cards */}
+              <circle cx="820" cy="190" r="165" fill="url(#lp-feat-sphere-grad)" filter="url(#lp-feat-sphere-blur)" />
+              <ellipse cx="775" cy="145" rx="55" ry="38" fill="rgba(255,255,255,0.42)" filter="url(#lp-feat-sphere-blur)" />
+
+              {/* Grand Multi-Tier Orbital System */}
+              {/* Outer rotating orbit ring with data node & crosshair */}
+              <g className="lp-orbit-slow-1" style={{ transformOrigin: '820px 190px' }}>
+                <ellipse cx="820" cy="190" rx="480" ry="180" stroke="rgba(133,136,230,0.2)" strokeWidth="1.2" strokeDasharray="7 9" transform="rotate(-15 820 190)" />
+                <circle cx="340" cy="190" r="3.5" fill="#8588e6" className="lp-node-glow" />
+                <path d="M 332 190 h 16 M 340 182 v 16" stroke="rgba(133,136,230,0.38)" strokeWidth="0.8" />
+                <circle cx="1300" cy="190" r="3" fill="#a5a8f4" className="lp-node-glow-alt" />
+              </g>
+
+              {/* Mid counter-rotating orbit ring with telemetry ticks */}
+              <g className="lp-orbit-slow-2" style={{ transformOrigin: '820px 190px' }}>
+                <ellipse cx="820" cy="190" rx="320" ry="120" stroke="rgba(99,102,241,0.22)" strokeWidth="1.1" strokeDasharray="4 6" transform="rotate(22 820 190)" />
+                <circle cx="1140" cy="190" r="3" fill="#6366f1" className="lp-node-glow" />
+                <circle cx="500" cy="190" r="2.5" fill="#8588e6" className="lp-node-glow-alt" />
+              </g>
+
+              {/* Inner stationary orbit ellipse */}
+              <ellipse cx="820" cy="190" rx="200" ry="75" stroke="rgba(133,136,230,0.18)" strokeWidth="1" strokeDasharray="14 6" />
+
+              {/* Flowing animated data streams weaving across bento cards */}
+              <path
+                d="M -40 170 C 260 270, 520 100, 820 190 S 1120 110, 1260 210"
+                stroke="url(#lp-feat-stream-1)"
+                strokeWidth="2.2"
+                strokeDasharray="14 18"
+                className="lp-stream-pulse-fast"
+              />
+              <path
+                d="M 40 570 Q 400 420 740 540 T 1250 450"
+                stroke="url(#lp-feat-stream-2)"
+                strokeWidth="1.8"
+                strokeDasharray="10 16"
+                className="lp-stream-pulse-rev"
+              />
+
+              {/* Subtle vertical coordinate link lines */}
+              <path d="M 280 30 L 280 650" stroke="rgba(133,136,230,0.08)" strokeWidth="1" strokeDasharray="4 8" />
+              <path d="M 980 50 L 980 660" stroke="rgba(133,136,230,0.08)" strokeWidth="1" strokeDasharray="4 8" />
+
+              {/* Geometric coordinate crosshairs */}
+              <g opacity="0.85">
+                <path d="M 68 77 h 14 M 75 70 v 14" stroke="rgba(133,136,230,0.35)" strokeWidth="0.8" />
+                <path d="M 948 102 h 14 M 955 95 v 14" stroke="rgba(133,136,230,0.35)" strokeWidth="0.8" />
+                <path d="M 98 607 h 14 M 105 600 v 14" stroke="rgba(133,136,230,0.32)" strokeWidth="0.8" />
+              </g>
+
+              {/* Luminous verification node with active radar ping circle */}
+              <circle cx="740" cy="540" r="14" fill="none" stroke="rgba(99,102,241,0.4)" strokeWidth="1" className="lp-detection-ping-circle" />
+              <circle cx="740" cy="540" r="3.5" fill="#6366f1" className="lp-node-glow" />
+            </svg>
+          </div>
+
           <div className="wrap">
             <div className="lp-features-header lp-reveal">
               <div className="lp-eyebrow">Features</div>
@@ -2311,6 +2878,196 @@ export function Landing() {
         </section>
 
         {/* ══════════════════════════════════════════════════════════════
+            BEFORE / AFTER (COMPARISON - DARK)
+        ══════════════════════════════════════════════════════════════ */}
+        <section className="lp-results" id="difference" aria-label="What changes with Zeno">
+          <div className="wrap">
+            <div className="lp-results-header lp-reveal">
+              <div className="lp-eyebrow">The difference</div>
+              <h2 className="lp-section-h2">What changes<br />with Zeno</h2>
+            </div>
+
+            <div className="lp-ba-grid lp-reveal lp-reveal-d1">
+
+              <div className="lp-ba-card lp-ba-before">
+                <div className="lp-ba-header">
+                  <span>✗</span>
+                  Without Zeno
+                </div>
+                <div className="lp-ba-list">
+                  {[
+                    'Hours spent checking orders one by one',
+                    'No way to tell real orders from fake ones',
+                    'Suspicious orders slip through unnoticed',
+                    'Good customers accidentally blocked',
+                    'Confusing alerts with no explanation',
+                  ].map(item => (
+                    <div className="lp-ba-item" key={item}>
+                      <span className="lp-ba-item-icon">✗</span>
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="lp-ba-card lp-ba-after">
+                <div className="lp-ba-header">
+                  <span>✓</span>
+                  With Zeno
+                </div>
+                <div className="lp-ba-list">
+                  {[
+                    'Clear recommendations on every order',
+                    'Spend less time manually checking',
+                    'Suspicious orders caught before you ship',
+                    'More confidence, fewer wrong calls',
+                    'Plain-language explanations for every flag',
+                  ].map(item => (
+                    <div className="lp-ba-item" key={item}>
+                      <span className="lp-ba-item-icon">✓</span>
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════════════════════
+            TESTIMONIALS (LIGHT SECTION)
+        ══════════════════════════════════════════════════════════════ */}
+        <section className="lp-testi" id="testimonials" aria-label="Testimonials">
+          {/* Dimensional Zeno purple atmosphere: giant translucent lavender orb, orbital rings, and trust telemetry */}
+          <div className="lp-decor-testi" aria-hidden="true">
+            <svg width="100%" height="100%" viewBox="0 0 1200 580" fill="none" preserveAspectRatio="xMidYMid slice">
+              <defs>
+                {/* Giant translucent lavender orb gradient */}
+                <radialGradient id="lp-testi-orb-grad" cx="35%" cy="30%" r="65%">
+                  <stop offset="0%" stopColor="#e0e7ff" stopOpacity="0.5" />
+                  <stop offset="30%" stopColor="#c7d2fe" stopOpacity="0.3" />
+                  <stop offset="65%" stopColor="#818cf8" stopOpacity="0.12" />
+                  <stop offset="85%" stopColor="#6366f1" stopOpacity="0.04" />
+                  <stop offset="100%" stopColor="#4f46e5" stopOpacity="0" />
+                </radialGradient>
+                <filter id="lp-testi-orb-blur" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="24" />
+                </filter>
+
+                {/* Sweeping stream gradient */}
+                <linearGradient id="lp-testi-stream-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#8588e6" stopOpacity="0.05" />
+                  <stop offset="45%" stopColor="#a5a8f4" stopOpacity="0.45" />
+                  <stop offset="75%" stopColor="#6366f1" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#8588e6" stopOpacity="0.05" />
+                </linearGradient>
+              </defs>
+
+              {/* Giant dimensional translucent lavender orb partially off-screen at top right */}
+              <circle cx="1020" cy="50" r="270" fill="url(#lp-testi-orb-grad)" filter="url(#lp-testi-orb-blur)" />
+              <ellipse cx="970" cy="10" rx="90" ry="60" fill="rgba(255,255,255,0.45)" filter="url(#lp-testi-orb-blur)" />
+
+              {/* Multi-tier delicate orbital rings wrapping around the sphere */}
+              <g className="lp-orbit-slow-1" style={{ transformOrigin: '1020px 50px' }}>
+                <ellipse cx="1020" cy="50" rx="540" ry="210" stroke="rgba(133,136,230,0.18)" strokeWidth="1.2" strokeDasharray="7 10" transform="rotate(-18 1020 50)" />
+                <circle cx="520" cy="130" r="3.5" fill="#8588e6" className="lp-node-glow" />
+                <path d="M 512 130 h 16 M 520 122 v 16" stroke="rgba(133,136,230,0.32)" strokeWidth="0.8" />
+              </g>
+
+              <g className="lp-orbit-slow-2" style={{ transformOrigin: '1020px 50px' }}>
+                <ellipse cx="1020" cy="50" rx="380" ry="145" stroke="rgba(99,102,241,0.16)" strokeWidth="1" strokeDasharray="4 7" transform="rotate(16 1020 50)" />
+                <circle cx="730" cy="165" r="3" fill="#6366f1" className="lp-node-glow-alt" />
+              </g>
+
+              {/* Inner crisp stationary ring */}
+              <ellipse cx="1020" cy="50" rx="220" ry="85" stroke="rgba(133,136,230,0.14)" strokeWidth="1" strokeDasharray="10 6" />
+
+              {/* Geometric Zeno brand prism motif watermark on the left */}
+              <g opacity="0.85" transform="translate(140, 160)">
+                <polygon points="50,0 100,30 100,90 50,120 0,90 0,30" stroke="rgba(133,136,230,0.16)" strokeWidth="1.2" fill="rgba(133,136,230,0.025)" strokeDasharray="6 4" />
+                <polygon points="50,20 85,40 85,80 50,100 15,80 15,40" stroke="rgba(99,102,241,0.12)" strokeWidth="1" fill="none" />
+                <line x1="50" y1="0" x2="50" y2="120" stroke="rgba(133,136,230,0.14)" strokeWidth="0.8" />
+                <line x1="0" y1="30" x2="100" y2="90" stroke="rgba(133,136,230,0.12)" strokeWidth="0.8" />
+                <line x1="0" y1="90" x2="100" y2="30" stroke="rgba(133,136,230,0.12)" strokeWidth="0.8" />
+                <circle cx="50" cy="60" r="3.5" fill="#8588e6" className="lp-node-glow" />
+              </g>
+
+              {/* Sweeping lower animated data stream */}
+              <path
+                d="M -60 440 Q 320 330 680 450 T 1280 370"
+                stroke="url(#lp-testi-stream-grad)"
+                strokeWidth="1.8"
+                strokeDasharray="12 18"
+                className="lp-stream-pulse"
+              />
+
+              {/* Ambient focal crosshairs and nodes */}
+              <g opacity="0.8">
+                <path d="M 868 317 h 14 M 875 310 v 14" stroke="rgba(133,136,230,0.32)" strokeWidth="0.8" />
+
+                <circle cx="210" cy="190" r="2.5" fill="#a5a8f4" className="lp-node-glow" />
+                <circle cx="680" cy="450" r="3" fill="#6366f1" className="lp-node-glow-alt" />
+              </g>
+            </svg>
+          </div>
+
+          <div className="wrap">
+            <div className="lp-testi-header lp-reveal">
+              <div className="lp-eyebrow">Merchants</div>
+              <h2 className="lp-section-h2">Merchants sleep better<br />with Zeno.</h2>
+              <p className="lp-section-sub">
+                Because they know someone is watching the orders.
+              </p>
+            </div>
+
+            <div className="lp-testi-grid">
+              {[
+                {
+                  quote: 'I used to spend hours checking suspicious orders. Now Zeno tells me which ones actually need my attention. I get that time back every single day.',
+                  name: 'Priya Sharma',
+                  store: 'Boutique Owner',
+                  color: '#8588e6',
+                  delay: 'lp-reveal-d1',
+                },
+                {
+                  quote: "We were losing money to bad orders without even realising it. Zeno started catching them straight away. The explanation it gives is what I love most — I finally understand why.",
+                  name: 'Marcus Obi',
+                  store: 'Electronics Retailer',
+                  color: '#4ade80',
+                  delay: 'lp-reveal-d2',
+                },
+                {
+                  quote: "The best part is how simple it is. I'm not a tech person at all. I just see a green, yellow, or red on each order. That's all I need.",
+                  name: 'Li Wei',
+                  store: 'Apparel Brand',
+                  color: '#fbbf24',
+                  delay: 'lp-reveal-d3',
+                },
+              ].map(t => (
+                <div className={`lp-testi-card lp-reveal ${t.delay}`} key={t.name}>
+                  <div className="lp-testi-quote" aria-hidden="true">"</div>
+                  <p className="lp-testi-text">{t.quote}</p>
+                  <div className="lp-testi-author">
+                    <div
+                      className="lp-testi-avatar"
+                      style={{background:t.color}}
+                      aria-hidden="true"
+                    >
+                      {t.name.charAt(0)}
+                    </div>
+                    <div>
+                      <span className="lp-testi-name">{t.name}</span>
+                      <span className="lp-testi-store">{t.store}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════════════════════
             SECURITY
         ══════════════════════════════════════════════════════════════ */}
         <section className="lp-security" id="security" aria-label="Security">
@@ -2368,123 +3125,6 @@ export function Landing() {
         </section>
 
         {/* ══════════════════════════════════════════════════════════════
-            BEFORE / AFTER
-        ══════════════════════════════════════════════════════════════ */}
-        <section className="lp-results" aria-label="What changes with Zeno">
-          <div className="wrap">
-            <div className="lp-results-header lp-reveal">
-              <div className="lp-eyebrow">The difference</div>
-              <h2 className="lp-section-h2">What changes<br />with Zeno</h2>
-            </div>
-
-            <div className="lp-ba-grid lp-reveal lp-reveal-d1">
-
-              <div className="lp-ba-card lp-ba-before">
-                <div className="lp-ba-header">
-                  <span>✗</span>
-                  Without Zeno
-                </div>
-                <div className="lp-ba-list">
-                  {[
-                    'Hours spent checking orders one by one',
-                    'No way to tell real orders from fake ones',
-                    'Suspicious orders slip through unnoticed',
-                    'Good customers accidentally blocked',
-                    'Confusing alerts with no explanation',
-                  ].map(item => (
-                    <div className="lp-ba-item" key={item}>
-                      <span className="lp-ba-item-icon">✗</span>
-                      {item}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="lp-ba-card lp-ba-after">
-                <div className="lp-ba-header">
-                  <span>✓</span>
-                  With Zeno
-                </div>
-                <div className="lp-ba-list">
-                  {[
-                    'Clear recommendations on every order',
-                    'Spend less time manually checking',
-                    'Suspicious orders caught before you ship',
-                    'More confidence, fewer wrong calls',
-                    'Plain-language explanations for every flag',
-                  ].map(item => (
-                    <div className="lp-ba-item" key={item}>
-                      <span className="lp-ba-item-icon">✓</span>
-                      {item}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </section>
-
-        {/* ══════════════════════════════════════════════════════════════
-            TESTIMONIALS
-        ══════════════════════════════════════════════════════════════ */}
-        <section className="lp-testi" id="testimonials" aria-label="Testimonials">
-          <div className="wrap">
-            <div className="lp-testi-header lp-reveal">
-              <div className="lp-eyebrow">Merchants</div>
-              <h2 className="lp-section-h2">Merchants sleep better<br />with Zeno.</h2>
-              <p className="lp-section-sub">
-                Because they know someone is watching the orders.
-              </p>
-            </div>
-
-            <div className="lp-testi-grid">
-              {[
-                {
-                  quote: 'I used to spend hours checking suspicious orders. Now Zeno tells me which ones actually need my attention. I get that time back every single day.',
-                  name: 'Priya Sharma',
-                  store: 'Boutique Owner',
-                  color: '#8588e6',
-                  delay: 'lp-reveal-d1',
-                },
-                {
-                  quote: "We were losing money to bad orders without even realising it. Zeno started catching them straight away. The explanation it gives is what I love most — I finally understand why.",
-                  name: 'Marcus Obi',
-                  store: 'Electronics Retailer',
-                  color: '#4ade80',
-                  delay: 'lp-reveal-d2',
-                },
-                {
-                  quote: "The best part is how simple it is. I'm not a tech person at all. I just see a green, yellow, or red on each order. That's all I need.",
-                  name: 'Li Wei',
-                  store: 'Apparel Brand',
-                  color: '#fbbf24',
-                  delay: 'lp-reveal-d3',
-                },
-              ].map(t => (
-                <div className={`lp-testi-card lp-reveal ${t.delay}`} key={t.name}>
-                  <div className="lp-testi-quote" aria-hidden="true">"</div>
-                  <p className="lp-testi-text">{t.quote}</p>
-                  <div className="lp-testi-author">
-                    <div
-                      className="lp-testi-avatar"
-                      style={{background:t.color}}
-                      aria-hidden="true"
-                    >
-                      {t.name.charAt(0)}
-                    </div>
-                    <div>
-                      <span className="lp-testi-name">{t.name}</span>
-                      <span className="lp-testi-store">{t.store}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ══════════════════════════════════════════════════════════════
             FINAL CTA
         ══════════════════════════════════════════════════════════════ */}
         <section className="lp-cta" aria-label="Get started">
@@ -2530,8 +3170,8 @@ export function Landing() {
                 <nav className="lp-footer-nav" aria-label="Footer navigation">
                   <a href="#how-it-works">How It Works</a>
                   <a href="#features">Features</a>
-                  <a href="#security">Security</a>
                   <a href="#testimonials">Testimonials</a>
+                  <a href="#security">Security</a>
                   <Link to="/login">Log In</Link>
                   <Link to="/register" style={{color:'#8588e6',fontWeight:600}}>Get Started</Link>
                 </nav>

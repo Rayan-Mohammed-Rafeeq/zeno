@@ -9,7 +9,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useForceDark } from '@/hooks/useForceDark';
 import { ZenoVisualization } from '@/components/brand/ZenoVisualization';
 import {
   AlertCircle, CheckCircle, Eye, EyeOff, ArrowRight,
@@ -788,10 +788,8 @@ export function Register() {
   const [error,        setError]        = useState('');
   const [success,      setSuccess]      = useState(false);
   const [loading,      setLoading]      = useState(false);
-
-  const { resolvedTheme } = useTheme();
-  const isDark            = resolvedTheme === 'dark';
-  const logoSrc           = isDark ? '/dark-logo.svg' : '/light-logo.svg';
+  useForceDark();
+  const logoSrc = '/dark-logo.svg';
 
   const testimonials = [
     { initials: 'SK', avatarBg: '#4f46e5', name: 'Sarah K.',  role: 'Head of Risk · Retailio',      quote: 'ZENO helped us catch suspicious activity much earlier without slowing down legitimate customers.' },
@@ -856,7 +854,7 @@ export function Register() {
             </div>
 
             <div className="zeno-vis-wrap">
-              <ZenoVisualization isDark={isDark} className="w-full h-full" />
+              <ZenoVisualization isDark={true} className="w-full h-full" />
             </div>
 
             <div className="zeno-testimonial" aria-label="Customer testimonials">

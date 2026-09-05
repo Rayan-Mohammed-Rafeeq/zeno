@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { datasetApi } from '@/services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { formatNumber, formatDateTime } from '@/lib/utils';
 import {
   Database, Play, CheckCircle, Loader2, AlertCircle, RefreshCw,
@@ -39,20 +40,12 @@ export function Dataset() {
   });
 
   return (
-    <div className="space-y-5">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--fg)' }}>Dataset</h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--fg-muted)' }}>
-            Generate synthetic test data and run the full analysis pipeline.
-          </p>
-        </div>
-        <div className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0"
-          style={{ background: 'var(--accent-muted)' }}>
-          <Database className="h-4 w-4" style={{ color: 'var(--accent)' }} />
-        </div>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        icon={Database}
+        title="Dataset"
+        subtitle="Generate synthetic test data and run the full analysis pipeline."
+      />
 
       {/* Synthetic data warning */}
       <div className="flex items-start gap-3 px-4 py-3 rounded-xl text-sm"

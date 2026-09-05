@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { authApi } from '@/services/api';
+import { useForceDark } from '@/hooks/useForceDark';
 import { AlertCircle, CheckCircle, Eye, EyeOff, KeyRound } from 'lucide-react';
 
 export function ResetPassword() {
   const [searchParams]    = useSearchParams();
   const navigate          = useNavigate();
+  useForceDark();
   const token             = searchParams.get('token') ?? '';
 
   const [password,    setPassword]    = useState('');

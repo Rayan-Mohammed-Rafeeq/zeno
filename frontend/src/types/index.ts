@@ -4,7 +4,7 @@ export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 export type TransactionStatus = 'COMPLETED' | 'PENDING' | 'FAILED' | 'REFUNDED';
 export type InvestigationStatus = 'OPEN' | 'REVIEWING' | 'ESCALATED' | 'RESOLVED';
 export type DecisionType = 'ALLOW' | 'MONITOR' | 'MANUAL_REVIEW' | 'HOLD' | 'ESCALATE';
-export type AuditEventType = 
+export type AuditEventType =
   | 'DATASET_GENERATED'
   | 'TRANSACTION_ANALYZED'
   | 'RISK_SIGNAL_DETECTED'
@@ -170,16 +170,119 @@ export interface InvestigationNote {
   createdAt: string;
 }
 
+// ── AI Assessment — structured output ──────────────────────────────────
+
+/** SHAP-grounded reason entry from the LLM structured output */
+export interface AiReasonEntry {
+  signal: string;
+  observed: string;
+  baseline: string;
+  interpretation: string;
+}
+
+export interface AiMlEvidence {
+  fraudProbability: number | null;
+  topShapDrivers: string[];
+  modelVersion: string | null;
+  disclaimer: string;
+}
+
+export interface AiNetworkEvidence {
+  clusterDetected: boolean;
+  clusterSize: number;
+  relationshipSummary: string | null;
+}
+
+export interface AiStructuredResult {
+  assessment: string;        // HIGH_RISK | MEDIUM_RISK | LOW_RISK | INCONCLUSIVE
+  confidence: number;        // 0-100 integer
+  recommendedAction: string;
+  summary: string;
+  reasons: AiReasonEntry[];
+  mlEvidence: AiMlEvidence | null;
+  networkEvidence: AiNetworkEvidence | null;
+  limitations: string[];
+  analystNote: string | null;
+  aiGenerated: boolean;      // false = deterministic fallback, not LLM
+}
+
 export interface AiAssessment {
   id: string;
-  summary: string;
-  reasoning: string;
-  confidence: number;
-  evidenceConsidered: string[];
-  recommendedAction: DecisionType;
-  limitations: string;
+  assessmentType: string;
+  confidence: number;         // 0.0–1.0
+  recommendedAction: string;
+  provider: string;
+  aiGenerated: boolean;
+  structuredResult: AiStructuredResult | null;
+  disclaimer: string;
+  createdAt: string;
+  // Legacy flat fields kept for mock-data compat
+  summary?: string;
+  reasoning?: string;
+  evidenceConsidered?: string[];
+  limitations?: string;
+}
+
+// ── Customer risk detail (combined endpoint) ────────────────────────────
+
+export interface ShapContribution {
+  feature: string;
+  shapValue: number;
+  direction: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL';
+  rank: number;
+}
+
+export interface RiskDetailSignal {
+  signalType: string;
+  severity: string;
+  observedValue: number;
+  baselineValue: number;
+  scoreContribution: number;
+  explanation: string;
+}
+
+/** Combined risk detail — returned by GET /customers/{id}/risk-assessment */
+export interface CustomerRiskDetail {
+  assessmentId: string;
+  customerId: string;
+  riskScore: number;
+  riskLevel: RiskLevel;
+  flagged: boolean;
+  signals: RiskDetailSignal[];
+  // ML — null when ML service not run
+  fraudProbability: number | null;
+  anomalyScore: number | null;
+  modelVersion: string | null;
+  shapContributions: ShapContribution[] | null;
+  // AI assessment — null until analyst generates one
+  aiAssessment: AiAssessment | null;
   createdAt: string;
 }
+
+export interface ChargebackEvidence {
+  subjectId: string;
+  subjectType: string;
+  caseSummary: string;
+  totalTransactions: number;
+  totalAmountInr: number;
+  totalRefunds: number;
+  refundRate: number;
+  merchantBaselineRefundRate: number;
+  riskScore: number;
+  riskLevel: string;
+  triggeredSignals: string[];
+  fraudProbability: number | null;
+  modelVersion: string | null;
+  topShapDrivers: string[];
+  clusterSize: number;
+  networkSummary: string;
+  recommendedAction: string;
+  evidenceGeneratedAt: string;
+  limitations: string[];
+  disclaimer: string;
+}
+
+// ── Other domain types ─────────────────────────────────────────────────
 
 export interface Decision {
   id: string;
@@ -257,7 +360,6 @@ export interface DashboardStats {
   highRiskCustomers: number;
   suspiciousClusters: number;
   openInvestigations: number;
-  // ML evaluation metrics — null if no evaluation run yet
   precision: number | null;
   recall: number | null;
   f1: number | null;
@@ -267,9 +369,36 @@ export interface DashboardStats {
   recentClusters: { id: string; riskLevel: string; memberCount: number; riskScore: number }[];
   recentInvestigations: { id: string; subjectType: string; status: string; riskLevel: string }[];
   dataDisclaimer: string;
-  // Backwards-compat aliases
   detectionPrecision?: number;
   detectionRecall?: number;
+}
+
+/** Real IEEE-CIS benchmark metrics */
+export interface ModelMetrics {
+  datasetName: string;
+  nTrain: number;
+  nTest: number;
+  trainFraudRate: number;
+  testFraudRate: number;
+  modelVersion: string;
+  featureVersion: string;
+  nFeatures: number;
+  threshold: number;
+  fpCost: number;
+  fnCost: number;
+  precision: number;
+  recall: number;
+  f1: number;
+  auprc: number;
+  rocAuc: number;
+  fpr: number;
+  truePositives: number;
+  falsePositives: number;
+  trueNegatives: number;
+  falseNegatives: number;
+  expectedLoss: number;
+  splitStrategy: string;
+  disclaimer: string;
 }
 
 export interface ModelMonitoringHealth {

@@ -4,11 +4,12 @@ import { useTheme } from '@/contexts/ThemeContext';
 interface LogoProps {
   forceVariant?: 'dark' | 'light';
   className?: string;
-  /** Height in pixels — width scales proportionally (aspect 218.87 : 253.79) */
+  /** Height in pixels — width scales proportionally */
   height?: number;
 }
 
-const ASPECT = 218.87 / 253.79; // ≈ 0.863
+// SVG viewBox: 0 0 104.83748 190.66043  →  aspect ≈ 0.5497 (width / height)
+const ASPECT = 104.83748 / 190.66043; // ≈ 0.5497
 
 /**
  * Full Zeno logo SVG asset.
@@ -35,9 +36,9 @@ export function ZenoLogo({ forceVariant, className, height = 40 }: LogoProps) {
 }
 
 /**
- * Icon-only mark — shows just the left portion of the logo SVG (the
- * geometric Z shape + lavender bars) by overflow-clipping.
- * No favicon involved. Uses the same dark/light logo SVG as ZenoLogo.
+ * Icon-only mark — renders the Zeno logo SVG as a small square icon.
+ * The SVG is already just the mark (no text), so we render it directly
+ * fitting within a square container.
  */
 export function ZenoMark({
   forceVariant,
@@ -52,17 +53,14 @@ export function ZenoMark({
   const variant = forceVariant ?? resolvedTheme;
   const src = variant === 'dark' ? '/dark-logo.svg' : '/light-logo.svg';
 
-  // The full SVG is ~219 wide × ~254 tall.
-  // The mark (Z shape + bars) lives roughly in the left 68% of the width.
-  // We render the full image at a scale where height = size,
-  // then clip to show only the leftmost portion (square crop ≈ size × size).
-  const scale = 1.35;
-  const renderedH = Math.round(size * scale);
-  const renderedW = Math.round(renderedH * ASPECT);
+  // The SVG is portrait (~105 × 191). Fit it inside a square by constraining height.
+  // Width will be narrower than size due to aspect ratio.
+  const imgH = size;
+  const imgW = Math.round(imgH * ASPECT);
 
   return (
     <div
-      className={cn('shrink-0 overflow-hidden select-none', className)}
+      className={cn('shrink-0 flex items-center justify-center select-none', className)}
       style={{ width: size, height: size }}
       aria-label="Zeno"
       role="img"
@@ -70,13 +68,8 @@ export function ZenoMark({
       <img
         src={src}
         alt=""
-        width={renderedW}
-        height={renderedH}
-        style={{
-          // Shift left slightly so the mark is centred in the crop window
-          marginLeft: `-${Math.round(renderedW * 0.04)}px`,
-          marginTop:  `-${Math.round(renderedH * 0.02)}px`,
-        }}
+        width={imgW}
+        height={imgH}
         className="select-none"
         draggable={false}
       />

@@ -277,11 +277,25 @@ export const mockFalsePositives: FalsePositiveCase[] = [
 
 export const mockDashboardStats: DashboardStats = {
   transactionsAnalyzed: 12847,
+  customersAnalyzed: 1050,
   highRiskCustomers: 23,
   suspiciousClusters: 8,
   openInvestigations: 12,
   detectionPrecision: 0.709,
   detectionRecall: 0.847,
+  precision: 0.709,
+  recall: 0.847,
+  f1: 0.776,
+  falsePositiveRate: 0.032,
+  riskDistribution: { LOW: 820, MEDIUM: 155, HIGH: 52, CRITICAL: 23 },
+  topSignals: [
+    { signalType: 'DEVICE_REUSE', count: 38 },
+    { signalType: 'REFUND_RATE_ANOMALY', count: 29 },
+    { signalType: 'VELOCITY', count: 22 },
+  ],
+  recentClusters: [],
+  recentInvestigations: [],
+  dataDisclaimer: 'Mock data for development.',
 };
 
 export const mockCurrentUser: User = {

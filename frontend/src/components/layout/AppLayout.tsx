@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { ZenoLogo, ZenoMark } from '@/components/brand/Logo';
+import { ZenoMark } from '@/components/brand/Logo';
 import {
   LayoutDashboard, Users, Receipt, Network, FileSearch,
   BarChart3, FileText, Database, Settings,
@@ -24,6 +24,7 @@ const NAV = [
       { name: 'Transactions',   href: '/transactions',   icon: Receipt     },
       { name: 'Risk Clusters',  href: '/clusters',       icon: Network     },
       { name: 'Investigations', href: '/investigations', icon: FileSearch  },
+      { name: 'Live Events',    href: '/live-events',    icon: Activity    },
     ],
   },
   {
@@ -72,7 +73,7 @@ function NavItem({
         // When collapsed: full-width flex, icon centred; when expanded: left-aligned row with gap
         collapsed
           ? 'justify-center w-full px-0 py-2.5'
-          : 'gap-3 px-3 py-2',
+          : 'gap-3 px-3 py-2 w-full',
         active
           ? 'bg-[var(--accent)] text-white shadow-sm'
           : 'text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--surface-2)]',
@@ -88,7 +89,7 @@ function NavItem({
       {/* Label fades + collapses horizontally */}
       <span
         className={cn(
-          'truncate transition-all duration-150 leading-none',
+          'whitespace-nowrap transition-all duration-150 leading-none',
           collapsed ? 'w-0 opacity-0 overflow-hidden' : 'opacity-100',
         )}
       >
@@ -136,45 +137,53 @@ function Sidebar({
     location.pathname === href || location.pathname.startsWith(href + '/');
 
   return (
-    <div className="flex flex-col h-full relative overflow-hidden">
+    <div className="flex flex-col h-full w-full relative">
 
       {/* Logo */}
       <div
-        className="flex items-center shrink-0 border-b border-[var(--border)] transition-all duration-200"
-        style={{ padding: collapsed ? '18px 0' : '18px 20px' }}
+        className="shrink-0 border-b border-[var(--border)]"
+        style={{ height: 72, position: 'relative' }}
       >
-        <Link
-          to="/dashboard"
-          onClick={onNav}
-          title={collapsed ? 'ZENO — Dashboard' : undefined}
-          className={cn(
-            'group flex items-center min-w-0 transition-all duration-200',
-            collapsed ? 'w-full justify-center gap-0' : 'gap-3',
-          )}
-        >
-          {collapsed
-            ? <ZenoMark size={32} />
-            : <ZenoLogo height={34} />
-          }
-          <span
-            className={cn(
-              'text-lg font-bold tracking-widest whitespace-nowrap',
-              'transition-all duration-150 group-hover:text-[var(--accent)]',
-              collapsed ? 'w-0 opacity-0 overflow-hidden' : 'opacity-100',
-            )}
-            style={{ color: 'var(--fg)' }}
+        {collapsed ? (
+          /* Collapsed: absolutely center the mark in the 52px aside */
+          <Link
+            to="/dashboard"
+            onClick={onNav}
+            title="ZENO — Dashboard"
+            style={{
+              position: 'absolute', inset: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
           >
-            ZENO
-          </span>
-        </Link>
+            <ZenoMark size={36} />
+          </Link>
+        ) : (
+          /* Expanded: normal left-aligned row */
+          <Link
+            to="/dashboard"
+            onClick={onNav}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              height: '100%', padding: '14px 16px',
+            }}
+          >
+            <ZenoMark size={36} />
+            <span
+              className="text-[15px] font-bold tracking-widest whitespace-nowrap transition-colors duration-200"
+              style={{ color: 'var(--fg)' }}
+            >
+              ZENO
+            </span>
+          </Link>
+        )}
       </div>
 
       {/* Pin / collapse toggle REMOVED — hover handles expand/collapse */}
 
       {/* Navigation */}
       <nav
-        className="flex-1 overflow-y-auto overflow-x-hidden py-4 space-y-4"
-        style={{ padding: collapsed ? '16px 0' : '16px 12px' }}
+        className="flex-1 overflow-y-auto py-4 space-y-4 no-scrollbar"
+        style={{ padding: collapsed ? '16px 0' : '16px 8px' }}
       >
         {NAV.map((group) => (
           <div key={group.section}>
@@ -183,7 +192,7 @@ function Sidebar({
               className={cn(
                 'mb-1.5 text-[10px] font-semibold tracking-widest uppercase',
                 'transition-all duration-150 overflow-hidden whitespace-nowrap',
-                collapsed ? 'opacity-0 h-0 mb-0 px-0' : 'opacity-100 h-auto px-3',
+                collapsed ? 'opacity-0 h-0 mb-0 px-0' : 'opacity-100 h-auto px-2',
               )}
               style={{ color: 'var(--fg-subtle)' }}
             >
@@ -232,8 +241,8 @@ function Sidebar({
 
           <div
             className={cn(
-              'flex items-center gap-2 min-w-0 transition-all duration-150',
-              collapsed ? 'w-0 opacity-0 overflow-hidden' : 'flex-1 opacity-100',
+              'flex items-center gap-2 transition-all duration-150 overflow-hidden',
+              collapsed ? 'w-0 opacity-0' : 'flex-1 min-w-0 opacity-100',
             )}
           >
             <div className="flex-1 min-w-0">
@@ -305,11 +314,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         onMouseLeave={handleMouseLeave}
         className={cn(
           'hidden md:flex flex-col shrink-0 border-r border-[var(--border)]',
-          // Width transition is smooth
           'transition-[width] duration-200 ease-in-out',
-          // overflow-visible so the tooltip can escape the sidebar boundary
+          // overflow-visible so tooltips escape the sidebar boundary
           'overflow-visible relative z-10',
-          collapsed ? 'w-[64px]' : 'w-60',
+          collapsed ? 'w-[52px]' : 'w-[176px]',
         )}
         style={{ background: 'var(--surface)' }}
       >
@@ -443,8 +451,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-          {children}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 page-ambient no-scrollbar">
+          <div className="relative z-10">
+            {children}
+          </div>
         </main>
       </div>
     </div>

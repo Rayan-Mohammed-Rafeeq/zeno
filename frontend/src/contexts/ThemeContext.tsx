@@ -52,10 +52,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+// When called outside ThemeProvider (public pages: landing, login, register, etc.)
+// always return dark — no theme switching available on public pages.
+const DARK_FALLBACK: ThemeContextType = {
+  theme: 'dark',
+  setTheme: () => {},
+  resolvedTheme: 'dark',
+};
+
 export function useTheme() {
   const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
+  return context ?? DARK_FALLBACK;
 }

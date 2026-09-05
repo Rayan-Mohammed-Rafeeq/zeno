@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { authApi } from '@/services/api';
+import { useForceDark } from '@/hooks/useForceDark';
 import { AlertCircle, CheckCircle, ArrowLeft, Mail } from 'lucide-react';
 
 export function ForgotPassword() {
+  useForceDark();
   const [email, setEmail]   = useState('');
   const [sent, setSent]     = useState(false);
   const [error, setError]   = useState('');
