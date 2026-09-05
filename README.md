@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="frontend/src/assets/hero.png" alt="Zeno Logo" width="120" />
+<img src="frontend/public/dark-logo.svg" alt="Zeno Logo" width="80" />
 
 # Zeno
 
