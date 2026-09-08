@@ -45,19 +45,19 @@ html, body { margin:0; padding:0; }
 /* ── SCROLLBAR ────────────────────────────────────────────────────────── */
 .lp ::-webkit-scrollbar { width:5px; }
 .lp ::-webkit-scrollbar-track { background:transparent; }
-.lp ::-webkit-scrollbar-thumb { background:#2e3050; border-radius:3px; }
+.lp ::-webkit-scrollbar-thumb { background:#4e5070; border-radius:3px; }
 
 /* ── BACKGROUND GRID ─────────────────────────────────────────────────── */
 .lp-bg-grid {
   position:absolute; inset:0; z-index:0; pointer-events:none;
   background-image:
-    linear-gradient(rgba(133,136,230,0.035) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(133,136,230,0.035) 1px,transparent 1px);
+    linear-gradient(rgba(173,176,250,0.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(173,176,250,0.05) 1px,transparent 1px);
   background-size:60px 60px;
 }
 .lp-bg-glow-a {
   position:absolute; top:0; left:10vw; width:600px; height:600px;
-  background:radial-gradient(circle,rgba(133,136,230,0.07) 0%,transparent 65%);
+  background:radial-gradient(circle,rgba(173,176,250,0.10) 0%,transparent 65%);
   pointer-events:none; z-index:0;
 }
 .lp-bg-glow-b {
@@ -71,7 +71,7 @@ html, body { margin:0; padding:0; }
 .lp-nav {
   position:fixed; top:0; left:0; right:0; z-index:100;
   background:rgba(12,13,20,0.85); backdrop-filter:blur(20px) saturate(1.4);
-  border-bottom:1px solid rgba(133,136,230,0.1);
+  border-bottom:1px solid rgba(173,176,250,0.12);
   padding:0;
 }
 .lp-nav-inner {
@@ -111,30 +111,30 @@ html, body { margin:0; padding:0; }
   100% { transform:scale(4); opacity:0; }
 }
 @keyframes lp-btn-glow-pulse {
-  0%,100% { box-shadow:0 0 0 0 rgba(133,136,230,0.0), 0 4px 20px rgba(123,127,224,0.45); }
-  50%      { box-shadow:0 0 0 6px rgba(133,136,230,0.12), 0 4px 20px rgba(123,127,224,0.45); }
+  0%,100% { box-shadow:0 0 0 0 rgba(173,176,250,0.0), 0 4px 20px rgba(155,159,232,0.50); }
+  50%      { box-shadow:0 0 0 6px rgba(173,176,250,0.14), 0 4px 20px rgba(155,159,232,0.50); }
 }
 
 /* ── GHOST ─────────────────────────────────────────────────────────── */
 .lp-btn-ghost {
   background:transparent; color:rgba(232,234,240,0.65);
-  border:1px solid rgba(133,136,230,0.18);
+  border:1px solid rgba(173,176,250,0.20);
   transition:all 0.25s ease;
 }
 .lp-btn-ghost::after {
   content:''; position:absolute; inset:0; border-radius:inherit;
-  background:rgba(133,136,230,0.08);
+  background:rgba(173,176,250,0.10);
   opacity:0; transition:opacity 0.25s;
 }
-.lp-btn-ghost:hover { color:#e8eaf0; border-color:rgba(133,136,230,0.5); transform:translateY(-2px); }
+.lp-btn-ghost:hover { color:#e8eaf0; border-color:rgba(173,176,250,0.55); transform:translateY(-2px); }
 .lp-btn-ghost:hover::after { opacity:1; }
 .lp-btn-ghost:active { transform:translateY(0) scale(0.97); }
 
 /* ── PRIMARY (nav) ─────────────────────────────────────────────────── */
 .lp-btn-primary {
-  background:linear-gradient(135deg,#7b7fe0 0%,#5e5bc1 100%);
-  color:#fff; box-shadow:0 2px 12px rgba(123,127,224,0.3);
-  border:1px solid rgba(133,136,230,0.4);
+  background:linear-gradient(135deg,#9b9fe8 0%,#7e7bd1 100%);
+  color:#fff; box-shadow:0 2px 12px rgba(155,159,232,0.35);
+  border:1px solid rgba(173,176,250,0.45);
 }
 .lp-btn-primary::before {
   content:''; position:absolute;
@@ -144,8 +144,8 @@ html, body { margin:0; padding:0; }
   transition:none;
 }
 .lp-btn-primary:hover {
-  background:linear-gradient(135deg,#9195e8 0%,#5e5bc1 100%);
-  box-shadow:0 4px 22px rgba(123,127,224,0.55);
+  background:linear-gradient(135deg,#b1b5f0 0%,#7e7bd1 100%);
+  box-shadow:0 4px 22px rgba(155,159,232,0.60);
   transform:translateY(-2px) scale(1.03);
 }
 .lp-btn-primary:hover::before { animation:lp-btn-shimmer 0.55s ease forwards; }
@@ -166,9 +166,9 @@ html, body { margin:0; padding:0; }
 /* ── HERO PRIMARY ───────────────────────────────────────────────────── */
 .lp-btn-hero-primary {
   display:inline-flex; align-items:center; gap:8px;
-  background:linear-gradient(135deg,#7b7fe0 0%,#5e5bc1 100%);
-  color:#fff; box-shadow:0 4px 20px rgba(123,127,224,0.35);
-  border:1px solid rgba(133,136,230,0.4);
+  background:linear-gradient(135deg,#9b9fe8 0%,#7e7bd1 100%);
+  color:#fff; box-shadow:0 4px 20px rgba(155,159,232,0.40);
+  border:1px solid rgba(173,176,250,0.45);
   padding:11px 26px; font-size:14px; font-weight:600; border-radius:8px;
   cursor:pointer; text-decoration:none; white-space:nowrap;
   position:relative; overflow:hidden;
@@ -186,13 +186,13 @@ html, body { margin:0; padding:0; }
   opacity:0; transition:opacity 0.3s;
 }
 .lp-btn-hero-primary:hover {
-  background:linear-gradient(135deg,#9ea2ef 0%,#7370d8 100%);
-  box-shadow:0 8px 32px rgba(123,127,224,0.6), 0 0 0 1px rgba(133,136,230,0.5);
+  background:linear-gradient(135deg,#bec2f7 0%,#9390e8 100%);
+  box-shadow:0 8px 32px rgba(155,159,232,0.65), 0 0 0 1px rgba(173,176,250,0.55);
   transform:translateY(-3px) scale(1.04);
 }
 .lp-btn-hero-primary:hover::before { animation:lp-btn-shimmer 0.6s ease forwards; }
 .lp-btn-hero-primary:hover::after { opacity:1; }
-.lp-btn-hero-primary:active { transform:translateY(-1px) scale(0.98); box-shadow:0 4px 16px rgba(123,127,224,0.4); }
+.lp-btn-hero-primary:active { transform:translateY(-1px) scale(0.98); box-shadow:0 4px 16px rgba(155,159,232,0.45); }
 
 /* ── HERO SECONDARY ─────────────────────────────────────────────────── */
 .lp-btn-hero-secondary {
@@ -206,11 +206,11 @@ html, body { margin:0; padding:0; }
 }
 .lp-btn-hero-secondary::after {
   content:''; position:absolute; inset:0; border-radius:inherit;
-  background:linear-gradient(135deg, rgba(133,136,230,0.08) 0%, rgba(232,234,240,0.04) 100%);
+  background:linear-gradient(135deg, rgba(173,176,250,0.10) 0%, rgba(232,234,240,0.05) 100%);
   opacity:0; transition:opacity 0.25s;
 }
 .lp-btn-hero-secondary:hover {
-  color:#e8eaf0; border-color:rgba(133,136,230,0.4);
+  color:#e8eaf0; border-color:rgba(173,176,250,0.45);
   transform:translateY(-3px) scale(1.03);
   box-shadow:0 6px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
 }
@@ -219,7 +219,7 @@ html, body { margin:0; padding:0; }
 
 .lp-mobile-btn { display:none; background:none; border:none; color:#e8eaf0; cursor:pointer; padding:6px; }
 .lp-mobile-menu {
-  background:rgba(15,16,24,0.97); border:1px solid rgba(133,136,230,0.15);
+  background:rgba(15,16,24,0.97); border:1px solid rgba(173,176,250,0.18);
   border-radius:14px; padding:20px; margin:0 12px 12px;
   display:flex; flex-direction:column; gap:4px;
   box-shadow:0 20px 60px rgba(0,0,0,0.6);
@@ -229,10 +229,10 @@ html, body { margin:0; padding:0; }
   font-size:15px; font-weight:500; transition:all 0.15s;
   text-decoration:none; background:none; border:none; cursor:pointer; text-align:left;
 }
-.lp-mobile-menu a:hover { background:rgba(133,136,230,0.1); color:#e8eaf0; }
-.lp-mobile-menu .lp-mm-divider { height:1px; background:rgba(133,136,230,0.12); margin:8px 0; }
+.lp-mobile-menu a:hover { background:rgba(173,176,250,0.12); color:#e8eaf0; }
+.lp-mobile-menu .lp-mm-divider { height:1px; background:rgba(173,176,250,0.15); margin:8px 0; }
 .lp-mobile-menu .lp-mm-primary {
-  background:linear-gradient(135deg,#7b7fe0,#5e5bc1);
+  background:linear-gradient(135deg,#9b9fe8,#7e7bd1);
   color:#fff; text-align:center; border-radius:8px;
   padding:12px 16px; font-weight:700;
 }
@@ -241,10 +241,10 @@ html, body { margin:0; padding:0; }
 .lp-eyebrow {
   display:inline-flex; align-items:center; gap:8px;
   font-size:11px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase;
-  color:#8588e6; margin-bottom:20px;
+  color:#a8abe6; margin-bottom:20px;
 }
 .lp-eyebrow::before {
-  content:''; display:block; width:20px; height:1px; background:#8588e6;
+  content:''; display:block; width:20px; height:1px; background:#a8abe6;
 }
 
 /* ── SECTION REVEAL ──────────────────────────────────────────────────── */
@@ -272,12 +272,12 @@ html, body { margin:0; padding:0; }
 .lp-hero-left { padding-right:20px; }
 .lp-hero-tag {
   display:inline-flex; align-items:center; gap:8px;
-  background:rgba(133,136,230,0.1); border:1px solid rgba(133,136,230,0.25);
+  background:rgba(173,176,250,0.12); border:1px solid rgba(173,176,250,0.28);
   border-radius:100px; padding:6px 14px 6px 8px;
-  font-size:12px; font-weight:600; color:#a5a8f4; margin-bottom:32px;
+  font-size:12px; font-weight:600; color:#b5b8f4; margin-bottom:32px;
 }
 .lp-hero-tag-dot {
-  width:6px; height:6px; background:#8588e6; border-radius:50%;
+  width:6px; height:6px; background:#a8abe6; border-radius:50%;
   animation:lp-hero-pulse 2s infinite;
 }
 .lp-hero h1 {
@@ -285,7 +285,7 @@ html, body { margin:0; padding:0; }
   letter-spacing:-2px; margin:0 0 28px; color:#f0f1f8;
 }
 .lp-hero h1 .lp-h1-accent {
-  background:linear-gradient(135deg,#a5a8f4 0%,#8588e6 50%,#6366c8 100%);
+  background:linear-gradient(135deg,#b5b8f4 0%,#a8abe6 50%,#8386d8 100%);
   -webkit-background-clip:text; -webkit-text-fill-color:transparent;
   background-clip:text;
 }
@@ -316,34 +316,32 @@ html, body { margin:0; padding:0; }
 /* The sphere itself — multiple stacked gradients for 3D depth */
 .lp-orb-core {
   position:absolute; inset:0; border-radius:50%;
-  /* Base sphere: dark at bottom-right, light at top-left (light source) */
+  /* Base sphere: purplish tones harmonized with Zeno brand logo (#8588e6) */
   background:
-    /* specular glint — tiny bright spot */
-    radial-gradient(circle at 32% 26%, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 18%),
-    /* primary lit hemisphere */
-    radial-gradient(circle at 38% 34%, rgba(180,183,255,0.45) 0%, rgba(133,136,230,0.28) 25%, rgba(80,84,200,0.15) 50%, transparent 72%),
-    /* fill light from opposite side (subtle) */
-    radial-gradient(circle at 72% 74%, rgba(60,64,180,0.18) 0%, transparent 45%),
-    /* base sphere colour */
-    radial-gradient(circle at 50% 50%, #1c1e3e 0%, #0d0e1e 100%);
-  border:1px solid rgba(133,136,230,0.3);
-  /* Drop shadow below + subtle glow halo */
+    /* soft purple highlight (no white shade) */
+    radial-gradient(circle at 36% 30%, rgba(133,136,230,0.45) 0%, rgba(105,108,216,0.25) 35%, transparent 68%),
+    /* fill light from opposite side (subtle purple) */
+    radial-gradient(circle at 72% 74%, rgba(133,136,230,0.22) 0%, transparent 48%),
+    /* base sphere colour: rich purple gradient */
+    radial-gradient(circle at 50% 48%, #4a47a8 0%, #353282 45%, #221f5e 75%, #141240 100%);
+  border:1px solid rgba(133,136,230,0.45);
+  /* Drop shadow below + purple glow halo */
   box-shadow:
     0 30px 60px rgba(0,0,0,0.55),
     0 8px 24px rgba(0,0,0,0.4),
-    0 0 0 1px rgba(133,136,230,0.12),
-    0 0 50px rgba(133,136,230,0.14);
+    0 0 0 1px rgba(133,136,230,0.25),
+    0 0 50px rgba(133,136,230,0.32);
   overflow:hidden;
 }
-/* Rim light — a crescent of pale blue on the lower-left edge */
+/* Rim light — soft purple glow on the lower-left edge */
 .lp-orb-core::before {
   content:''; position:absolute; inset:0; border-radius:50%;
-  background:radial-gradient(circle at 18% 78%, rgba(120,140,255,0.22) 0%, transparent 38%);
+  background:radial-gradient(circle at 18% 78%, rgba(133,136,230,0.38) 0%, transparent 38%);
 }
-/* Atmospheric inner atmosphere tint */
+/* Atmospheric inner atmosphere tint — deep dark purple */
 .lp-orb-core::after {
   content:''; position:absolute; inset:0; border-radius:50%;
-  background:radial-gradient(circle at 50% 50%, transparent 45%, rgba(8,8,20,0.45) 100%);
+  background:radial-gradient(circle at 50% 50%, transparent 45%, rgba(12,10,34,0.52) 100%);
 }
 /* ── ORB EYES ────────────────────────────────────────────────────────── */
 .lp-orb-face {
@@ -392,10 +390,10 @@ html, body { margin:0; padding:0; }
 /* pupil bigger when happy */
 .lp-orb-eye-wrap.happy  .lp-orb-pupil { width:18px; height:18px; margin-top:-9px; margin-left:-9px; }
 
-/* eyelid overlay — slides down for sleepy/squint */
+/* eyelid overlay — slides down for sleepy/squint, matches purplish orb body */
 .lp-orb-eyelid {
   position:absolute; top:0; left:0; right:0;
-  height:0; background:rgba(12,13,26,0.95);
+  height:0; background:linear-gradient(180deg, #444196 0%, #2f2c73 100%);
   border-radius:0 0 50% 50%;
   transition:height 0.3s ease;
 }
@@ -416,6 +414,7 @@ html, body { margin:0; padding:0; }
 /* logo mouth area */
 .lp-orb-mouth {
   margin-top:4px;
+  filter:drop-shadow(0 4px 10px rgba(0,0,0,0.5)) drop-shadow(0 0 14px rgba(133,136,230,0.35));
   transition:transform 0.3s ease, opacity 0.3s ease;
 }
 .lp-orb-mouth.grin   { transform:scale(1.08) translateY(-2px); }
@@ -449,7 +448,7 @@ html, body { margin:0; padding:0; }
   position:absolute;
   top:calc(50% + 18px);
   pointer-events:none; z-index:5;
-  filter:drop-shadow(0 6px 14px rgba(0,0,0,0.65));
+  filter:drop-shadow(0 8px 18px rgba(0,0,0,0.65)) drop-shadow(0 2px 10px rgba(133,136,230,0.25));
   will-change:transform;
 }
 .lp-orb-hand-left {
@@ -563,13 +562,13 @@ html, body { margin:0; padding:0; }
 .lp-problem::before {
   content:''; position:absolute; top:5%; right:-8%; width:980px; height:760px;
   background:
-    radial-gradient(circle at 60% 45%, rgba(133,136,230,0.16) 0%, rgba(99,102,241,0.07) 35%, rgba(165,168,244,0.03) 60%, transparent 72%),
-    radial-gradient(circle at 85% 20%, rgba(165,168,244,0.12) 0%, transparent 55%);
+    radial-gradient(circle at 60% 45%, rgba(173,176,250,0.20) 0%, rgba(139,142,255,0.10) 35%, rgba(185,188,255,0.05) 60%, transparent 72%),
+    radial-gradient(circle at 85% 20%, rgba(185,188,255,0.16) 0%, transparent 55%);
   pointer-events:none; z-index:0;
 }
 .lp-problem::after {
   content:''; position:absolute; bottom:5%; left:-10%; width:640px; height:640px;
-  background:radial-gradient(circle, rgba(165,168,244,0.09) 0%, rgba(133,136,230,0.04) 45%, transparent 68%);
+  background:radial-gradient(circle, rgba(185,188,255,0.12) 0%, rgba(173,176,250,0.06) 45%, transparent 68%);
   pointer-events:none; z-index:0;
 }
 .lp-decor-problem {
@@ -1445,13 +1444,13 @@ html, body { margin:0; padding:0; }
 .lp-features::before {
   content:''; position:absolute; top:8%; left:25%; width:1100px; height:740px;
   background:
-    radial-gradient(ellipse at 45% 35%, rgba(133,136,230,0.16) 0%, rgba(99,102,241,0.07) 35%, rgba(165,168,244,0.03) 60%, transparent 75%),
-    radial-gradient(circle at 20% 60%, rgba(165,168,244,0.09) 0%, transparent 50%);
+    radial-gradient(ellipse at 45% 35%, rgba(173,176,250,0.20) 0%, rgba(139,142,255,0.10) 35%, rgba(185,188,255,0.05) 60%, transparent 75%),
+    radial-gradient(circle at 20% 60%, rgba(185,188,255,0.12) 0%, transparent 50%);
   pointer-events:none; z-index:0;
 }
 .lp-features::after {
   content:''; position:absolute; bottom:5%; right:-5%; width:680px; height:680px;
-  background:radial-gradient(circle, rgba(139,92,246,0.09) 0%, rgba(99,102,241,0.03) 45%, transparent 68%);
+  background:radial-gradient(circle, rgba(179,132,255,0.12) 0%, rgba(139,142,255,0.05) 45%, transparent 68%);
   pointer-events:none; z-index:0;
 }
 .lp-decor-features {
@@ -1501,24 +1500,24 @@ html, body { margin:0; padding:0; }
 .lp-bento-a {
   grid-column:span 5;
   background:linear-gradient(160deg, #ffffff 0%, #fafaff 55%, #f3f5fd 100%);
-  border:1px solid rgba(133,136,230,0.48);
+  border:1px solid rgba(173,176,250,0.55);
   box-shadow:
-    0 12px 38px -4px rgba(99,102,241,0.13),
+    0 12px 38px -4px rgba(139,142,255,0.16),
     0 2px 8px -1px rgba(15,23,42,0.03),
     inset 0 1px 0 #ffffff,
-    inset 0 0 28px rgba(133,136,230,0.06);
+    inset 0 0 28px rgba(173,176,250,0.08);
 }
 .lp-bento-a::before {
   opacity:0.9;
-  background:linear-gradient(90deg,transparent,rgba(133,136,230,0.9),transparent);
+  background:linear-gradient(90deg,transparent,rgba(173,176,250,0.9),transparent);
 }
 .lp-bento-a:hover {
-  border-color:rgba(133,136,230,0.75); transform:translateY(-5px);
+  border-color:rgba(173,176,250,0.80); transform:translateY(-5px);
   box-shadow:
-    0 24px 55px -6px rgba(99,102,241,0.22),
+    0 24px 55px -6px rgba(139,142,255,0.26),
     0 6px 16px rgba(15,23,42,0.04),
     inset 0 1px 0 #ffffff,
-    inset 0 0 36px rgba(133,136,230,0.09);
+    inset 0 0 36px rgba(173,176,250,0.12);
 }
 .lp-bento-a .lp-bento-icon {
   background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.28);
@@ -1674,13 +1673,13 @@ html, body { margin:0; padding:0; }
   content:''; position:absolute; top:18%; left:50%; transform:translateX(-50%);
   width:980px; height:560px;
   background:
-    radial-gradient(ellipse at center, rgba(133,136,230,0.14) 0%, rgba(99,102,241,0.05) 45%, transparent 72%),
-    radial-gradient(circle at 75% 25%, rgba(165,168,244,0.08) 0%, transparent 55%);
+    radial-gradient(ellipse at center, rgba(173,176,250,0.18) 0%, rgba(139,142,255,0.08) 45%, transparent 72%),
+    radial-gradient(circle at 75% 25%, rgba(185,188,255,0.11) 0%, transparent 55%);
   pointer-events:none; z-index:0;
 }
 .lp-testi::after {
   content:''; position:absolute; bottom:5%; left:5%; width:550px; height:550px;
-  background:radial-gradient(circle, rgba(165,168,244,0.06) 0%, transparent 60%);
+  background:radial-gradient(circle, rgba(185,188,255,0.09) 0%, transparent 60%);
   pointer-events:none; z-index:0;
 }
 .lp-decor-testi {
@@ -1705,18 +1704,18 @@ html, body { margin:0; padding:0; }
 }
 .lp-testi-card::before {
   content:''; position:absolute; top:0; left:15%; right:15%; height:1px;
-  background:linear-gradient(90deg,transparent,rgba(133,136,230,0.5),transparent);
+  background:linear-gradient(90deg,transparent,rgba(173,176,250,0.6),transparent);
   opacity:0.85;
 }
 .lp-testi-card:hover {
-  border-color:rgba(133,136,230,0.45); transform:translateY(-6px);
+  border-color:rgba(173,176,250,0.50); transform:translateY(-6px);
   box-shadow:
-    0 22px 50px -8px rgba(99,102,241,0.13),
+    0 22px 50px -8px rgba(139,142,255,0.16),
     0 4px 14px rgba(15,23,42,0.04),
     inset 0 1px 0 #ffffff;
 }
 .lp-testi-quote {
-  font-size:38px; line-height:1; color:rgba(133,136,230,0.32); margin-bottom:16px;
+  font-size:38px; line-height:1; color:rgba(173,176,250,0.38); margin-bottom:16px;
   font-family:Georgia,serif;
 }
 .lp-testi-text {
@@ -2375,21 +2374,21 @@ function ZenoOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
           aria-hidden="true"
         >
           <defs>
-            {/* Dark navy base matching the orb */}
+            {/* Rich purple base matching the orb and logo */}
             <linearGradient id="arm-l-grad" x1="100%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%"   stopColor="#2a2d52" />
-              <stop offset="50%"  stopColor="#1a1c3a" />
-              <stop offset="100%" stopColor="#0f1024" />
+              <stop offset="0%"   stopColor="#5552b8" />
+              <stop offset="50%"  stopColor="#3b3887" />
+              <stop offset="100%" stopColor="#221f5a" />
             </linearGradient>
-            {/* Top-left specular matching orb light source */}
+            {/* Soft purple sheen matching orb (no white specular) */}
             <radialGradient id="arm-l-spec" cx="30%" cy="20%" r="45%">
-              <stop offset="0%"  stopColor="rgba(180,184,255,0.28)" />
-              <stop offset="100%" stopColor="rgba(180,184,255,0)" />
+              <stop offset="0%"  stopColor="rgba(133,136,230,0.32)" />
+              <stop offset="100%" stopColor="rgba(133,136,230,0)" />
             </radialGradient>
-            {/* Rim light bottom-right edge */}
+            {/* Purple rim light bottom-right edge */}
             <radialGradient id="arm-l-rim" cx="75%" cy="80%" r="40%">
-              <stop offset="0%"  stopColor="rgba(100,108,220,0.22)" />
-              <stop offset="100%" stopColor="rgba(100,108,220,0)" />
+              <stop offset="0%"  stopColor="rgba(133,136,230,0.30)" />
+              <stop offset="100%" stopColor="rgba(133,136,230,0)" />
             </radialGradient>
             <filter id="arm-l-drop" x="-30%" y="-15%" width="160%" height="140%">
               <feDropShadow dx="2" dy="8" stdDeviation="7" floodColor="#000" floodOpacity="0.55" />
@@ -2404,7 +2403,7 @@ function ZenoOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
           <circle cx="82" cy="22" r="14" fill="url(#arm-l-grad)" filter="url(#arm-l-drop)" />
           <circle cx="82" cy="22" r="14" fill="url(#arm-l-spec)" />
           <circle cx="82" cy="22" r="14" fill="url(#arm-l-rim)" />
-          <circle cx="82" cy="22" r="14" stroke="rgba(133,136,230,0.22)" strokeWidth="1" fill="none" />
+          <circle cx="82" cy="22" r="14" stroke="rgba(133,136,230,0.32)" strokeWidth="1" fill="none" />
 
           {/* Arm body — tapered rectangle angled down-left */}
           <path
@@ -2455,11 +2454,11 @@ function ZenoOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
               C 92 76, 90 56, 86 40
               Z
             "
-            stroke="rgba(133,136,230,0.2)" strokeWidth="1" fill="none"
+            stroke="rgba(133,136,230,0.32)" strokeWidth="1" fill="none"
           />
           {/* Subtle centre-line crease for depth */}
           <path d="M 78 38 C 64 60, 44 82, 36 108"
-            stroke="rgba(255,255,255,0.07)" strokeWidth="2" fill="none" strokeLinecap="round" />
+            stroke="rgba(165,168,244,0.22)" strokeWidth="2" fill="none" strokeLinecap="round" />
         </svg>
 
         {/* ── Right arm (EVE-style: mirror of left) ── */}
@@ -2473,17 +2472,17 @@ function ZenoOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
         >
           <defs>
             <linearGradient id="arm-r-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%"   stopColor="#2a2d52" />
-              <stop offset="50%"  stopColor="#1a1c3a" />
-              <stop offset="100%" stopColor="#0f1024" />
+              <stop offset="0%"   stopColor="#5552b8" />
+              <stop offset="50%"  stopColor="#3b3887" />
+              <stop offset="100%" stopColor="#221f5a" />
             </linearGradient>
             <radialGradient id="arm-r-spec" cx="70%" cy="20%" r="45%">
-              <stop offset="0%"  stopColor="rgba(180,184,255,0.28)" />
-              <stop offset="100%" stopColor="rgba(180,184,255,0)" />
+              <stop offset="0%"  stopColor="rgba(133,136,230,0.32)" />
+              <stop offset="100%" stopColor="rgba(133,136,230,0)" />
             </radialGradient>
             <radialGradient id="arm-r-rim" cx="25%" cy="80%" r="40%">
-              <stop offset="0%"  stopColor="rgba(100,108,220,0.22)" />
-              <stop offset="100%" stopColor="rgba(100,108,220,0)" />
+              <stop offset="0%"  stopColor="rgba(133,136,230,0.30)" />
+              <stop offset="100%" stopColor="rgba(133,136,230,0)" />
             </radialGradient>
             <filter id="arm-r-drop" x="-30%" y="-15%" width="160%" height="140%">
               <feDropShadow dx="-2" dy="8" stdDeviation="7" floodColor="#000" floodOpacity="0.55" />
@@ -2493,7 +2492,7 @@ function ZenoOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
           <circle cx="18" cy="22" r="14" fill="url(#arm-r-grad)" filter="url(#arm-r-drop)" />
           <circle cx="18" cy="22" r="14" fill="url(#arm-r-spec)" />
           <circle cx="18" cy="22" r="14" fill="url(#arm-r-rim)" />
-          <circle cx="18" cy="22" r="14" stroke="rgba(133,136,230,0.22)" strokeWidth="1" fill="none" />
+          <circle cx="18" cy="22" r="14" stroke="rgba(133,136,230,0.32)" strokeWidth="1" fill="none" />
 
           {/* Arm body — mirrored */}
           <path
@@ -2543,10 +2542,10 @@ function ZenoOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
               C 8 76, 10 56, 14 40
               Z
             "
-            stroke="rgba(133,136,230,0.2)" strokeWidth="1" fill="none"
+            stroke="rgba(133,136,230,0.32)" strokeWidth="1" fill="none"
           />
           <path d="M 22 38 C 36 60, 56 82, 64 108"
-            stroke="rgba(255,255,255,0.07)" strokeWidth="2" fill="none" strokeLinecap="round" />
+            stroke="rgba(165,168,244,0.22)" strokeWidth="2" fill="none" strokeLinecap="round" />
         </svg>
 
         <div className="lp-orb-ring lp-orb-ring-1">
