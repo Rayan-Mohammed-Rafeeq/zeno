@@ -2086,13 +2086,6 @@ function ZenoOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
       lastMoveTime = Date.now();
     };
 
-    const lerpAngle = (current: number, target: number, speed: number) => {
-      let diff = (target - current) % 360;
-      if (diff > 180) diff -= 360;
-      if (diff < -180) diff += 360;
-      return current + diff * speed;
-    };
-
     const tick = () => {
       const now = Date.now();
       const isIdle = !hasMoved || (now - lastMoveTime > 2800);
@@ -2161,7 +2154,6 @@ function ZenoOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
             shoulderFracX: number,
             shoulderFracY: number,
             naturalAngle: number,
-            scale3d: number,
             isLeft: boolean
           ) => {
             if (!svgEl) return;
@@ -2201,8 +2193,8 @@ function ZenoOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
             }
           };
 
-          updateArm(leftArmRef.current, 82 / 100, 22 / 130, 118, currentLeftScale, true);
-          updateArm(rightArmRef.current, 18 / 100, 22 / 130, 62, currentRightScale, false);
+          updateArm(leftArmRef.current, 82 / 100, 22 / 130, 118, true);
+          updateArm(rightArmRef.current, 18 / 100, 22 / 130, 62, false);
 
           // Expressions
           const normDist = dist / maxR;
