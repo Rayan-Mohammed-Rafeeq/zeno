@@ -333,7 +333,6 @@ html, body { margin:0; padding:0; }
     0 8px 24px rgba(0,0,0,0.4),
     0 0 0 1px rgba(133,136,230,0.12),
     0 0 50px rgba(133,136,230,0.14);
-  animation:lp-orb-breathe 7s ease-in-out infinite;
   overflow:hidden;
 }
 /* Rim light — a crescent of pale blue on the lower-left edge */
@@ -353,6 +352,8 @@ html, body { margin:0; padding:0; }
   align-items:center; justify-content:center;
   z-index:3; pointer-events:none; gap:0;
   padding-top:18px; /* push content down so brows have room above */
+  transform-style:preserve-3d;
+  will-change:transform;
 }
 .lp-orb-eyes-row {
   display:flex; gap:34px; align-items:center;
@@ -408,6 +409,8 @@ html, body { margin:0; padding:0; }
   left:50%; transform:translateX(-50%);
   width:136px; height:22px;
   overflow:visible; pointer-events:none; z-index:4;
+  transform-style:preserve-3d;
+  will-change:transform;
 }
 
 /* logo mouth area */
@@ -447,21 +450,18 @@ html, body { margin:0; padding:0; }
   top:calc(50% + 18px);
   pointer-events:none; z-index:5;
   filter:drop-shadow(0 6px 14px rgba(0,0,0,0.65));
+  will-change:transform;
 }
 .lp-orb-hand-left {
-  right:calc(100% - 16px);
-  transform:translateY(-50%);
-  animation:lp-hand-left-float 5s ease-in-out infinite;
-  transform-origin:82px 22px;
-  transform-box:fill-box;
+  right:calc(100% - 22px);
+  transform:translateY(-50%) rotate(-6deg);
+  transform-origin:82% 17%;
   transition:transform 0.12s cubic-bezier(0.25,0.46,0.45,0.94);
 }
 .lp-orb-hand-right {
-  left:calc(100% - 16px);
-  transform:translateY(-50%);
-  animation:lp-hand-right-float 5.4s ease-in-out infinite;
-  transform-origin:18px 22px;
-  transform-box:fill-box;
+  left:calc(100% - 22px);
+  transform:translateY(-50%) rotate(6deg);
+  transform-origin:18% 17%;
   transition:transform 0.12s cubic-bezier(0.25,0.46,0.45,0.94);
 }
 
@@ -731,6 +731,22 @@ html, body { margin:0; padding:0; }
 }
 .lp-presenter-controls {
   display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+/* Auto-play progress track under the presenter bar */
+.lp-auto-progress {
+  height: 2px; background: rgba(133,136,230,0.12); border-radius: 0 0 18px 18px;
+  overflow: hidden; margin-top: -1px;
+}
+.lp-auto-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #7b7fe0, #a5a8f4);
+  border-radius: inherit;
+  animation: lp-auto-fill 4s linear forwards;
+  transform-origin: left;
+}
+@keyframes lp-auto-fill {
+  from { width: 0%; }
+  to   { width: 100%; }
 }
 .lp-pres-btn {
   display: inline-flex; align-items: center; gap: 6px;
@@ -1856,13 +1872,11 @@ html, body { margin:0; padding:0; }
 @keyframes lp-ring-spin-3 { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
 @keyframes lp-hand-left-float {
   0%,100% { transform:translateY(-50%) rotate(-6deg); }
-  35%      { transform:translateY(calc(-50% - 9px)) rotate(-12deg); }
-  65%      { transform:translateY(calc(-50% + 5px)) rotate(-2deg); }
+  50%      { transform:translateY(calc(-50% - 8px)) rotate(-11deg); }
 }
 @keyframes lp-hand-right-float {
   0%,100% { transform:translateY(-50%) rotate(6deg); }
-  35%      { transform:translateY(calc(-50% + 5px)) rotate(2deg); }
-  65%      { transform:translateY(calc(-50% - 9px)) rotate(12deg); }
+  50%      { transform:translateY(calc(-50% - 8px)) rotate(11deg); }
 }
 @keyframes lp-float {
   0%,100% { transform:translateY(0); }
@@ -2015,40 +2029,6 @@ function useRevealOnScroll() {
   }, []);
 }
 
-function useMouseParallax(ref: React.RefObject<HTMLDivElement | null>) {
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const mm = window.matchMedia('(prefers-reduced-motion:reduce)');
-    if (mm.matches) return;
-
-    let rafId = 0;
-    let tx = 0, ty = 0;
-
-    const onMove = (e: MouseEvent) => {
-      const rect = el.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      const dx = (e.clientX - cx) / rect.width;
-      const dy = (e.clientY - cy) / rect.height;
-      tx = dx * 10;
-      ty = dy * 6;
-    };
-
-    const tick = () => {
-      el.style.transform = `perspective(900px) rotateY(${tx}deg) rotateX(${-ty}deg)`;
-      rafId = requestAnimationFrame(tick);
-    };
-
-    document.addEventListener('mousemove', onMove);
-    rafId = requestAnimationFrame(tick);
-    return () => {
-      document.removeEventListener('mousemove', onMove);
-      cancelAnimationFrame(rafId);
-    };
-  }, [ref]);
-}
-
 /* ─────────────────────────────────────────────────────────────────────────────
    SUB-COMPONENTS
 ───────────────────────────────────────────────────────────────────────────── */
@@ -2057,106 +2037,243 @@ function useMouseParallax(ref: React.RefObject<HTMLDivElement | null>) {
 function ZenoOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
   const stageRef   = useRef<HTMLDivElement>(null);
   const sceneRef   = useRef<HTMLDivElement>(null);
-  useMouseParallax(stageRef);
 
   // Eye tracking state
   const [eyeOffset, setEyeOffset]   = useState({ x: 0, y: 0 });
   const [expression, setExpression] = useState<'idle'|'happy'|'squint'|'alert'|'sleepy'|'wide'>('idle');
-  const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Arm tracking — direct DOM writes for zero-lag full-range pointing
-  const armIdleTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Arm tracking refs
+  // Arm and face tracking refs
   const leftArmRef    = useRef<SVGSVGElement>(null);
   const rightArmRef   = useRef<SVGSVGElement>(null);
+  const faceRef       = useRef<HTMLDivElement>(null);
+  const browsRef      = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     const mm = window.matchMedia('(prefers-reduced-motion:reduce)');
     if (mm.matches) return;
 
-    let lastMove = Date.now();
+    let rafId = 0;
+    let mouseX = window.innerWidth * 0.5;
+    let mouseY = window.innerHeight * 0.5;
+    let hasMoved = false;
+    let lastMoveTime = Date.now();
 
-    const onMove = (e: MouseEvent) => {
-      const scene = sceneRef.current;
-      if (!scene) return;
-      const rect = scene.getBoundingClientRect();
-      // Centre of the orb (roughly in the middle of the scene)
-      const cx = rect.left + rect.width  * 0.5;
-      const cy = rect.top  + rect.height * 0.48;
-      const dx = e.clientX - cx;
-      const dy = e.clientY - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const maxR = rect.width * 0.38;
+    // Smooth lerp state for 3D physical movement & spherical projection
+    let currentShiftX = 0;
+    let currentShiftY = 0;
+    let currentTiltX = 0;
+    let currentTiltY = 0;
+    let currentFaceX = 0;
+    let currentFaceY = 0;
+    let currentFaceRotY = 0;
+    let currentFaceRotX = 0;
+    let currentEyeX = 0;
+    let currentEyeY = 0;
+    let currentLeftAngle: number | null = null;
+    let currentRightAngle: number | null = null;
+    let currentLeftReachX = 0;
+    let currentLeftReachY = 0;
+    let currentRightReachX = 0;
+    let currentRightReachY = 0;
+    let currentLeftScale = 1;
+    let currentRightScale = 1;
 
-      // Normalise — pupil travels max 9px inside the socket
-      const travel = 9;
-      const nx = (dx / maxR) * travel;
-      const ny = (dy / maxR) * travel;
-      setEyeOffset({
-        x: Math.max(-travel, Math.min(travel, nx)),
-        y: Math.max(-travel, Math.min(travel, ny)),
-      });
-
-      // ── Arm tracking — write directly to DOM for zero-lag full-range pointing ──
-      // natural angle = atan2 from shoulder to paddle tip in SVG space:
-      //   left:  shoulder(82,22) → tip(18,120) → atan2(98,-64) ≈ 123°
-      //   right: shoulder(18,22) → tip(82,120) → atan2(98, 64) ≈  57°
-      const applyArm = (
-        svgEl: SVGSVGElement | null,
-        shoulderFracX: number,
-        shoulderFracY: number,
-        naturalAngle: number,
-      ) => {
-        if (!svgEl) return;
-        const r = svgEl.getBoundingClientRect();
-        const sx = r.left + r.width  * shoulderFracX;
-        const sy = r.top  + r.height * shoulderFracY;
-        const cursorAngle = Math.atan2(e.clientY - sy, e.clientX - sx) * (180 / Math.PI);
-        svgEl.style.animation = 'none';
-        svgEl.style.transform = `translateY(-50%) rotate(${cursorAngle - naturalAngle}deg)`;
-      };
-
-      applyArm(leftArmRef.current,  82 / 100, 22 / 130, 123);
-      applyArm(rightArmRef.current, 18 / 100, 22 / 130,  57);
-
-      if (armIdleTimer.current) clearTimeout(armIdleTimer.current);
-      armIdleTimer.current = setTimeout(() => {
-        if (leftArmRef.current)  { leftArmRef.current.style.animation  = ''; leftArmRef.current.style.transform  = ''; }
-        if (rightArmRef.current) { rightArmRef.current.style.animation = ''; rightArmRef.current.style.transform = ''; }
-      }, 2000);
-
-      // Expression based on cursor position relative to orb
-      const normDist = dist / maxR;
-      const aboveRatio = -dy / (rect.height * 0.4);
-      const sideRatio  = Math.abs(dx) / (rect.width  * 0.4);
-
-      if (normDist < 0.3) {
-        setExpression('wide');          // cursor very close — wide-eyed
-      } else if (normDist < 0.65) {
-        setExpression('happy');         // cursor nearby — happy
-      } else if (aboveRatio > 0.6) {
-        setExpression('alert');         // cursor high above — alert/raised brows
-      } else if (sideRatio > 0.85) {
-        setExpression('squint');        // cursor far to the side — suspicious squint
-      } else {
-        setExpression('idle');
-      }
-
-      lastMove = Date.now();
-      if (idleTimer.current) clearTimeout(idleTimer.current);
-      idleTimer.current = setTimeout(() => {
-        const elapsed = Date.now() - lastMove;
-        if (elapsed >= 2800) setExpression('sleepy');
-      }, 3000);
+    const onMouseMove = (e: MouseEvent) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      hasMoved = true;
+      lastMoveTime = Date.now();
     };
 
-    window.addEventListener('mousemove', onMove);
-    // Start sleepy after 3s of no movement
-    idleTimer.current = setTimeout(() => setExpression('sleepy'), 3000);
+    const lerpAngle = (current: number, target: number, speed: number) => {
+      let diff = (target - current) % 360;
+      if (diff > 180) diff -= 360;
+      if (diff < -180) diff += 360;
+      return current + diff * speed;
+    };
+
+    const tick = () => {
+      const now = Date.now();
+      const isIdle = !hasMoved || (now - lastMoveTime > 2800);
+      const scene = sceneRef.current;
+      const stage = stageRef.current;
+
+      if (scene && stage) {
+        const rect = scene.getBoundingClientRect();
+        const cx = rect.left + rect.width * 0.5;
+        const cy = rect.top + rect.height * 0.48;
+
+        if (hasMoved && !isIdle) {
+          // Normalize cursor delta relative to viewport dimensions
+          const normX = Math.max(-1, Math.min(1, (mouseX - cx) / (window.innerWidth * 0.45)));
+          const normY = Math.max(-1, Math.min(1, (mouseY - cy) / (window.innerHeight * 0.45)));
+
+          // 3D body shift & tilt towards pointing target
+          const targetShiftX = normX * 18;
+          const targetShiftY = normY * 14;
+          const targetTiltX = normX * 5.0;
+          const targetTiltY = normY * 3.5;
+
+          currentShiftX += (targetShiftX - currentShiftX) * 0.12;
+          currentShiftY += (targetShiftY - currentShiftY) * 0.12;
+          currentTiltX += (targetTiltX - currentTiltX) * 0.12;
+          currentTiltY += (targetTiltY - currentTiltY) * 0.12;
+
+          stage.style.transform = `perspective(1000px) translate3d(${currentShiftX.toFixed(2)}px, ${currentShiftY.toFixed(2)}px, 0) rotateY(${currentTiltX.toFixed(2)}deg) rotateX(${-currentTiltY.toFixed(2)}deg)`;
+
+          // 3D Spherical Face & Brow curvature parallax
+          const targetFaceX = normX * 18;
+          const targetFaceY = normY * 14;
+          const targetFaceRotY = normX * 12;
+          const targetFaceRotX = -normY * 9;
+
+          currentFaceX += (targetFaceX - currentFaceX) * 0.16;
+          currentFaceY += (targetFaceY - currentFaceY) * 0.16;
+          currentFaceRotY += (targetFaceRotY - currentFaceRotY) * 0.16;
+          currentFaceRotX += (targetFaceRotX - currentFaceRotX) * 0.16;
+
+          if (faceRef.current) {
+            faceRef.current.style.transform = `translate3d(${currentFaceX.toFixed(2)}px, ${currentFaceY.toFixed(2)}px, 16px) rotateY(${currentFaceRotY.toFixed(2)}deg) rotateX(${currentFaceRotX.toFixed(2)}deg)`;
+          }
+          if (browsRef.current) {
+            browsRef.current.style.transform = `translateX(-50%) translate3d(${currentFaceX.toFixed(2)}px, ${currentFaceY.toFixed(2)}px, 20px) rotateY(${currentFaceRotY.toFixed(2)}deg) rotateX(${currentFaceRotX.toFixed(2)}deg)`;
+          }
+
+          // Pupil position
+          const maxR = rect.width * 0.38;
+          const dist = Math.sqrt((mouseX - cx) ** 2 + (mouseY - cy) ** 2);
+          const travel = 8;
+          const targetEyeX = Math.max(-travel, Math.min(travel, ((mouseX - cx) / maxR) * travel));
+          const targetEyeY = Math.max(-travel, Math.min(travel, ((mouseY - cy) / maxR) * travel));
+          currentEyeX += (targetEyeX - currentEyeX) * 0.18;
+          currentEyeY += (targetEyeY - currentEyeY) * 0.18;
+          setEyeOffset({ x: currentEyeX, y: currentEyeY });
+
+          // 3D Arm tracking — point, extend & depth-scale
+          const targetLScale = normX < 0 ? 1 + Math.abs(normX) * 0.08 : 1 - normX * 0.05;
+          const targetRScale = normX > 0 ? 1 + normX * 0.08 : 1 - Math.abs(normX) * 0.05;
+          currentLeftScale += (targetLScale - currentLeftScale) * 0.16;
+          currentRightScale += (targetRScale - currentRightScale) * 0.16;
+
+          const updateArm = (
+            svgEl: SVGSVGElement | null,
+            shoulderFracX: number,
+            shoulderFracY: number,
+            naturalAngle: number,
+            scale3d: number,
+            isLeft: boolean
+          ) => {
+            if (!svgEl) return;
+            const r = svgEl.getBoundingClientRect();
+            const sx = r.left + r.width * shoulderFracX;
+            const sy = r.top + r.height * shoulderFracY;
+            const dx = mouseX - sx;
+            const dy = mouseY - sy;
+
+            // Point directly at cursor — no deadzones, no clamping
+            const cursorAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+            const targetRot = cursorAngle - naturalAngle;
+
+            // Cap how many degrees the arm can rotate per frame (max 8°).
+            // This is the only smoothing — it prevents atan2 snap near the pivot
+            // without adding any positional deadzone or angle limit.
+            const MAX_DEG_PER_FRAME = 8;
+
+            if (isLeft) {
+              if (currentLeftAngle === null) currentLeftAngle = targetRot;
+              else {
+                let delta = ((targetRot - currentLeftAngle) % 360 + 540) % 360 - 180;
+                delta = Math.max(-MAX_DEG_PER_FRAME, Math.min(MAX_DEG_PER_FRAME, delta));
+                currentLeftAngle += delta;
+              }
+              svgEl.style.animation = 'none';
+              svgEl.style.transform = `translateY(-50%) rotate(${currentLeftAngle.toFixed(2)}deg)`;
+            } else {
+              if (currentRightAngle === null) currentRightAngle = targetRot;
+              else {
+                let delta = ((targetRot - currentRightAngle) % 360 + 540) % 360 - 180;
+                delta = Math.max(-MAX_DEG_PER_FRAME, Math.min(MAX_DEG_PER_FRAME, delta));
+                currentRightAngle += delta;
+              }
+              svgEl.style.animation = 'none';
+              svgEl.style.transform = `translateY(-50%) rotate(${currentRightAngle.toFixed(2)}deg)`;
+            }
+          };
+
+          updateArm(leftArmRef.current, 82 / 100, 22 / 130, 118, currentLeftScale, true);
+          updateArm(rightArmRef.current, 18 / 100, 22 / 130, 62, currentRightScale, false);
+
+          // Expressions
+          const normDist = dist / maxR;
+          const aboveRatio = -(mouseY - cy) / (rect.height * 0.4);
+          const sideRatio = Math.abs(mouseX - cx) / (rect.width * 0.4);
+
+          if (normDist < 0.3) {
+            setExpression('wide');
+          } else if (normDist < 0.65) {
+            setExpression('happy');
+          } else if (aboveRatio > 0.6) {
+            setExpression('alert');
+          } else if (sideRatio > 0.85) {
+            setExpression('squint');
+          } else {
+            setExpression('idle');
+          }
+        } else {
+          // Smoothly return body, face and arms to neutral resting 3D state
+          currentShiftX += (0 - currentShiftX) * 0.08;
+          currentShiftY += (0 - currentShiftY) * 0.08;
+          currentTiltX += (0 - currentTiltX) * 0.08;
+          currentTiltY += (0 - currentTiltY) * 0.08;
+          currentFaceX += (0 - currentFaceX) * 0.08;
+          currentFaceY += (0 - currentFaceY) * 0.08;
+          currentFaceRotY += (0 - currentFaceRotY) * 0.08;
+          currentFaceRotX += (0 - currentFaceRotX) * 0.08;
+          currentLeftReachX += (0 - currentLeftReachX) * 0.08;
+          currentLeftReachY += (0 - currentLeftReachY) * 0.08;
+          currentRightReachX += (0 - currentRightReachX) * 0.08;
+          currentRightReachY += (0 - currentRightReachY) * 0.08;
+          currentLeftScale += (1 - currentLeftScale) * 0.08;
+          currentRightScale += (1 - currentRightScale) * 0.08;
+
+          stage.style.transform = `perspective(1000px) translate3d(${currentShiftX.toFixed(2)}px, ${currentShiftY.toFixed(2)}px, 0) rotateY(${currentTiltX.toFixed(2)}deg) rotateX(${-currentTiltY.toFixed(2)}deg)`;
+
+          if (faceRef.current) {
+            faceRef.current.style.transform = `translate3d(${currentFaceX.toFixed(2)}px, ${currentFaceY.toFixed(2)}px, 0) rotateY(${currentFaceRotY.toFixed(2)}deg) rotateX(${currentFaceRotX.toFixed(2)}deg)`;
+          }
+          if (browsRef.current) {
+            browsRef.current.style.transform = `translateX(-50%) translate3d(${currentFaceX.toFixed(2)}px, ${currentFaceY.toFixed(2)}px, 0) rotateY(${currentFaceRotY.toFixed(2)}deg) rotateX(${currentFaceRotX.toFixed(2)}deg)`;
+          }
+
+          if (currentLeftAngle !== null || currentRightAngle !== null) {
+            if (leftArmRef.current) {
+              leftArmRef.current.style.animation = '';
+              leftArmRef.current.style.transform = '';
+            }
+            if (rightArmRef.current) {
+              rightArmRef.current.style.animation = '';
+              rightArmRef.current.style.transform = '';
+            }
+            currentLeftAngle = null;
+            currentRightAngle = null;
+          }
+
+          if (now - lastMoveTime >= 2800) {
+            setExpression('sleepy');
+          }
+        }
+      }
+
+      rafId = requestAnimationFrame(tick);
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    rafId = requestAnimationFrame(tick);
 
     return () => {
-      window.removeEventListener('mousemove', onMove);
-      if (idleTimer.current) clearTimeout(idleTimer.current);
-      if (armIdleTimer.current) clearTimeout(armIdleTimer.current);
+      window.removeEventListener('mousemove', onMouseMove);
+      cancelAnimationFrame(rafId);
     };
   }, []);
 
@@ -2260,7 +2377,7 @@ function ZenoOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
         <svg
           ref={leftArmRef}
           className="lp-orb-hand lp-orb-hand-left"
-          width="100" height="130"
+          width="120" height="156"
           viewBox="0 0 100 130"
           fill="none"
           aria-hidden="true"
@@ -2357,7 +2474,7 @@ function ZenoOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
         <svg
           ref={rightArmRef}
           className="lp-orb-hand lp-orb-hand-right"
-          width="100" height="130"
+          width="120" height="156"
           viewBox="0 0 100 130"
           fill="none"
           aria-hidden="true"
@@ -2450,6 +2567,7 @@ function ZenoOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
         <div className="lp-orb-core">
           {/* Eyebrows — absolute, above the eyes, outside face flex flow */}
           <svg
+            ref={browsRef}
             className="lp-orb-brows"
             viewBox="0 0 136 22"
             fill="none"
@@ -2475,7 +2593,7 @@ function ZenoOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
           </svg>
 
           {/* ── FACE ── */}
-          <div className="lp-orb-face">
+          <div className="lp-orb-face" ref={faceRef}>
 
             {/* Eyes row */}
             <div className="lp-orb-eyes-row">
@@ -2953,11 +3071,81 @@ function DockerHowItWorks() {
   const [simulating, setSimulating] = useState(false);
   const [simStep, setSimStep] = useState<number | null>(null);
   const [demoDecision, setDemoDecision] = useState<'idle' | 'holding' | 'held' | 'approved'>('idle');
+  const [autoKey, setAutoKey] = useState(0); // incremented each auto-advance to restart CSS animation
+
+  // Auto-play: refs for the section container, running timer, and user-interaction tracking
+  const containerRef     = useRef<HTMLDivElement>(null);
+  const autoTimerRef     = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isVisibleRef     = useRef(false);
+  const userInteractRef  = useRef(false);
+  const resumeTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const activeIndexRef   = useRef(0); // mirror of activeStepIndex for use inside interval
+
+  // Keep the ref in sync with state so the interval always reads the latest value
+  activeIndexRef.current = activeStepIndex;
 
   const step = WORKFLOW_STEPS[activeStepIndex];
   const view = step.views[activeViewIndex] || step.views[0];
 
+  const stopAutoPlay = useCallback(() => {
+    if (autoTimerRef.current) {
+      clearInterval(autoTimerRef.current);
+      autoTimerRef.current = null;
+    }
+  }, []);
+
+  const startAutoPlay = useCallback(() => {
+    stopAutoPlay();
+    // Advance one step every 4 seconds; loop back to 0 after the last step
+    autoTimerRef.current = setInterval(() => {
+      if (!isVisibleRef.current || userInteractRef.current) return;
+      setActiveStepIndex(prev => {
+        const next = (prev + 1) % WORKFLOW_STEPS.length;
+        if (next === 0) setDemoDecision('idle');
+        return next;
+      });
+      setActiveViewIndex(0);
+      setSimulating(false);
+      setSimStep(null);
+      setViewMode('demo');
+      setAutoKey(k => k + 1);
+    }, 4000);
+  }, [stopAutoPlay]);
+
+  // Pause auto-play on user interaction; resume after 8 s of inactivity
+  const onUserInteract = useCallback(() => {
+    userInteractRef.current = true;
+    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+    resumeTimerRef.current = setTimeout(() => {
+      userInteractRef.current = false;
+    }, 8000);
+  }, []);
+
+  // IntersectionObserver: start auto-play when the section is visible, stop when not
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        isVisibleRef.current = entry.isIntersecting;
+        if (entry.isIntersecting) {
+          startAutoPlay();
+        } else {
+          stopAutoPlay();
+        }
+      },
+      { threshold: 0.25 } // at least 25% visible before starting
+    );
+    obs.observe(el);
+    return () => {
+      obs.disconnect();
+      stopAutoPlay();
+      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+    };
+  }, [startAutoPlay, stopAutoPlay]);
+
   const handleTabChange = useCallback((index: number) => {
+    onUserInteract();
     setActiveStepIndex(index);
     setActiveViewIndex(0);
     setSimulating(false);
@@ -2965,9 +3153,10 @@ function DockerHowItWorks() {
     if (index === 0) {
       setDemoDecision('idle');
     }
-  }, []);
+  }, [onUserInteract]);
 
   const handleCopy = () => {
+    onUserInteract();
     try {
       navigator.clipboard.writeText(view.code);
       setCopied(true);
@@ -2978,6 +3167,7 @@ function DockerHowItWorks() {
   };
 
   const handleRunSimulation = () => {
+    onUserInteract();
     if (simulating) return;
     setViewMode('code');
     if (simStep !== null) {
@@ -3001,7 +3191,7 @@ function DockerHowItWorks() {
   const codeLines = view.code.split('\n');
 
   return (
-    <div className="lp-hiw-container">
+    <div className="lp-hiw-container" ref={containerRef}>
       {/* Interactive Presenter Bar */}
       <div className="lp-presenter-bar lp-reveal">
         <div className="lp-presenter-info">
@@ -3060,6 +3250,13 @@ function DockerHowItWorks() {
           </button>
         </div>
       </div>
+
+      {/* Auto-play progress bar — shows time remaining until next step */}
+      {!userInteractRef.current && (
+        <div className="lp-auto-progress">
+          <div className="lp-auto-progress-bar" key={autoKey} />
+        </div>
+      )}
 
       {/* Docker-Style Segmented Navigation Tabs */}
       <div className="lp-docker-tabs-wrap lp-reveal">
@@ -3167,6 +3364,7 @@ function DockerHowItWorks() {
                 <button
                   className={`lp-dterm-view-btn ${viewMode === 'demo' && simStep === null ? 'active' : ''}`}
                   onClick={() => {
+                    onUserInteract();
                     setViewMode('demo');
                     setSimStep(null);
                   }}
@@ -3180,6 +3378,7 @@ function DockerHowItWorks() {
                     key={v.filename}
                     className={`lp-dterm-view-btn ${viewMode === 'code' && idx === activeViewIndex && simStep === null ? 'active' : ''}`}
                     onClick={() => {
+                      onUserInteract();
                       setViewMode('code');
                       setActiveViewIndex(idx);
                       setSimStep(null);
@@ -3426,14 +3625,14 @@ function DockerHowItWorks() {
                           <div className="lp-demo-action-buttons">
                             <button
                               className="lp-demo-btn-hold"
-                              onClick={() => setDemoDecision('held')}
+                              onClick={() => { onUserInteract(); setDemoDecision('held'); }}
                             >
                               <Shield size={14} />
                               <span>🛑 Hold Fulfillment (Shopify Tag)</span>
                             </button>
                             <button
                               className="lp-demo-btn-approve"
-                              onClick={() => setDemoDecision('approved')}
+                              onClick={() => { onUserInteract(); setDemoDecision('approved'); }}
                             >
                               <span>✅ Approve &amp; Release</span>
                             </button>
@@ -3903,10 +4102,7 @@ export function Landing() {
 
               {/* LEFT — copy */}
               <div className="lp-hero-left">
-                <div className="lp-hero-tag">
-                  <span className="lp-hero-tag-dot" />
-                  Watching your store, right now
-                </div>
+
 
                 <h1>
                   Stop bad orders<br />
