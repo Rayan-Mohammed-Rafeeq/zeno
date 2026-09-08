@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: zeno-ml-service
+    env: docker
+    dockerfilePath: ./Dockerfile.ml
+    dockerContext: .
+    region: singapore
+    plan: starter
+    branch: main
+    healthCheckPath: /health
+    envVars:
+      - key: ZENO_MODEL_DIR
+        value: /app/data/artifacts/xgboost
+      - key: ML_SERVICE_HOST
+        value: 0.0.0.0
+      - key: ML_SERVICE_PORT
+        value: 8001
+      - key: LOG_LEVEL
+        value: INFO
+      - key: PYTHONPATH
+        value: /app/src

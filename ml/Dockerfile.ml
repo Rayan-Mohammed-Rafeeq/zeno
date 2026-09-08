@@ -26,6 +26,12 @@ COPY start_ml_service.py .
 # The service starts even if this is empty (returns 503 on predict endpoints)
 RUN mkdir -p data/artifacts/xgboost
 
+# Option: Include trained models in the image (uncomment to use)
+# This is the simplest approach for deployment but increases image size
+# and requires rebuilding the image whenever models are updated.
+# Uncomment the line below to include models from your local data/artifacts directory:
+# COPY data/artifacts/ data/artifacts/
+
 # Non-root user for security
 RUN useradd -m -u 1001 zeno
 USER zeno
