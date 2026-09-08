@@ -15,12 +15,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy and install Python dependencies first (layer cache friendly)
-COPY requirements.txt .
+COPY ml/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source code
-COPY src/ src/
-COPY start_ml_service.py .
+COPY ml/src/ src/
+COPY ml/start_ml_service.py .
 
 # Artefact directory — expected to be mounted at runtime
 # The service starts even if this is empty (returns 503 on predict endpoints)
@@ -29,7 +29,7 @@ RUN mkdir -p data/artifacts/xgboost
 # Option: Include trained models in the image
 # This is the simplest approach for deployment but increases image size
 # and requires rebuilding the image whenever models are updated.
-COPY data/artifacts/ data/artifacts/
+COPY ml/data/artifacts/ data/artifacts/
 
 # Non-root user for security
 RUN useradd -m -u 1001 zeno && chown -R zeno:zeno /app
