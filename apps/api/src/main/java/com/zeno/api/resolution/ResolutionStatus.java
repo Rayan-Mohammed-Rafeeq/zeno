@@ -1,0 +1,14 @@
+package com.zeno.api.resolution;
+
+public enum ResolutionStatus {
+    OPEN,
+    IN_PROGRESS,
+    WAITING_FOR_INFORMATION,
+    WAITING_FOR_PROVIDER,
+    WAITING_FOR_PHARMACY,
+    WAITING_FOR_INSURANCE,
+    PENDING_VERIFICATION,
+    RESOLVED,
+    ESCALATED,
+    CANCELLED
+}
