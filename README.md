@@ -533,7 +533,15 @@ Once running, the services are available at:
 | API health check | [http://localhost:8080/api/health](http://localhost:8080/api/health) |
 | AI service | [http://localhost:8001](http://localhost:8001) |
 
-The database comes pre-seeded with fictional demo records. Local accounts use `password123` — try `dr.patel`, `lisa.martinez`, or `sarah.chen`. The admin account is configured via `ADMIN_USERNAME` / `ADMIN_PASSWORD` in your `.env`.
+The database comes pre-seeded with fictional demo records. Use these dedicated role-based accounts for a demo (all use the password `password123`):
+
+| Role | Username | Password |
+|---|---|---|
+| Pharmacist | `demo.pharmacist` | `password123` |
+| Practice staff | `demo.staff` | `password123` |
+| Provider / doctor | `demo.provider` | `password123` |
+
+Existing sample accounts such as `dr.patel`, `lisa.martinez`, and `sarah.chen` remain available with the same password. The admin account is configured via `ADMIN_USERNAME` / `ADMIN_PASSWORD` in your `.env`. The demo accounts are created by Flyway migration when the API starts; restart the API after pulling this change.
 
 ```bash
 # Stop the stack

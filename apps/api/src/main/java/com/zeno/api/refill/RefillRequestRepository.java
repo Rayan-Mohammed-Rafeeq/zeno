@@ -26,7 +26,11 @@ public interface RefillRequestRepository extends JpaRepository<RefillRequest, Lo
            "ORDER BY r.createdAt DESC")
     List<RefillRequest> findByPatientOrganizationId(@Param("orgId") Long orgId);
 
-    @Query("SELECT r FROM RefillRequest r " +
+    @Query("SELECT DISTINCT r FROM RefillRequest r " +
+           "LEFT JOIN FETCH r.patient " +
+           "LEFT JOIN FETCH r.pharmacy " +
+           "LEFT JOIN FETCH r.prescription p " +
+           "LEFT JOIN FETCH p.provider " +
            "WHERE r.status NOT IN ('COMPLETED', 'CANCELLED') " +
            "AND (r.pharmacy.organization.id = :orgId OR r.patient.organization.id = :orgId) " +
            "ORDER BY r.priority DESC, r.createdAt ASC")
