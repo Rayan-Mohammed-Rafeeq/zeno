@@ -1,6 +1,9 @@
 # Zeno
 
-Fraud detection and investigation platform.
+B2B prescription refill resolution platform. Zeno coordinates the
+administrative work needed to resolve blocked refill requests. Deterministic
+backend rules control workflow state; AI provides explainable operational
+recommendations for human review.
 
 ---
 
@@ -11,7 +14,6 @@ zeno/
 ├── apps/
 │   ├── api/          # Spring Boot backend
 │   ├── web/          # React + Vite frontend
-│   ├── worker/       # Background jobs / async workflows
 │   └── admin/        # Future internal/admin application
 │
 ├── packages/
@@ -51,7 +53,8 @@ zeno/
 git clone https://github.com/your-org/zeno.git
 cd zeno
 cp .env.example .env
-# Edit .env and fill in real values
+cp apps/ai/.env.example apps/ai/.env
+# Configure local settings. Keep provider keys in environment files/secrets.
 ```
 
 ### 2. Start the local stack
@@ -60,7 +63,9 @@ cp .env.example .env
 docker compose up -d
 ```
 
-This spins up PostgreSQL, Redis, the Spring Boot API, the React web app, and the background worker.
+This starts PostgreSQL, Redis, the Spring Boot API, the React web app, and the
+refill intelligence service. Use `LLM_PROVIDER=mock` for an offline workflow
+demo, or configure OpenRouter in `apps/ai/.env` and use synthetic demo records.
 
 ### 3. Run the web app in dev mode
 
@@ -74,8 +79,23 @@ npm run dev
 
 ```bash
 cd apps/api
-./mvnw spring-boot:run
+./gradlew bootRun
 ```
+
+### 5. Run the AI service locally
+
+```bash
+cd apps/ai
+python -m pip install -e '.[dev,openai]'
+LLM_PROVIDER=mock uvicorn main:app --port 8001
+```
+
+For OpenRouter, set `LLM_PROVIDER=openrouter` and `OPENROUTER_API_KEY` in
+`apps/ai/.env`. `OPENROUTER_MODEL` defaults to the free Nemotron 3 Ultra model.
+Use the free endpoint only with synthetic development/demo data.
+
+See [`docs/architecture/ai.md`](docs/architecture/ai.md) for the refill
+recommendation flow, safety gate, and service configuration.
 
 ---
 
