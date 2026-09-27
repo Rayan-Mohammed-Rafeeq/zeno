@@ -1,0 +1,55 @@
+package com.zeno.api.refill;
+
+public enum RefillEventType {
+    // Refill lifecycle
+    REFILL_REQUESTED,
+    REFILL_UNDER_REVIEW,
+    REFILL_BLOCKED,
+    REFILL_READY,
+    REFILL_COMPLETED,
+    REFILL_CANCELLED,
+    REFILL_ESCALATED,
+
+    // Blocker detection
+    BLOCKER_IDENTIFIED,
+    BLOCKER_CLEARED,
+
+    // Case management
+    CASE_CREATED,
+    CASE_ASSIGNED,
+    CASE_ESCALATED,
+    CASE_RESOLVED,
+    CASE_CANCELLED,
+
+    // Actions
+    ACTION_CREATED,
+    ACTION_ASSIGNED,
+    ACTION_COMPLETED,
+    ACTION_CANCELLED,
+
+    // Provider workflow
+    PROVIDER_REVIEW_REQUESTED,
+    PROVIDER_APPROVED,
+    PROVIDER_DENIED,
+
+    // Information
+    INFORMATION_REQUESTED,
+    INFORMATION_RECEIVED,
+
+    // Insurance
+    INSURANCE_CHECK_REQUESTED,
+    INSURANCE_APPROVED,
+    INSURANCE_DENIED,
+
+    // Verification
+    RESOLUTION_SUBMITTED,
+    RESOLUTION_VERIFIED,
+
+    // AI integration point
+    AI_RECOMMENDATION_RECEIVED,
+    AI_RECOMMENDATION_APPROVED,
+    AI_RECOMMENDATION_REJECTED,
+
+    // Notes
+    NOTE_ADDED
+}
