@@ -18,6 +18,7 @@ public interface ResolutionCaseRepository extends JpaRepository<ResolutionCase, 
            "LEFT JOIN FETCH r.pharmacy " +
            "LEFT JOIN FETCH r.prescription p " +
            "LEFT JOIN FETCH p.provider " +
+           "LEFT JOIN FETCH r.requestedBy " +
            "LEFT JOIN FETCH rc.assignedTo " +
            "WHERE rc.refillRequest.id = :refillRequestId")
     Optional<ResolutionCase> findWithDetailsByRefillRequestId(@Param("refillRequestId") Long refillRequestId);
@@ -28,6 +29,7 @@ public interface ResolutionCaseRepository extends JpaRepository<ResolutionCase, 
            "LEFT JOIN FETCH r.pharmacy " +
            "LEFT JOIN FETCH r.prescription p " +
            "LEFT JOIN FETCH p.provider " +
+           "LEFT JOIN FETCH r.requestedBy " +
            "LEFT JOIN FETCH rc.assignedTo " +
            "WHERE rc.id = :id")
     Optional<ResolutionCase> findWithDetailsById(@Param("id") Long id);
@@ -35,7 +37,14 @@ public interface ResolutionCaseRepository extends JpaRepository<ResolutionCase, 
     List<ResolutionCase> findByStatus(ResolutionStatus status);
     List<ResolutionCase> findByAssignedToId(Long userId);
 
-    @Query("SELECT rc FROM ResolutionCase rc " +
+    @Query("SELECT DISTINCT rc FROM ResolutionCase rc " +
+           "LEFT JOIN FETCH rc.refillRequest r " +
+           "LEFT JOIN FETCH r.patient " +
+           "LEFT JOIN FETCH r.pharmacy " +
+           "LEFT JOIN FETCH r.prescription p " +
+           "LEFT JOIN FETCH p.provider " +
+           "LEFT JOIN FETCH r.requestedBy " +
+           "LEFT JOIN FETCH rc.assignedTo " +
            "WHERE rc.status NOT IN ('RESOLVED', 'CANCELLED') " +
            "AND (rc.refillRequest.pharmacy.organization.id = :orgId " +
            "  OR rc.refillRequest.patient.organization.id = :orgId) " +
