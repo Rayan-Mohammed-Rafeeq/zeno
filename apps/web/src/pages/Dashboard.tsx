@@ -14,7 +14,12 @@ import {
 export function Dashboard() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [filterRole, setFilterRole] = useState<'ALL' | 'PROVIDER' | 'PRACTICE_STAFF' | 'PHARMACY' | 'URGENT'>('ALL');
+  const [filterRole, setFilterRole] = useState<'ALL' | 'PROVIDER' | 'PRACTICE_STAFF' | 'PHARMACY' | 'URGENT'>(() => {
+    if (user?.role === 'PROVIDER') return 'PROVIDER';
+    if (user?.role === 'PRACTICE_STAFF') return 'PRACTICE_STAFF';
+    if (user?.role === 'PHARMACIST' || user?.role === 'PHARMACY_STAFF') return 'PHARMACY';
+    return 'ALL';
+  });
   const [triageLoadingId, setTriageLoadingId] = useState<number | null>(null);
 
   // Queries

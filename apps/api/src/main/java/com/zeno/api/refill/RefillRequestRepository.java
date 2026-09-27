@@ -16,6 +16,23 @@ public interface RefillRequestRepository extends JpaRepository<RefillRequest, Lo
     List<RefillRequest> findByPharmacyId(Long pharmacyId);
     List<RefillRequest> findByPrescriptionId(Long prescriptionId);
 
+    @Query("SELECT DISTINCT r FROM RefillRequest r " +
+           "LEFT JOIN FETCH r.patient " +
+           "LEFT JOIN FETCH r.pharmacy " +
+           "LEFT JOIN FETCH r.prescription p " +
+           "LEFT JOIN FETCH p.provider " +
+           "LEFT JOIN FETCH r.requestedBy")
+    List<RefillRequest> findAllWithDetails();
+
+    @Query("SELECT r FROM RefillRequest r " +
+           "LEFT JOIN FETCH r.patient " +
+           "LEFT JOIN FETCH r.pharmacy " +
+           "LEFT JOIN FETCH r.prescription p " +
+           "LEFT JOIN FETCH p.provider " +
+           "LEFT JOIN FETCH r.requestedBy " +
+           "WHERE r.id = :id")
+    java.util.Optional<RefillRequest> findWithDetailsById(@Param("id") Long id);
+
     @Query("SELECT r FROM RefillRequest r " +
            "WHERE r.pharmacy.organization.id = :orgId " +
            "ORDER BY r.createdAt DESC")
@@ -31,6 +48,7 @@ public interface RefillRequestRepository extends JpaRepository<RefillRequest, Lo
            "LEFT JOIN FETCH r.pharmacy " +
            "LEFT JOIN FETCH r.prescription p " +
            "LEFT JOIN FETCH p.provider " +
+           "LEFT JOIN FETCH r.requestedBy " +
            "WHERE r.status NOT IN ('COMPLETED', 'CANCELLED') " +
            "AND (r.pharmacy.organization.id = :orgId OR r.patient.organization.id = :orgId) " +
            "ORDER BY r.priority DESC, r.createdAt ASC")

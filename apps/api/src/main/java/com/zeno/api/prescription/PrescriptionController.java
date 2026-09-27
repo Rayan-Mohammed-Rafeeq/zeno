@@ -18,23 +18,27 @@ public class PrescriptionController {
     private final PrescriptionRepository prescriptionRepository;
 
     @GetMapping
-    public ResponseEntity<List<Prescription>> getAll(@AuthenticationPrincipal ZenoPrincipal principal) {
+    public ResponseEntity<List<PrescriptionResponse>> getAll(@AuthenticationPrincipal ZenoPrincipal principal) {
         Long orgId = principal != null ? principal.getOrganizationId() : null;
+        List<Prescription> prescriptions;
         if (orgId != null) {
-            return ResponseEntity.ok(prescriptionRepository.findByOrganizationId(orgId));
+            prescriptions = prescriptionRepository.findByOrganizationIdWithDetails(orgId);
+        } else {
+            prescriptions = prescriptionRepository.findAllWithDetails();
         }
-        return ResponseEntity.ok(prescriptionRepository.findAll());
+        return ResponseEntity.ok(prescriptions.stream().map(PrescriptionResponse::from).toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Prescription> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(prescriptionRepository.findById(id)
-                .orElseThrow(() -> ResourceNotFoundException.of("Prescription", id)));
+    public ResponseEntity<PrescriptionResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(PrescriptionResponse.from(prescriptionRepository.findWithDetailsById(id)
+                .orElseThrow(() -> ResourceNotFoundException.of("Prescription", id))));
     }
 
     @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<Prescription>> getByPatient(@PathVariable Long patientId) {
-        return ResponseEntity.ok(prescriptionRepository.findByPatientId(patientId));
+    public ResponseEntity<List<PrescriptionResponse>> getByPatient(@PathVariable Long patientId) {
+        return ResponseEntity.ok(prescriptionRepository.findWithDetailsByPatientId(patientId).stream()
+                .map(PrescriptionResponse::from).toList());
     }
 
     @PostMapping

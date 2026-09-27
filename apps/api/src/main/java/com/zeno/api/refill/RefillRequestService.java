@@ -44,7 +44,13 @@ public class RefillRequestService {
 
     @Transactional(readOnly = true)
     public List<RefillRequest> findAll() {
-        return refillRepository.findAll();
+        return refillRepository.findAllWithDetails();
+    }
+
+    @Transactional(readOnly = true)
+    public RefillRequest findByIdWithDetails(Long id) {
+        return refillRepository.findWithDetailsById(id)
+                .orElseThrow(() -> ResourceNotFoundException.of("RefillRequest", id));
     }
 
     @Transactional(readOnly = true)

@@ -29,6 +29,7 @@ export function AuditTrail() {
       eventType: event.eventType,
       description: event.description || 'Workflow event recorded.',
       actor: event.actorLabel || 'System',
+      automated: event.actorLabel === 'triage-engine' || event.actorLabel?.startsWith('Automated ') || false,
       createdAt: event.createdAt,
     })))
     .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)), [timelineQuery.data]);
@@ -104,6 +105,11 @@ export function AuditTrail() {
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-sm font-semibold text-[var(--fg)]">{event.eventType.replaceAll('_', ' ')}</h3>
+                      {event.automated && (
+                        <span className="rounded-full border border-sky-400/25 bg-sky-400/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-300">
+                          Automated
+                        </span>
+                      )}
                       <span className="text-xs text-[var(--fg-subtle)]">{new Date(event.createdAt).toLocaleString()}</span>
                     </div>
                     <p className="mt-1 text-sm text-[var(--fg-muted)]">{event.description}</p>

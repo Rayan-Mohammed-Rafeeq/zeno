@@ -37,17 +37,20 @@ public class ResolutionController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ResolutionCase> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(caseService.findById(id));
+        return ResponseEntity.ok(caseService.findByIdOrRefillId(id));
     }
 
     @GetMapping("/refill/{refillId}")
-    public ResponseEntity<ResolutionCase> getByRefillId(@PathVariable Long refillId) {
-        return ResponseEntity.ok(caseService.findByRefillRequestId(refillId));
+    public ResponseEntity<?> getByRefillId(@PathVariable Long refillId) {
+        return caseService.findOptionalByRefillRequestId(refillId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     @GetMapping("/{id}/actions")
-    public ResponseEntity<List<ResolutionAction>> getActions(@PathVariable Long id) {
-        return ResponseEntity.ok(caseService.findActionsByCase(id));
+    public ResponseEntity<List<ResolutionActionResponse>> getActions(@PathVariable Long id) {
+        return ResponseEntity.ok(caseService.findActionsByCase(id).stream()
+                .map(ResolutionActionResponse::from).toList());
     }
 
     @PostMapping("/{id}/actions")
@@ -78,11 +81,10 @@ public class ResolutionController {
     @PostMapping("/{id}/resolve")
     public ResponseEntity<ResolutionCase> resolve(
             @PathVariable Long id,
-            @RequestBody Map<String, String> body,
+            @RequestBody(required = false) ResolveCaseRequest req,
             @AuthenticationPrincipal ZenoPrincipal principal) {
         User actor = resolveActor(principal);
-        String summary = body.getOrDefault("resolutionSummary", "Resolved");
-        return ResponseEntity.ok(caseService.resolve(id, summary, actor));
+        return ResponseEntity.ok(caseService.resolve(id, req, actor));
     }
 
     @PostMapping("/{id}/escalate")
@@ -139,7 +141,7 @@ public class ResolutionController {
      */
     @GetMapping("/{id}/recommendation")
     public ResponseEntity<?> getPersistedRecommendation(@PathVariable Long id) {
-        ResolutionCase resolutionCase = caseService.findById(id);
+        ResolutionCase resolutionCase = caseService.findByIdOrRefillId(id);
         String stored = resolutionCase.getAiRecommendation();
 
         if (stored == null || stored.isBlank()) {
@@ -167,7 +169,13 @@ public class ResolutionController {
     }
 
     private User resolveActor(ZenoPrincipal principal) {
-        if (principal == null) return null;
-        return userRepository.findByUsername(principal.getUsername()).orElse(null);
+        if (principal != null) {
+            return userRepository.findByUsername(principal.getUsername()).orElse(null);
+        }
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getName() != null && !"anonymousUser".equals(auth.getName())) {
+            return userRepository.findByUsername(auth.getName()).orElse(null);
+        }
+        return null;
     }
 }

@@ -31,14 +31,26 @@ records only with that endpoint. Do not use it for live patient records.
 The safety gate derives the safety class and human approval requirement from
 the selected action after model reasoning. Unknown actions fail closed, and
 clinical override actions are forbidden. The UI shows the explanation, cited
-input fields, next step, owner, and human review requirement. It never applies
-the recommendation automatically.
+input fields, next step, owner, and human review requirement. A recommendation
+never applies itself or changes a refill's workflow state.
 
-Spring Boot calls the AI service only when a user requests a recommendation on
-a blocked refill. Calls have a bounded timeout and retry count. Unavailable,
-invalid, or disabled AI returns a manual-workflow message and does not prevent
-the deterministic refill flow. AI request and response metadata are recorded
-without logging the full patient payload.
+For seeded demo accounts, opening an unresolved blocked refill automatically
+requests and saves a recommendation when that case has none. Other accounts
+can request one from the refill detail page. This is a demo convenience; every
+recommendation still requires human review before anyone takes action. Calls
+have a bounded timeout and retry count. Unavailable, invalid, or disabled AI
+returns a manual-workflow message and does not prevent the deterministic refill
+flow. AI request and response metadata are recorded without logging the full
+patient payload.
+
+When a seeded demo account submits a refill whose prescription has a
+deterministic blocker, the backend also runs triage immediately, creates an
+open resolution case, and records a pending action. The audit timeline records
+the request, automated triage, blocker, case, and action. This automation does
+not mark an unblocked refill READY or approve a prescription; a person must
+review and complete the pending work. Audit entries identify engine-generated
+events as Automated; a manually started triage entry names the user who started
+it.
 
 Run the Python checks with `cd apps/ai && pytest -q`, the backend checks with
 `cd apps/api && ./gradlew test`, and the frontend production build with

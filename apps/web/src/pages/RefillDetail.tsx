@@ -1,16 +1,28 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { zenoApi } from '@/services/api/zenoApi';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   ArrowLeft, CheckCircle2, Clock, AlertTriangle, Check, Plus,
-  History, RefreshCw, X, MessageSquare, Sparkles, ShieldCheck
+  History, RefreshCw, X, MessageSquare, Sparkles, ShieldCheck,
+  Stethoscope, Send
 } from 'lucide-react';
+
+const AI_DEMO_ACCOUNTS = new Set([
+  'demo.provider', 'demo.staff', 'demo.pharmacist',
+  'dr.patel', 'dr.williams', 'lisa.martinez', 'sarah.chen', 'mike.johnson',
+]);
 
 export function RefillDetail() {
   const { id } = useParams<{ id: string }>();
   const refillId = Number(id);
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const autoRequestedCases = useRef(new Set<number>());
+  const isDemoAccount = AI_DEMO_ACCOUNTS.has(user?.username ?? '');
+  const isProvider = user?.role === 'PROVIDER' || user?.role === 'ADMIN';
+  const isPharmacist = user?.role === 'PHARMACIST' || user?.role === 'PHARMACY_STAFF';
 
   // Modals state
   const [completeActionModal, setCompleteActionModal] = useState<{ open: boolean; actionId: number | null }>({ open: false, actionId: null });
@@ -21,6 +33,16 @@ export function RefillDetail() {
   const [newActionType, setNewActionType] = useState('REQUEST_PROVIDER_APPROVAL');
   const [newActionRole, setNewActionRole] = useState('PRACTICE_STAFF');
   const [newActionDesc, setNewActionDesc] = useState('');
+
+  // Option B: Doctor authorization & nurse delegation states
+  const [doctorPrescribeModalOpen, setDoctorPrescribeModalOpen] = useState(false);
+  const [forwardToDoctorModalOpen, setForwardToDoctorModalOpen] = useState(false);
+  const defaultNextYear = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const [newExpiryDate, setNewExpiryDate] = useState(defaultNextYear);
+  const [newRefillsAllowed, setNewRefillsAllowed] = useState(3);
+  const [newRxNumber, setNewRxNumber] = useState('');
+  const [doctorSignNotes, setDoctorSignNotes] = useState('Reviewed patient chart and clinical response. Authorized renewed prescription for 1 year with 3 refills.');
+  const [forwardNotes, setForwardNotes] = useState('Chart and adherence reviewed. Patient stable on maintenance therapy. Forwarding to provider for renewed prescription authorization.');
 
   // Queries
   const { data: refill, isLoading: refillLoading } = useQuery({
@@ -49,6 +71,26 @@ export function RefillDetail() {
     retry: false,
   });
 
+  useEffect(() => {
+    const needsRecommendation = Boolean(
+      isDemoAccount && refill?.blockerType &&
+      refill.status !== 'COMPLETED' && refill.status !== 'CANCELLED' && resolutionCase &&
+      savedRecommendation && !savedRecommendation.available && !savedRecommendation.recommendation,
+    );
+    if (!needsRecommendation || autoRequestedCases.current.has(caseId)) return;
+
+    autoRequestedCases.current.add(caseId);
+    recommendationMutation.mutate();
+  }, [
+    caseId,
+    isDemoAccount,
+    recommendationMutation.mutate,
+    refill?.blockerType,
+    refill?.status,
+    resolutionCase,
+    savedRecommendation,
+  ]);
+
   const { data: actions = [] } = useQuery({
     queryKey: ['refill-actions', refillId],
     queryFn: () => zenoApi.getResolutionActions(caseId),
@@ -73,12 +115,21 @@ export function RefillDetail() {
     },
   });
 
+  useEffect(() => {
+    const rxNumber = refill?.prescription?.rxNumber;
+    if (rxNumber && !newRxNumber) {
+      setNewRxNumber(`${rxNumber}-REN`);
+    }
+  }, [refill?.prescription?.rxNumber, newRxNumber]);
+
   const resolveCaseMutation = useMutation({
-    mutationFn: (summary: string) => zenoApi.resolveCase(caseId, summary),
+    mutationFn: (payload: string | { resolutionSummary: string; newExpiryDate?: string; newRefillsAllowed?: number; newRxNumber?: string }) =>
+      zenoApi.resolveCase(caseId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['refill', refillId] });
       queryClient.invalidateQueries({ queryKey: ['refill-timeline', refillId] });
       setResolveModalOpen(false);
+      setDoctorPrescribeModalOpen(false);
     },
   });
 
@@ -88,6 +139,7 @@ export function RefillDetail() {
       queryClient.invalidateQueries({ queryKey: ['refill-actions', refillId] });
       queryClient.invalidateQueries({ queryKey: ['refill-timeline', refillId] });
       setAddActionModalOpen(false);
+      setForwardToDoctorModalOpen(false);
       setNewActionDesc('');
     },
   });
@@ -119,6 +171,17 @@ export function RefillDetail() {
   }
 
   const rx = refill.prescription;
+  const prescriberName = rx?.provider
+    ? `Dr. ${rx.provider.firstName} ${rx.provider.lastName}`
+    : 'Dr. Arun Patel';
+  const prescriberNpi = rx?.provider?.npi || '1982736450';
+
+  const isPrimaryPrescriber = isProvider && Boolean(
+    user?.username === 'dr.patel' ||
+    (rx?.provider?.lastName && user?.name?.toLowerCase().includes(rx.provider.lastName.toLowerCase())) ||
+    (rx?.provider?.lastName && user?.username?.toLowerCase().includes(rx.provider.lastName.toLowerCase())) ||
+    user?.role === 'ADMIN'
+  );
 
   return (
     <div className="space-y-6 pb-16">
@@ -180,7 +243,7 @@ export function RefillDetail() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
               <button
                 onClick={() => setAddActionModalOpen(true)}
                 className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-[var(--surface-2)] text-[var(--fg)] hover:bg-[var(--surface-3)] border border-[var(--border)] transition-colors"
@@ -188,13 +251,37 @@ export function RefillDetail() {
                 <Plus className="w-3.5 h-3.5" />
                 <span>Assign Action</span>
               </button>
-              <button
-                onClick={() => setResolveModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-500 transition-colors shadow-xs"
-              >
-                <Check className="w-3.5 h-3.5" />
-                <span>Mark Resolved</span>
-              </button>
+
+              {refill.blockerType === 'NEW_PRESCRIPTION_REQUIRED' ? (
+                <>
+                  {!isProvider ? (
+                    <button
+                      onClick={() => setForwardToDoctorModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-500 transition-colors shadow-xs"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>{isPharmacist ? 'Request Renewal from Prescriber' : 'Forward to Doctor'}</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setDoctorPrescribeModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-500 transition-colors shadow-xs"
+                      title="Authorize & Issue New Prescription"
+                    >
+                      <Stethoscope className="w-3.5 h-3.5" />
+                      <span>Authorize & Issue New Rx</span>
+                    </button>
+                  )}
+                </>
+              ) : (
+                <button
+                  onClick={() => setResolveModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-500 transition-colors shadow-xs"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Mark Resolved</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -208,6 +295,9 @@ export function RefillDetail() {
               <div>
                 <h2 className="font-semibold text-[var(--fg)]">Zeno Intelligence</h2>
                 <p className="text-xs text-[var(--fg-muted)]">Operational guidance grounded in this refill’s current record.</p>
+                {isDemoAccount && savedRecommendation?.recommendation && (
+                  <p className="text-[11px] text-violet-300">Demo recommendation · human review required</p>
+                )}
               </div>
             </div>
             <button
@@ -359,19 +449,40 @@ export function RefillDetail() {
                         </span>
                         <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-[var(--surface-3)] text-[var(--fg-muted)]">
                           Assigned: {formatRoleBadge(action.assignedRole)}
+                          {action.assignedUser && ` · ${action.assignedUser.firstName} ${action.assignedUser.lastName}`}
                         </span>
                       </div>
 
                       {action.status !== 'COMPLETED' && (
-                        <button
-                          onClick={() => {
-                            setCompleteActionModal({ open: true, actionId: action.id });
-                          }}
-                          className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold bg-[var(--accent)] text-white hover:opacity-90 transition-opacity"
-                        >
-                          <Check className="w-3 h-3" />
-                          <span>Complete Task</span>
-                        </button>
+                        action.actionType === 'REQUEST_NEW_PRESCRIPTION' && isProvider ? (
+                          <button
+                            onClick={() => {
+                              setDoctorPrescribeModalOpen(true);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-500 transition-colors shadow-xs"
+                          >
+                            <Stethoscope className="w-3.5 h-3.5" />
+                            <span>Authorize & Sign Rx</span>
+                          </button>
+                        ) : action.assignedRole === 'PROVIDER' && !isProvider ? (
+                          <span
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20"
+                            title="Clinical sign-off reserved for licensed prescribers (Doctor / Provider)."
+                          >
+                            <Clock className="w-3 h-3 text-amber-400" />
+                            <span>Prescriber Sign-off Required</span>
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setCompleteActionModal({ open: true, actionId: action.id });
+                            }}
+                            className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold bg-[var(--accent)] text-white hover:opacity-90 transition-opacity"
+                          >
+                            <Check className="w-3 h-3" />
+                            <span>Complete Task</span>
+                          </button>
+                        )
                       )}
                     </div>
 
@@ -420,6 +531,11 @@ export function RefillDetail() {
                         <span className="text-xs font-bold text-[var(--fg)]">
                           {formatEventType(ev.eventType)}
                         </span>
+                        {(ev.actorLabel === 'triage-engine' || ev.actorLabel?.startsWith('Automated ')) && (
+                          <span className="rounded-full border border-sky-400/25 bg-sky-400/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-sky-300">
+                            Automated
+                          </span>
+                        )}
                         <span className="text-[10px] text-[var(--fg-subtle)] font-mono">
                           {formatTimestamp(ev.createdAt)}
                         </span>
@@ -448,7 +564,10 @@ export function RefillDetail() {
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-[var(--fg)]">Complete Action</h3>
               <button
-                onClick={() => setCompleteActionModal({ open: false, actionId: null })}
+                onClick={() => {
+                  completeActionMutation.reset();
+                  setCompleteActionModal({ open: false, actionId: null });
+                }}
                 className="p-1 rounded-lg text-[var(--fg-muted)] hover:text-[var(--fg)]"
               >
                 <X className="w-4 h-4" />
@@ -457,6 +576,17 @@ export function RefillDetail() {
             <p className="text-xs text-[var(--fg-muted)]">
               Document what occurred (e.g. physician verbal approval, clinic fax confirmation, prior auth reference number).
             </p>
+
+            {completeActionMutation.error && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300 flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+                <div>
+                  <strong className="font-semibold block text-rose-400">Action Notice</strong>
+                  <span>{(completeActionMutation.error as Error)?.message || 'Unable to complete action.'}</span>
+                </div>
+              </div>
+            )}
+
             <textarea
               value={actionNotes}
               onChange={e => setActionNotes(e.target.value)}
@@ -466,7 +596,10 @@ export function RefillDetail() {
             />
             <div className="flex justify-end gap-2 pt-2">
               <button
-                onClick={() => setCompleteActionModal({ open: false, actionId: null })}
+                onClick={() => {
+                  completeActionMutation.reset();
+                  setCompleteActionModal({ open: false, actionId: null });
+                }}
                 className="px-3 py-2 rounded-xl text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--surface-2)]"
               >
                 Cancel
@@ -496,13 +629,55 @@ export function RefillDetail() {
           <div className="w-full max-w-md p-6 rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-[var(--fg)]">Mark Refill Case Resolved</h3>
-              <button onClick={() => setResolveModalOpen(false)} className="p-1 rounded-lg text-[var(--fg-muted)] hover:text-[var(--fg)]">
+              <button
+                onClick={() => {
+                  resolveCaseMutation.reset();
+                  setResolveModalOpen(false);
+                }}
+                className="p-1 rounded-lg text-[var(--fg-muted)] hover:text-[var(--fg)]"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
             <p className="text-xs text-[var(--fg-muted)]">
               Summarize the resolution. Marking resolved will clear the blocker and trigger re-triage to advance this refill to READY.
             </p>
+
+            {refill.blockerType === 'NEW_PRESCRIPTION_REQUIRED' && !isProvider && (
+              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200 space-y-2">
+                <div className="flex items-start gap-2.5">
+                  <AlertTriangle className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+                  <div>
+                    <strong className="block font-semibold text-amber-400">Prescriber Sign-off Required (Option B)</strong>
+                    <span>This refill requires a renewed prescription from {prescriberName}. Under clinical regulations, {isPharmacist ? 'pharmacists' : 'nursing staff'} cannot resolve this case directly. Please route this request to the doctor.</span>
+                  </div>
+                </div>
+                <div className="pt-1">
+                  <button
+                    onClick={() => {
+                      resolveCaseMutation.reset();
+                      setResolveModalOpen(false);
+                      setForwardToDoctorModalOpen(true);
+                    }}
+                    className="w-full py-2 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Switch to: {isPharmacist ? 'Request Renewal from Doctor' : 'Forward to Doctor Queue'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {resolveCaseMutation.error && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300 flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+                <div>
+                  <strong className="font-semibold block text-rose-400">Action Notice</strong>
+                  <span>{(resolveCaseMutation.error as Error)?.message || 'Unable to resolve case.'}</span>
+                </div>
+              </div>
+            )}
+
             <textarea
               value={resolveSummary}
               onChange={e => setResolveSummary(e.target.value)}
@@ -511,15 +686,304 @@ export function RefillDetail() {
               className="w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-xs text-[var(--fg)] focus:outline-hidden focus:border-[var(--accent)]"
             />
             <div className="flex justify-end gap-2 pt-2">
-              <button onClick={() => setResolveModalOpen(false)} className="px-3 py-2 rounded-xl text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--surface-2)]">
+              <button
+                onClick={() => {
+                  resolveCaseMutation.reset();
+                  setResolveModalOpen(false);
+                }}
+                className="px-3 py-2 rounded-xl text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--surface-2)]"
+              >
                 Cancel
               </button>
               <button
                 onClick={() => resolveCaseMutation.mutate(resolveSummary || 'Case resolved by clinical staff.')}
-                disabled={resolveCaseMutation.isPending}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-500"
+                disabled={resolveCaseMutation.isPending || (refill.blockerType === 'NEW_PRESCRIPTION_REQUIRED' && !isProvider)}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {resolveCaseMutation.isPending ? 'Resolving...' : 'Confirm Resolution'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Forward to Doctor Modal (Nursing Delegation Flow - Option B) ────────── */}
+      {forwardToDoctorModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="w-full max-w-lg p-6 rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 rounded-lg bg-indigo-500/20 text-indigo-400">
+                  <Send className="w-4 h-4" />
+                </span>
+                <h3 className="text-base font-bold text-[var(--fg)]">
+                  {isPharmacist ? 'Request Prescription Renewal from Prescriber' : 'Forward to Doctor for Prescription Authorization'}
+                </h3>
+              </div>
+              <button
+                onClick={() => {
+                  addActionMutation.reset();
+                  setForwardToDoctorModalOpen(false);
+                }}
+                className="p-1 rounded-lg text-[var(--fg-muted)] hover:text-[var(--fg)]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-300 leading-relaxed">
+              <strong className="text-white block mb-0.5">Clinical Protocol (Option B):</strong>
+              {isPharmacist ? (
+                <span>This prescription has expired. Under pharmacy practice acts, pharmacists cannot write or prescribe new orders. Submit a formal renewal request to the prescriber (Doctor) to authorize a new prescription before dispensing.</span>
+              ) : (
+                <span>This prescription has expired. Healthcare regulations require a licensed prescriber (Doctor / Provider) to authorize and issue a renewed prescription. As clinical staff, submit your chart review notes to queue this order for provider sign-off.</span>
+              )}
+            </div>
+
+            {addActionMutation.error && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300 flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+                <div>
+                  <strong className="font-semibold block text-rose-400">Forwarding Notice</strong>
+                  <span>{(addActionMutation.error as Error)?.message || 'Unable to route request to prescriber.'}</span>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div className="p-3 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] text-xs space-y-1">
+                <div className="flex justify-between text-[var(--fg-muted)]">
+                  <span>Assigned Doctor:</span>
+                  <span className="font-semibold text-[var(--fg)]">{prescriberName} (NPI: {prescriberNpi})</span>
+                </div>
+                <div className="flex justify-between text-[var(--fg-muted)]">
+                  <span>Medication:</span>
+                  <span className="font-semibold text-[var(--fg)]">{rx?.medicationName}</span>
+                </div>
+                <div className="flex justify-between text-[var(--fg-muted)]">
+                  <span>Patient:</span>
+                  <span className="font-semibold text-[var(--fg)]">{refill.patient?.firstName} {refill.patient?.lastName} (MRN: {refill.patient?.mrn || 'MRN-001'})</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold text-[var(--fg-muted)] uppercase">
+                  {isPharmacist ? 'Pharmacy Renewal Request Notes' : 'Clinical Chart Review & Triage Notes'}
+                </label>
+                <textarea
+                  value={forwardNotes}
+                  onChange={e => setForwardNotes(e.target.value)}
+                  placeholder={
+                    isPharmacist
+                      ? 'e.g. Patient requests 30-day refill at pharmacy counter. Prescription expired. Forwarding renewal request to clinic provider.'
+                      : 'e.g. Chart and adherence reviewed. Patient stable on maintenance therapy. Requesting renewed 1-year prescription with 3 refills.'
+                  }
+                  rows={3}
+                  className="w-full mt-1 p-3 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-xs text-[var(--fg)] focus:outline-hidden focus:border-indigo-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                onClick={() => {
+                  addActionMutation.reset();
+                  setForwardToDoctorModalOpen(false);
+                }}
+                className="px-3 py-2 rounded-xl text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--surface-2)]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  addActionMutation.mutate({
+                    actionType: 'REQUEST_NEW_PRESCRIPTION',
+                    assignedRole: 'PROVIDER',
+                    description: forwardNotes || (isPharmacist
+                      ? 'Pharmacy requests renewed prescription authorization from provider.'
+                      : 'Patient requires new prescription authorization. Chart reviewed and forwarded by practice staff.'
+                    ),
+                  });
+                }}
+                disabled={addActionMutation.isPending}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-500 shadow-xs"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>{addActionMutation.isPending ? 'Routing...' : (isPharmacist ? 'Send Renewal Request to Doctor' : 'Forward to Doctor Queue')}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Doctor Prescription Authorization Modal (Option B Sign-off) ───── */}
+      {doctorPrescribeModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="w-full max-w-lg p-6 rounded-2xl bg-[var(--surface)] border border-[var(--border)] shadow-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400">
+                  <Stethoscope className="w-4 h-4" />
+                </span>
+                <div>
+                  <h3 className="text-base font-bold text-[var(--fg)]">Doctor Prescription Authorization</h3>
+                  <p className="text-[11px] text-[var(--fg-muted)]">Option B: Clinical Prescriber Sign-off & Rx Issuance</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  resolveCaseMutation.reset();
+                  setDoctorPrescribeModalOpen(false);
+                }}
+                className="p-1 rounded-lg text-[var(--fg-muted)] hover:text-[var(--fg)]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Context Summary */}
+            <div className="p-3.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] text-xs space-y-1.5">
+              <div className="flex justify-between">
+                <span className="text-[var(--fg-muted)]">Patient:</span>
+                <span className="font-bold text-[var(--fg)]">{refill.patient?.firstName} {refill.patient?.lastName} (MRN: {refill.patient?.mrn || 'MRN-001'})</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[var(--fg-muted)]">Medication:</span>
+                <span className="font-bold text-emerald-400">{rx?.medicationName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[var(--fg-muted)]">Prescribing Doctor:</span>
+                <span className="font-semibold text-[var(--fg)]">{prescriberName} (NPI: {prescriberNpi})</span>
+              </div>
+            </div>
+
+            {/* Prescriptive Authority Status Notice */}
+            {isPrimaryPrescriber ? (
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 flex items-start gap-2.5">
+                <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
+                <div>
+                  <strong className="block font-semibold text-emerald-400">Primary Prescriber of Record</strong>
+                  <span>You are signed in with prescriptive authority as {prescriberName}. You hold authority to renew and authorize this order.</span>
+                </div>
+              </div>
+            ) : isProvider ? (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200 flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+                <div>
+                  <strong className="block font-semibold text-amber-400">Cross-Coverage Authorization Protocol</strong>
+                  <span>Primary prescriber on file is {prescriberName}. You ({user?.name || user?.username}) are signing under practice cross-coverage authorization. Your provider credentials will be recorded in the audit trail.</span>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-200 space-y-2">
+                <div className="flex items-start gap-2.5">
+                  <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+                  <div>
+                    <strong className="block font-semibold text-rose-400">Prescriptive Authority Required</strong>
+                    <span>This medication was prescribed by {prescriberName}. Under state medical licensing regulations, {isPharmacist ? 'pharmacists' : 'practice staff / nurses'} cannot independently write or authorize new prescriptions. Please forward this renewal request to {prescriberName}.</span>
+                  </div>
+                </div>
+                <div className="pt-1">
+                  <button
+                    onClick={() => {
+                      resolveCaseMutation.reset();
+                      setDoctorPrescribeModalOpen(false);
+                      setForwardToDoctorModalOpen(true);
+                    }}
+                    className="w-full py-2 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Switch to: {isPharmacist ? 'Request Renewal from Doctor' : 'Forward to Doctor Queue'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {resolveCaseMutation.error && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300 flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+                <div>
+                  <strong className="font-semibold block text-rose-400">Authorization Notice</strong>
+                  <span>{(resolveCaseMutation.error as Error)?.message || 'Prescription authorization could not be completed.'}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Form Fields */}
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] font-semibold text-[var(--fg-muted)] uppercase">New Expiration Date</label>
+                  <input
+                    type="date"
+                    value={newExpiryDate}
+                    onChange={e => setNewExpiryDate(e.target.value)}
+                    className="w-full mt-1 p-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-xs text-[var(--fg)] focus:outline-hidden focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold text-[var(--fg-muted)] uppercase">Refills Authorized</label>
+                  <select
+                    value={newRefillsAllowed}
+                    onChange={e => setNewRefillsAllowed(Number(e.target.value))}
+                    className="w-full mt-1 p-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-xs text-[var(--fg)] focus:outline-hidden focus:border-emerald-500"
+                  >
+                    <option value={1}>1 refill (30-60 days)</option>
+                    <option value={2}>2 refills (90 days)</option>
+                    <option value={3}>3 refills (120 days)</option>
+                    <option value={5}>5 refills (6 months)</option>
+                    <option value={11}>11 refills (1 year)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold text-[var(--fg-muted)] uppercase">Renewed Rx Number / e-Prescription ID</label>
+                <input
+                  type="text"
+                  value={newRxNumber}
+                  onChange={e => setNewRxNumber(e.target.value)}
+                  placeholder="e.g. RX-10001-REN"
+                  className="w-full mt-1 p-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-xs text-[var(--fg)] focus:outline-hidden focus:border-emerald-500 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold text-[var(--fg-muted)] uppercase">Prescriber Clinical Sign-off Notes</label>
+                <textarea
+                  value={doctorSignNotes}
+                  onChange={e => setDoctorSignNotes(e.target.value)}
+                  placeholder="e.g. Reviewed patient chart and clinical response. Authorized renewed prescription for 1 year with 3 refills."
+                  rows={2}
+                  className="w-full mt-1 p-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-xs text-[var(--fg)] focus:outline-hidden focus:border-emerald-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                onClick={() => {
+                  resolveCaseMutation.reset();
+                  setDoctorPrescribeModalOpen(false);
+                }}
+                className="px-3 py-2 rounded-xl text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--surface-2)]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  resolveCaseMutation.mutate({
+                    resolutionSummary: doctorSignNotes || `Authorized renewed prescription valid until ${newExpiryDate} with ${newRefillsAllowed} refills.`,
+                    newExpiryDate,
+                    newRefillsAllowed,
+                    newRxNumber: newRxNumber || (rx?.rxNumber ? `${rx.rxNumber}-REN` : undefined),
+                  });
+                }}
+                disabled={resolveCaseMutation.isPending || !isProvider}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>{resolveCaseMutation.isPending ? 'Authorizing...' : 'Authorize & Sign Prescription'}</span>
               </button>
             </div>
           </div>
@@ -545,6 +1009,7 @@ export function RefillDetail() {
                   onChange={e => setNewActionType(e.target.value)}
                   className="w-full mt-1 p-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-xs text-[var(--fg)]"
                 >
+                  <option value="REQUEST_NEW_PRESCRIPTION">Request New Prescription (Expired Rx)</option>
                   <option value="REQUEST_PROVIDER_APPROVAL">Request Provider Approval</option>
                   <option value="REQUEST_MISSING_INFORMATION">Request Missing Clinical Information</option>
                   <option value="VERIFY_INSURANCE">Verify Insurance / Prior Auth</option>
@@ -634,7 +1099,21 @@ function formatBlockerExplanation(blocker?: string, rx?: any): string {
 }
 
 function formatActionType(type: string): string {
-  return type.replace(/_/g, ' ');
+  const labels: Record<string, string> = {
+    REQUEST_NEW_PRESCRIPTION:   'Request New Prescription (Expired Rx)',
+    REQUEST_PROVIDER_APPROVAL:  'Request Provider Approval',
+    REQUEST_PROVIDER_REVIEW:    'Request Provider Review',
+    REQUEST_MISSING_INFORMATION:'Request Missing Clinical Information',
+    VERIFY_INSURANCE:           'Verify Insurance / Prior Auth',
+    PRIOR_AUTH_REQUEST:         'Prior Authorization Request',
+    CONTACT_PHARMACY:           'Contact Pharmacy',
+    FOLLOW_UP_WITH_PRACTICE:    'Follow Up With Clinic',
+    CONTACT_PATIENT:            'Contact Patient',
+    VERIFY_RESOLUTION:          'Verify Resolution',
+    ESCALATE_CASE:              'Escalate Case',
+    OTHER:                      'Other',
+  };
+  return labels[type] ?? type.replace(/_/g, ' ');
 }
 
 function formatRoleBadge(role?: string): string {
@@ -647,7 +1126,20 @@ function formatRoleBadge(role?: string): string {
 }
 
 function formatEventType(type: string): string {
-  return type.replace(/_/g, ' ');
+  const labels: Record<string, string> = {
+    REFILL_REQUESTED:             'Refill Requested',
+    REFILL_UNDER_REVIEW:          'Triage Started',
+    BLOCKER_IDENTIFIED:           'Blocker Identified',
+    REFILL_READY:                 'Ready to Dispense',
+    REFILL_COMPLETED:             'Refill Dispensed',
+    CASE_CREATED:                 'Resolution Case Opened',
+    CASE_RESOLVED:                'Case Resolved',
+    CASE_ESCALATED:               'Case Escalated',
+    ACTION_CREATED:               'Action Assigned',
+    ACTION_COMPLETED:             'Action Completed',
+    AI_RECOMMENDATION_RECEIVED:   'AI Recommendation Received',
+  };
+  return labels[type] ?? type.replace(/_/g, ' ');
 }
 
 function formatTimestamp(isoString?: string): string {

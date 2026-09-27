@@ -111,9 +111,11 @@ export type RefillPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
 
 export interface RefillRequest {
   id: number;
-  prescription: Prescription;
-  patient: Patient;
-  pharmacy: Pharmacy;
+  prescription: Pick<Prescription, 'id' | 'medicationName' | 'medicationStrength' | 'instructions' | 'quantityDispensed' | 'daysSupply' | 'refillsAllowed' | 'refillsUsed' | 'rxNumber'> & {
+    provider?: Pick<Provider, 'id' | 'firstName' | 'lastName' | 'npi' | 'specialty'>;
+  };
+  patient: Pick<Patient, 'id' | 'firstName' | 'lastName' | 'mrn'>;
+  pharmacy: Pick<Pharmacy, 'id' | 'name'>;
   requestedBy?: User;
   status: RefillStatus;
   blockerType?: BlockerType;

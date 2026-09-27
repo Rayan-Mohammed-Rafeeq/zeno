@@ -11,14 +11,21 @@ import com.zeno.api.refill.RefillEventType;
 import com.zeno.api.refill.RefillRequest;
 import com.zeno.api.refill.RefillRequestRepository;
 import com.zeno.api.refill.RefillStatus;
+import com.zeno.api.prescription.Prescription;
+import com.zeno.api.prescription.PrescriptionRepository;
+import com.zeno.api.prescription.PrescriptionStatus;
+import com.zeno.api.refill.RefillWorkflowService;
 import com.zeno.api.user.User;
 import com.zeno.api.user.UserRepository;
+import com.zeno.api.user.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -40,6 +47,11 @@ public class ResolutionCaseService {
     private final RefillEventRepository eventRepository;
     private final UserRepository userRepository;
     private final AiResolutionRecommendationService aiRecommendationService;
+    private final PrescriptionRepository prescriptionRepository;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    @Lazy
+    private RefillWorkflowService refillWorkflowService;
 
     @Transactional(readOnly = true)
     public ResolutionCase findById(Long id) {
@@ -47,9 +59,52 @@ public class ResolutionCaseService {
                 .orElseThrow(() -> ResourceNotFoundException.of("ResolutionCase", id));
     }
 
+    @Transactional
+    public ResolutionCase findByIdOrRefillId(Long id) {
+        // 1. Try finding by resolution case ID
+        Optional<ResolutionCase> byCaseId = caseRepository.findById(id);
+        if (byCaseId.isPresent()) {
+            return byCaseId.get();
+        }
+
+        // 2. Try finding by refill request ID
+        Optional<ResolutionCase> byRefillId = caseRepository.findByRefillRequestId(id);
+        if (byRefillId.isPresent()) {
+            return byRefillId.get();
+        }
+
+        // 3. If a refill request exists with this ID, auto-initialize case if blocked
+        Optional<RefillRequest> refillOpt = refillRepository.findById(id);
+        if (refillOpt.isPresent()) {
+            RefillRequest refill = refillOpt.get();
+            BlockerType blocker = refill.getBlockerType() != null ? refill.getBlockerType() : BlockerType.OTHER;
+            return createCase(refill, blocker, "Resolution case for refill #" + id, null);
+        }
+
+        throw ResourceNotFoundException.of("ResolutionCase", id);
+    }
+
+    @Transactional
+    public Optional<ResolutionCase> findOptionalByRefillRequestId(Long refillId) {
+        Optional<ResolutionCase> existing = caseRepository.findByRefillRequestId(refillId);
+        if (existing.isPresent()) {
+            return existing;
+        }
+
+        Optional<RefillRequest> refillOpt = refillRepository.findById(refillId);
+        if (refillOpt.isPresent()) {
+            RefillRequest refill = refillOpt.get();
+            if (refill.getBlockerType() != null) {
+                return Optional.of(createCase(refill, refill.getBlockerType(), "Resolution case for blocked refill #" + refillId, null));
+            }
+        }
+
+        return Optional.empty();
+    }
+
     @Transactional(readOnly = true)
     public ResolutionCase findByRefillRequestId(Long refillId) {
-        return caseRepository.findByRefillRequestId(refillId)
+        return findOptionalByRefillRequestId(refillId)
                 .orElseThrow(() -> new ResourceNotFoundException("No resolution case found for refill request: " + refillId));
     }
 
@@ -66,20 +121,32 @@ public class ResolutionCaseService {
                                      String reason, User createdBy) {
         log.info("[refillId={}] Creating resolution case for blocker={}", refillRequest.getId(), blockerType);
 
-        ResolutionCase resolutionCase = ResolutionCase.builder()
-                .refillRequest(refillRequest)
-                .blockerType(blockerType)
-                .status(ResolutionStatus.OPEN)
-                .priority(refillRequest.getPriority())
-                .reason(reason)
-                .build();
+        Optional<ResolutionCase> existing = caseRepository.findByRefillRequestId(refillRequest.getId());
+        ResolutionCase resolutionCase;
+        if (existing.isPresent()) {
+            resolutionCase = existing.get();
+            resolutionCase.setBlockerType(blockerType);
+            resolutionCase.setStatus(ResolutionStatus.OPEN);
+            resolutionCase.setPriority(refillRequest.getPriority());
+            resolutionCase.setReason(reason);
+            resolutionCase.setResolutionSummary(null);
+            resolutionCase.setResolvedAt(null);
+        } else {
+            resolutionCase = ResolutionCase.builder()
+                    .refillRequest(refillRequest)
+                    .blockerType(blockerType)
+                    .status(ResolutionStatus.OPEN)
+                    .priority(refillRequest.getPriority())
+                    .reason(reason)
+                    .build();
+        }
 
         ResolutionCase saved = caseRepository.save(resolutionCase);
 
         // Record the case creation event
         recordEvent(refillRequest, RefillEventType.CASE_CREATED, null,
                 "Resolution case #" + saved.getId() + " created for blocker: " + blockerType,
-                createdBy, "triage-engine", saved.getId(), null);
+                createdBy, triageActorLabel(createdBy), saved.getId(), null);
 
         // Auto-create the first suggested action based on blocker type
         createInitialAction(saved, blockerType, createdBy);
@@ -91,7 +158,7 @@ public class ResolutionCaseService {
      * Create an action on a resolution case.
      */
     public ResolutionAction createAction(Long caseId, CreateActionCommand cmd, User createdBy) {
-        ResolutionCase resolutionCase = findById(caseId);
+        ResolutionCase resolutionCase = findByIdOrRefillId(caseId);
 
         User assignedUser = null;
         if (cmd.assignedUserId() != null) {
@@ -113,7 +180,7 @@ public class ResolutionCaseService {
 
         recordEvent(resolutionCase.getRefillRequest(), RefillEventType.ACTION_CREATED, null,
                 "Action created: " + cmd.actionType() + " — " + cmd.description(),
-                createdBy, null, caseId, saved.getId());
+                createdBy, null, resolutionCase.getId(), saved.getId());
 
         return saved;
     }
@@ -125,7 +192,9 @@ public class ResolutionCaseService {
         ResolutionAction action = actionRepository.findById(actionId)
                 .orElseThrow(() -> ResourceNotFoundException.of("ResolutionAction", actionId));
 
-        if (!action.getResolutionCase().getId().equals(caseId)) {
+        ResolutionCase resolutionCase = findByIdOrRefillId(caseId);
+
+        if (!action.getResolutionCase().getId().equals(resolutionCase.getId())) {
             throw new BusinessException("Action does not belong to the specified case");
         }
 
@@ -140,7 +209,6 @@ public class ResolutionCaseService {
 
         ResolutionAction saved = actionRepository.save(action);
 
-        ResolutionCase resolutionCase = action.getResolutionCase();
         recordEvent(resolutionCase.getRefillRequest(), RefillEventType.ACTION_COMPLETED, null,
                 "Action completed: " + action.getActionType() + ". Notes: " + notes,
                 completedBy, null, caseId, actionId);
@@ -155,25 +223,96 @@ public class ResolutionCaseService {
     }
 
     /**
-     * Mark a resolution case as resolved.
-     * Updates both the case and the associated refill request.
+     * Mark a resolution case as resolved with simple summary.
      */
     public ResolutionCase resolve(Long caseId, String resolutionSummary, User resolvedBy) {
-        ResolutionCase resolutionCase = findById(caseId);
+        return resolve(caseId, new ResolveCaseRequest(resolutionSummary, null, null, null), resolvedBy);
+    }
+
+    /**
+     * Mark a resolution case as resolved, applying any clinical updates (e.g. Doctor's new prescription authorization).
+     * Updates case, updates prescription if renewed, records audit timeline events, and retriages refill to advance state.
+     */
+    public ResolutionCase resolve(Long caseId, ResolveCaseRequest request, User resolvedBy) {
+        ResolutionCase resolutionCase = findByIdOrRefillId(caseId);
+
+        String summary = (request != null && request.resolutionSummary() != null && !request.resolutionSummary().isBlank())
+                ? request.resolutionSummary()
+                : "Resolved";
+
+        RefillRequest refillRequest = resolutionCase.getRefillRequest();
+        Prescription rx = refillRequest.getPrescription();
+        BlockerType blocker = resolutionCase.getBlockerType();
+
+        boolean prescriptionUpdated = false;
+
+        // Clinical / Option B: Prescriber Authority Enforcement for Expired Prescriptions
+        if (blocker == BlockerType.NEW_PRESCRIPTION_REQUIRED) {
+            if (resolvedBy != null && resolvedBy.getRole() != UserRole.PROVIDER && resolvedBy.getRole() != UserRole.ADMIN) {
+                log.warn("[caseId={}] Non-prescriber user {} with role {} attempted to authorize a new prescription",
+                        caseId, resolvedBy.getUsername(), resolvedBy.getRole());
+                throw new BusinessException(
+                        "Prescriptive Authority Required: Pharmacists and clinic staff cannot write or issue new prescriptions. Only a licensed prescriber (Doctor / Provider) can authorize an expired prescription renewal."
+                );
+            }
+        }
+
+        // Clinical / Option B: Provider Prescription Renewal & Authorization
+        if (request != null && (request.newExpiryDate() != null || request.newRefillsAllowed() != null || request.newRxNumber() != null)) {
+            if (request.newExpiryDate() != null) {
+                rx.setExpiryDate(request.newExpiryDate());
+            }
+            if (request.newRefillsAllowed() != null) {
+                rx.setRefillsAllowed(request.newRefillsAllowed());
+                rx.setRefillsUsed(0);
+            }
+            if (request.newRxNumber() != null && !request.newRxNumber().isBlank()) {
+                rx.setRxNumber(request.newRxNumber());
+            }
+            rx.setStatus(PrescriptionStatus.ACTIVE);
+            prescriptionRepository.save(rx);
+            prescriptionUpdated = true;
+
+            recordEvent(refillRequest, RefillEventType.ACTION_COMPLETED, null,
+                    String.format("Prescription renewed and authorized by %s: Expiry %s, %d refills allowed (Rx# %s)",
+                            resolvedBy != null ? resolvedBy.getUsername() : "provider",
+                            rx.getExpiryDate(), rx.getRefillsAllowed(), rx.getRxNumber()),
+                    resolvedBy, null, caseId, null);
+        } else if (blocker == BlockerType.NEW_PRESCRIPTION_REQUIRED) {
+            // Default 1-year renewal if resolved without explicit dates
+            rx.setExpiryDate(LocalDate.now().plusYears(1));
+            rx.setRefillsAllowed(Math.max(rx.getRefillsAllowed(), 3));
+            rx.setRefillsUsed(0);
+            rx.setStatus(PrescriptionStatus.ACTIVE);
+            prescriptionRepository.save(rx);
+            prescriptionUpdated = true;
+        }
+
+        if (blocker == BlockerType.NO_REFILLS && !prescriptionUpdated) {
+            rx.setRefillsAllowed(Math.max(rx.getRefillsAllowed() + 3, rx.getRefillsUsed() + 3));
+            prescriptionRepository.save(rx);
+        } else if (blocker == BlockerType.PROVIDER_APPROVAL_REQUIRED) {
+            rx.setRequiresPriorAuth(false);
+            prescriptionRepository.save(rx);
+        }
 
         resolutionCase.setStatus(ResolutionStatus.RESOLVED);
-        resolutionCase.setResolutionSummary(resolutionSummary);
+        resolutionCase.setResolutionSummary(summary);
         resolutionCase.setResolvedAt(LocalDateTime.now());
         ResolutionCase saved = caseRepository.save(resolutionCase);
 
-        // Update the refill request status
-        RefillRequest refillRequest = resolutionCase.getRefillRequest();
+        recordEvent(refillRequest, RefillEventType.CASE_RESOLVED, null,
+                "Resolution case resolved: " + summary,
+                resolvedBy, null, caseId, null);
+
+        // Clear blocker and advance refill request to READY
         refillRequest.setBlockerType(null);
-        refillRequest.setStatus(RefillStatus.UNDER_REVIEW); // Will be retriaged
+        refillRequest.setStatus(RefillStatus.READY);
         refillRepository.save(refillRequest);
 
-        recordEvent(refillRequest, RefillEventType.CASE_RESOLVED, null,
-                "Resolution case resolved: " + resolutionSummary,
+        recordEvent(refillRequest, RefillEventType.REFILL_READY,
+                RefillStatus.READY,
+                "All blockers resolved — refill approved and ready to be dispensed",
                 resolvedBy, null, caseId, null);
 
         return saved;
@@ -183,7 +322,7 @@ public class ResolutionCaseService {
      * Escalate a resolution case.
      */
     public ResolutionCase escalate(Long caseId, String reason, User escalatedBy) {
-        ResolutionCase resolutionCase = findById(caseId);
+        ResolutionCase resolutionCase = findByIdOrRefillId(caseId);
 
         resolutionCase.setStatus(ResolutionStatus.ESCALATED);
         caseRepository.save(resolutionCase);
@@ -220,7 +359,7 @@ public class ResolutionCaseService {
     public Optional<AiRecommendationResponse> requestAiRecommendation(
             Long caseId, String userRole, User requestedBy
     ) {
-        ResolutionCase resolutionCase = findById(caseId);
+        ResolutionCase resolutionCase = findByIdOrRefillId(caseId);
         RefillRequest refillRequest = resolutionCase.getRefillRequest();
 
         log.info("[caseId={}] Requesting AI recommendation", caseId);
@@ -296,7 +435,8 @@ public class ResolutionCaseService {
 
     @Transactional(readOnly = true)
     public List<ResolutionAction> findActionsByCase(Long caseId) {
-        return actionRepository.findByResolutionCaseIdOrderByCreatedAtAsc(caseId);
+        ResolutionCase resolutionCase = findByIdOrRefillId(caseId);
+        return actionRepository.findByResolutionCaseIdOrderByCreatedAtAsc(resolutionCase.getId());
     }
 
     // ─── Helpers ────────────────────────────────────────────────────────────
@@ -331,7 +471,16 @@ public class ResolutionCaseService {
                 .status(ActionStatus.PENDING)
                 .build();
 
-        actionRepository.save(action);
+        ResolutionAction saved = actionRepository.save(action);
+        recordEvent(resolutionCase.getRefillRequest(), RefillEventType.ACTION_CREATED, null,
+                "Automated pending action created: " + actionType + " — " + description,
+                createdBy, triageActorLabel(createdBy), resolutionCase.getId(), saved.getId());
+    }
+
+    private String triageActorLabel(User actor) {
+        return actor == null
+                ? "Automated triage engine"
+                : "Triage engine (initiated by " + actor.getUsername() + ")";
     }
 
     private void recordEvent(RefillRequest request, RefillEventType type,

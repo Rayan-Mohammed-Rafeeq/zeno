@@ -1226,7 +1226,7 @@ export function Login() {
           <div className="zeno-cold-start-content">
             <div className="zeno-cold-start-mark" aria-hidden="true">
               <span className="zeno-cold-start-ring" />
-              <img src="/light-logo.svg" alt="" />
+              <img src="/dark-logo.svg" alt="" />
             </div>
             <h2 className="zeno-cold-start-title">Waking up the backend…</h2>
             <p className="zeno-cold-start-message">

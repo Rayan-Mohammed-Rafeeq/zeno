@@ -14,10 +14,39 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Long
     List<Prescription> findByStatus(PrescriptionStatus status);
     List<Prescription> findByPatientIdAndStatus(Long patientId, PrescriptionStatus status);
 
+    @Query("SELECT DISTINCT p FROM Prescription p " +
+           "LEFT JOIN FETCH p.patient " +
+           "LEFT JOIN FETCH p.provider " +
+           "LEFT JOIN FETCH p.pharmacy")
+    List<Prescription> findAllWithDetails();
+
+    @Query("SELECT p FROM Prescription p " +
+           "LEFT JOIN FETCH p.patient " +
+           "LEFT JOIN FETCH p.provider " +
+           "LEFT JOIN FETCH p.pharmacy " +
+           "WHERE p.id = :id")
+    java.util.Optional<Prescription> findWithDetailsById(@Param("id") Long id);
+
+    @Query("SELECT p FROM Prescription p " +
+           "LEFT JOIN FETCH p.patient " +
+           "LEFT JOIN FETCH p.provider " +
+           "LEFT JOIN FETCH p.pharmacy " +
+           "WHERE p.patient.id = :patientId")
+    List<Prescription> findWithDetailsByPatientId(@Param("patientId") Long patientId);
+
     @Query("SELECT p FROM Prescription p " +
            "WHERE p.patient.organization.id = :orgId " +
            "ORDER BY p.createdAt DESC")
     List<Prescription> findByOrganizationId(@Param("orgId") Long orgId);
+
+    @Query("SELECT DISTINCT p FROM Prescription p " +
+           "LEFT JOIN FETCH p.patient patient " +
+           "LEFT JOIN FETCH p.provider " +
+           "LEFT JOIN FETCH p.pharmacy pharmacy " +
+           "WHERE patient.organization.id = :orgId " +
+           "OR pharmacy.organization.id = :orgId " +
+           "ORDER BY p.createdAt DESC")
+    List<Prescription> findByOrganizationIdWithDetails(@Param("orgId") Long orgId);
 
     @Query("SELECT p FROM Prescription p " +
            "WHERE p.patient.id = :patientId " +

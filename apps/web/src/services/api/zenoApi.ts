@@ -137,10 +137,19 @@ export const zenoApi = {
     });
   },
 
-  async resolveCase(caseId: number, resolutionSummary: string): Promise<ResolutionCase> {
+  async resolveCase(
+    caseId: number,
+    payload: string | {
+      resolutionSummary: string;
+      newExpiryDate?: string;
+      newRefillsAllowed?: number;
+      newRxNumber?: string;
+    }
+  ): Promise<ResolutionCase> {
+    const body = typeof payload === 'string' ? { resolutionSummary: payload } : payload;
     return fetchWithAuth<ResolutionCase>(`/api/resolutions/${caseId}/resolve`, {
       method: 'POST',
-      body: JSON.stringify({ resolutionSummary }),
+      body: JSON.stringify(body),
     });
   },
 

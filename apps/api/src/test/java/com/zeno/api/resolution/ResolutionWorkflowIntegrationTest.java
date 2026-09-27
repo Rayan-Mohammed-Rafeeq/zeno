@@ -9,6 +9,7 @@ import com.zeno.api.pharmacy.Pharmacy;
 import com.zeno.api.pharmacy.PharmacyRepository;
 import com.zeno.api.prescription.Prescription;
 import com.zeno.api.prescription.PrescriptionRepository;
+import com.zeno.api.prescription.PrescriptionStatus;
 import com.zeno.api.provider.Provider;
 import com.zeno.api.provider.ProviderRepository;
 import com.zeno.api.refill.*;
@@ -158,5 +159,111 @@ class ResolutionWorkflowIntegrationTest {
         mockMvc.perform(get("/api/refills/{id}/timeline", refill.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    @WithMockUser(username = "dr_welby", authorities = {"PROVIDER"})
+    @DisplayName("Option B: Doctor authorizes new prescription for expired Rx, updating prescription and advancing refill to READY")
+    void doctorAuthorizesNewPrescription_succeeds() throws Exception {
+        Prescription expiredRx = rxRepo.save(Prescription.builder()
+                .patient(refill.getPatient())
+                .provider(refill.getPrescription().getProvider())
+                .pharmacy(refill.getPharmacy())
+                .medicationName("Adalimumab 40mg")
+                .expiryDate(java.time.LocalDate.now().minusDays(10))
+                .status(PrescriptionStatus.EXPIRED)
+                .build());
+
+        RefillRequest expiredRefill = refillRepo.save(RefillRequest.builder()
+                .prescription(expiredRx)
+                .patient(refill.getPatient())
+                .pharmacy(refill.getPharmacy())
+                .status(RefillStatus.AWAITING_PROVIDER)
+                .blockerType(BlockerType.NEW_PRESCRIPTION_REQUIRED)
+                .priority(RefillPriority.URGENT)
+                .build());
+
+        ResolutionCase expiredCase = caseRepo.save(ResolutionCase.builder()
+                .refillRequest(expiredRefill)
+                .blockerType(BlockerType.NEW_PRESCRIPTION_REQUIRED)
+                .status(ResolutionStatus.OPEN)
+                .priority(RefillPriority.URGENT)
+                .reason("Prescription expired")
+                .build());
+
+        ResolveCaseRequest doctorRequest = new ResolveCaseRequest(
+                "Authorized renewed 1-year prescription with 3 refills after chart review.",
+                java.time.LocalDate.now().plusYears(1),
+                3,
+                "RX-99210-REN"
+        );
+
+        mockMvc.perform(post("/api/resolutions/{id}/resolve", expiredCase.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(doctorRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("RESOLVED"));
+
+        RefillRequest updatedRefill = refillRepo.findById(expiredRefill.getId()).orElseThrow();
+        assertThat(updatedRefill.getStatus()).isEqualTo(RefillStatus.READY);
+        assertThat(updatedRefill.getBlockerType()).isNull();
+
+        Prescription updatedRx = rxRepo.findById(expiredRx.getId()).orElseThrow();
+        assertThat(updatedRx.isExpired()).isFalse();
+        assertThat(updatedRx.getRefillsAllowed()).isEqualTo(3);
+        assertThat(updatedRx.getRxNumber()).isEqualTo("RX-99210-REN");
+    }
+
+    @Test
+    @WithMockUser(username = "demo.pharmacist", authorities = {"PHARMACIST"})
+    @DisplayName("Pharmacist cannot authorize or issue a new prescription for an expired Rx")
+    void pharmacistCannotAuthorizeNewPrescription() throws Exception {
+        User pharmacist = userRepo.save(User.builder()
+                .username("demo.pharmacist")
+                .password("encoded_pass")
+                .role(UserRole.PHARMACIST)
+                .organization(refill.getPharmacy().getOrganization())
+                .build());
+
+        Prescription expiredRx = rxRepo.save(Prescription.builder()
+                .patient(refill.getPatient())
+                .provider(refill.getPrescription().getProvider())
+                .pharmacy(refill.getPharmacy())
+                .medicationName("Adalimumab 40mg")
+                .expiryDate(java.time.LocalDate.now().minusDays(10))
+                .status(PrescriptionStatus.EXPIRED)
+                .build());
+
+        RefillRequest expiredRefill = refillRepo.save(RefillRequest.builder()
+                .prescription(expiredRx)
+                .patient(refill.getPatient())
+                .pharmacy(refill.getPharmacy())
+                .status(RefillStatus.AWAITING_PROVIDER)
+                .blockerType(BlockerType.NEW_PRESCRIPTION_REQUIRED)
+                .priority(RefillPriority.URGENT)
+                .build());
+
+        ResolutionCase expiredCase = caseRepo.save(ResolutionCase.builder()
+                .refillRequest(expiredRefill)
+                .blockerType(BlockerType.NEW_PRESCRIPTION_REQUIRED)
+                .status(ResolutionStatus.OPEN)
+                .priority(RefillPriority.URGENT)
+                .reason("Prescription expired")
+                .build());
+
+        // Pharmacist attempts to resolve / authorize a new prescription
+        mockMvc.perform(post("/api/resolutions/{id}/resolve", expiredCase.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("resolutionSummary", "Pharmacist attempted renewal"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Prescriptive Authority Required")));
+    }
+
+    @Test
+    @WithMockUser(username = "demo.pharmacist", authorities = {"PHARMACIST"})
+    @DisplayName("Pharmacist can get prescriptions list without 500 error")
+    void pharmacistCanGetPrescriptions() throws Exception {
+        mockMvc.perform(get("/api/prescriptions"))
+                .andExpect(status().isOk());
     }
 }

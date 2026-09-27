@@ -24,7 +24,7 @@ public class RefillController {
     private final UserRepository userRepository;
 
     @PostMapping
-    public ResponseEntity<RefillRequest> createRefill(
+    public ResponseEntity<RefillRequestResponse> createRefill(
             @RequestBody CreateRefillRequestDto dto,
             @AuthenticationPrincipal ZenoPrincipal principal) {
 
@@ -40,48 +40,52 @@ public class RefillController {
         );
 
         RefillRequest created = refillService.createRefillRequest(cmd);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        created = workflowService.autoTriageDemoBlockedRefill(created.getId(), actor);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseFor(created));
     }
 
     @GetMapping
-    public ResponseEntity<List<RefillRequest>> getRefills(
+    public ResponseEntity<List<RefillRequestResponse>> getRefills(
             @AuthenticationPrincipal ZenoPrincipal principal) {
         Long orgId = principal != null ? principal.getOrganizationId() : null;
+        List<RefillRequest> refills;
         if (orgId != null) {
-            return ResponseEntity.ok(refillService.findActiveByOrganizationId(orgId));
+            refills = refillService.findActiveByOrganizationId(orgId);
+        } else {
+            refills = refillService.findAll();
         }
-        return ResponseEntity.ok(refillService.findAll());
+        return ResponseEntity.ok(refills.stream().map(RefillRequestResponse::from).toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<RefillRequest> getRefill(@PathVariable Long id) {
-        return ResponseEntity.ok(refillService.findById(id));
+    public ResponseEntity<RefillRequestResponse> getRefill(@PathVariable Long id) {
+        return ResponseEntity.ok(responseFor(refillService.findByIdWithDetails(id)));
     }
 
     @PostMapping("/{id}/triage")
-    public ResponseEntity<RefillRequest> triage(
+    public ResponseEntity<RefillRequestResponse> triage(
             @PathVariable Long id,
             @AuthenticationPrincipal ZenoPrincipal principal) {
         User actor = resolveActor(principal);
-        return ResponseEntity.ok(workflowService.triage(id, actor));
+        return ResponseEntity.ok(responseFor(workflowService.triage(id, actor)));
     }
 
     @PostMapping("/{id}/complete")
-    public ResponseEntity<RefillRequest> complete(
+    public ResponseEntity<RefillRequestResponse> complete(
             @PathVariable Long id,
             @AuthenticationPrincipal ZenoPrincipal principal) {
         User actor = resolveActor(principal);
-        return ResponseEntity.ok(workflowService.complete(id, actor));
+        return ResponseEntity.ok(responseFor(workflowService.complete(id, actor)));
     }
 
     @PostMapping("/{id}/cancel")
-    public ResponseEntity<RefillRequest> cancel(
+    public ResponseEntity<RefillRequestResponse> cancel(
             @PathVariable Long id,
             @RequestBody Map<String, String> body,
             @AuthenticationPrincipal ZenoPrincipal principal) {
         User actor = resolveActor(principal);
         String reason = body.getOrDefault("reason", "Cancelled by user");
-        return ResponseEntity.ok(refillService.cancel(id, reason, actor));
+        return ResponseEntity.ok(responseFor(refillService.cancel(id, reason, actor)));
     }
 
     @GetMapping("/{id}/timeline")
@@ -99,5 +103,9 @@ public class RefillController {
     private User resolveActor(ZenoPrincipal principal) {
         if (principal == null) return null;
         return userRepository.findByUsername(principal.getUsername()).orElse(null);
+    }
+
+    private RefillRequestResponse responseFor(RefillRequest refill) {
+        return RefillRequestResponse.from(refillService.findByIdWithDetails(refill.getId()));
     }
 }

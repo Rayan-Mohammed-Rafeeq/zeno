@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
+
 /**
  * The Refill Workflow Engine.
  *
@@ -29,6 +31,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class RefillWorkflowService {
 
     private static final Logger log = LoggerFactory.getLogger(RefillWorkflowService.class);
+    private static final Set<String> DEMO_ACCOUNTS = Set.of(
+            "demo.pharmacist", "demo.staff", "demo.provider",
+            "sarah.chen", "mike.johnson", "dr.patel", "dr.williams", "lisa.martinez"
+    );
 
     private final RefillRequestRepository refillRepository;
     private final RefillRequestService refillRequestService;
@@ -61,7 +67,7 @@ public class RefillWorkflowService {
         refillRequestService.recordEvent(request, RefillEventType.REFILL_UNDER_REVIEW,
                 prev, RefillStatus.UNDER_REVIEW,
                 "Triage started — evaluating prescription eligibility and blockers",
-                actor, "triage-engine");
+                actor, triageActorLabel(actor));
 
         // === DETERMINISTIC BLOCKER DETECTION ===
         BlockerType blocker = detectBlocker(request.getPrescription());
@@ -71,6 +77,24 @@ public class RefillWorkflowService {
         } else {
             return markReady(request, actor);
         }
+    }
+
+    /**
+     * Demo automation: immediately triage a newly submitted demo refill only
+     * when deterministic rules find a blocker. Blocked requests get a pending
+     * resolution action for a person to review. Clear requests remain REQUESTED
+     * so this automation cannot approve or advance a refill to READY.
+     */
+    public RefillRequest autoTriageDemoBlockedRefill(Long refillId, User requester) {
+        RefillRequest request = refillRequestService.findById(refillId);
+        if (requester == null || !DEMO_ACCOUNTS.contains(requester.getUsername())
+                || !isTriageable(request)
+                || detectBlocker(request.getPrescription()) == null) {
+            return request;
+        }
+
+        log.info("[refillId={}] Automatically triaging blocked demo request", refillId);
+        return triage(refillId, null);
     }
 
     /**
@@ -126,7 +150,7 @@ public class RefillWorkflowService {
         refillRequestService.recordEvent(request, RefillEventType.BLOCKER_IDENTIFIED,
                 RefillStatus.UNDER_REVIEW, request.getStatus(),
                 "Blocker identified: " + blocker.name() + " — creating resolution case",
-                actor, "triage-engine");
+                actor, triageActorLabel(actor));
 
         // Create a resolution case to coordinate the resolution
         String reason = buildBlockerReason(blocker, request.getPrescription());
@@ -148,7 +172,7 @@ public class RefillWorkflowService {
         refillRequestService.recordEvent(request, RefillEventType.REFILL_READY,
                 RefillStatus.UNDER_REVIEW, RefillStatus.READY,
                 "No blockers detected — refill is approved and ready to be dispensed",
-                actor, "triage-engine");
+                actor, triageActorLabel(actor));
 
         return request;
     }
@@ -192,6 +216,12 @@ public class RefillWorkflowService {
     private boolean isTriageable(RefillRequest request) {
         return request.getStatus() == RefillStatus.REQUESTED
                 || request.getStatus() == RefillStatus.UNDER_REVIEW;
+    }
+
+    private String triageActorLabel(User actor) {
+        return actor == null
+                ? "Automated triage engine"
+                : "Triage engine (initiated by " + actor.getUsername() + ")";
     }
 
     private RefillStatus mapBlockerToStatus(BlockerType blocker) {
