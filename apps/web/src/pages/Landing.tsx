@@ -17,8 +17,6 @@ import {
   ChevronLeft,
   Code2,
   CheckCircle2,
-  ShoppingBag,
-  Eye,
   Globe
 } from 'lucide-react';
 import { ZenoLogo } from '@/components/brand/Logo';
@@ -2337,7 +2335,7 @@ function ZenoOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
         <div className="lp-signal-trail lp-signal-trail-up" />
         <div className="lp-signal-chip">
           <div className="lp-signal-icon">
-            <img src="/wallet.svg" width={18} height={18} alt="" style={{opacity:0.7}} />
+            <img src="/doctor_role.svg" width={18} height={18} alt="" style={{opacity:0.7}} />
           </div>
           PAYMENT
         </div>
@@ -2615,28 +2613,28 @@ function ZenoOrb({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
         </div>
       </div>
 
-      {/* Order micro-story cards */}
+      {/* Refill micro-story cards */}
       <div className="lp-order-card lp-oc-review">
         <div className="lp-order-card-top">
-          <span className="lp-order-num">ORDER #1042</span>
+          <span className="lp-order-num">REFILL #8821</span>
         </div>
-        <div className="lp-order-amt">$1,499</div>
-        <div className="lp-order-note">"Something looks unusual."</div>
+        <div className="lp-order-amt">Lisinopril 10mg</div>
+        <div className="lp-order-note">"Provider review required."</div>
         <div className="lp-badge lp-badge-review">
           <span className="lp-badge-dot" />
-          REVIEW
+          AWAITING PROVIDER
         </div>
       </div>
 
       <div className="lp-order-card lp-oc-safe">
         <div className="lp-order-card-top">
-          <span className="lp-order-num">ORDER #1043</span>
+          <span className="lp-order-num">REFILL #8822</span>
         </div>
-        <div className="lp-order-amt">$129</div>
-        <div className="lp-order-note">"Looks good."</div>
+        <div className="lp-order-amt">Metformin 500mg</div>
+        <div className="lp-order-note">"PA resolved. Ready to dispense."</div>
         <div className="lp-badge lp-badge-safe">
           <span className="lp-badge-dot" />
-          SAFE ✓
+          RESOLVED ✓
         </div>
       </div>
     </div>
@@ -2679,318 +2677,379 @@ interface WorkflowStep {
 
 const WORKFLOW_STEPS: WorkflowStep[] = [
   {
-    id: 'connect',
+    id: 'detect',
     num: '01',
-    tabLabel: '01. Ingest & Connect',
-    kicker: 'STAGE 01 // STORE INTEGRATION',
-    title: 'Connect your storefront in 60 seconds with zero code',
-    desc: 'Seamlessly integrate Zeno with your existing store. Pre-built webhooks and SDKs listen for order events instantly with zero performance impact on checkout.',
+    tabLabel: '01. Blocker Detected',
+    kicker: 'STAGE 01 // BLOCKER DETECTION',
+    title: 'Zeno identifies why the refill is stuck',
+    desc: 'When a refill request comes in, Zeno reads the pharmacy and insurance messages and classifies the blocker. Every stuck refill gets a clear label before any human touches it.',
     features: [
       {
-        title: 'Plug & Play Integration',
-        desc: 'Ready-to-use connectors for Shopify, WooCommerce, Stripe, and custom APIs.',
+        title: 'Structured Blocker Classification',
+        desc: 'Zeno maps unstructured messages to defined blocker types: NO_REFILLS_REMAINING, PA_REQUIRED, CLAIM_DENIED, and more.',
       },
       {
-        title: 'HMAC-SHA256 Signed',
-        desc: 'End-to-end cryptographic verification prevents spoofed or manipulated payloads.',
+        title: 'Missing Information Detection',
+        desc: 'Identifies exactly which information is absent so staff can request it in one step.',
       },
       {
-        title: 'Zero Checkout Latency',
-        desc: 'Asynchronous event streaming ensures buyer checkout speed is completely unaffected.',
+        title: 'SLA Tracking Starts Immediately',
+        desc: 'A timer starts the moment the blocker is detected so nothing ages invisibly.',
       },
     ],
-    ctaText: 'Connect Store Free',
+    ctaText: 'Request a Demo',
     ctaHref: '/register',
     views: [
       {
-        label: 'cURL / Webhook',
-        filename: 'webhook.sh',
-        lang: 'bash',
-        code: `# Ingest live storefront order via signed webhook
-$ curl -X POST https://api.zeno.protect/v1/webhooks/orders \\
-  -H "X-Zeno-Signature: sha256=d3b07384d113edec49eaa6238ad5ff00" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "event": "order.created",
-    "store_id": "sto_nordic_apparel",
-    "order": { "id": "#1048", "amount": 1249.00, "currency": "USD" }
-  }'
-
-✓ 200 OK — Ingested in 14ms · Streaming to Zeno AI Risk Mesh`,
-      },
-      {
-        label: 'zeno.config.ts',
-        filename: 'zeno.config.ts',
-        lang: 'typescript',
-        code: `import { createZenoClient } from '@zeno/sdk';
-
-export const zeno = createZenoClient({
-  apiKey: process.env.ZENO_API_KEY!,
-  storeId: 'sto_nordic_apparel',
-  webhookSecret: process.env.ZENO_WEBHOOK_SECRET!,
-  mode: 'protect', // 'audit' | 'protect'
-  thresholds: {
-    autoHoldScore: 0.65,
-    autoBlockScore: 0.92
-  }
-});`,
-      },
-      {
-        label: 'payload.json',
-        filename: 'order-payload.json',
+        label: 'Refill Request',
+        filename: 'refill-request.json',
         lang: 'json',
         code: `{
-  "event": "orders/create",
-  "store_id": "sto_nordic_apparel",
-  "order_id": "#1048",
-  "timestamp": "2026-09-05T12:44:01Z",
-  "amount": 1249.00,
-  "currency": "USD",
-  "customer": {
-    "email": "j.doe@unknown-mail.org",
-    "ip": "185.220.101.5",
-    "first_order": true
-  }
-}`,
-      },
-    ],
-    simLogs: [
-      { time: '12:44:01.012', tag: 'INFO', tagType: 'info', msg: 'Inbound webhook received from Shopify (Order #1048)' },
-      { time: '12:44:01.025', tag: 'VERIFY', tagType: 'ok', msg: 'Cryptographic signature verified (SHA-256 match)' },
-      { time: '12:44:01.036', tag: 'PARSER', tagType: 'ok', msg: 'Normalized schema: amount=$1,249.00, currency=USD' },
-      { time: '12:44:01.048', tag: 'STREAM', tagType: 'info', msg: 'Dispatched to Zeno Risk Mesh in 14ms' },
-    ],
-  },
-  {
-    id: 'watch',
-    num: '02',
-    tabLabel: '02. Stream & Detect',
-    kicker: 'STAGE 02 // REAL-TIME DETECTION',
-    title: 'Continuous behavioral telemetry & cluster matching',
-    desc: 'As orders flow in, Zeno instantly maps customer fingerprints across identity clusters, shared shipping vectors, disposable domains, and abnormal velocity.',
-    features: [
-      {
-        title: 'Identity Graph Clustering',
-        desc: 'Links IP, card hash, device fingerprint, and shipping geolocations across store network.',
-      },
-      {
-        title: 'Velocity & Bot Pattern Scanning',
-        desc: 'Detects rapid-fire card testing scripts and distributed synthetic buyer rings.',
-      },
-      {
-        title: 'Continuous Baseline Calibration',
-        desc: 'Automatically adapts to your store\'s normal seasonal traffic and buyer habits.',
-      },
-    ],
-    ctaText: 'Explore Risk Clusters',
-    ctaHref: '#features',
-    views: [
-      {
-        label: 'zeno watch --live',
-        filename: 'terminal: stream',
-        lang: 'bash',
-        code: `# Streaming live risk telemetry across incoming storefront traffic
-$ zeno stream --store=sto_nordic_apparel --format=json
-
-[12:44:01.082] ⚡ Event received: order.created (id: #1048)
-[12:44:01.094] 🌐 Geolocation: Bucharest, RO (Proxy/Tor Exit detected)
-[12:44:01.108] 🔗 Cluster Match: Card hash linked to 3 prior chargebacks
-[12:44:01.121] ⚠️ Velocity Alert: 4 orders submitted across 2 emails in 45s
-[12:44:01.134] 📊 Anomaly Vector Score: 0.94 (HIGH RISK)`,
-      },
-      {
-        label: 'cluster-graph.json',
-        filename: 'cluster-graph.json',
-        lang: 'json',
-        code: `{
-  "order_id": "#1048",
-  "cluster_id": "cls_8f912c",
-  "threat_level": "HIGH",
-  "shared_nodes": {
-    "disposable_email_domain": true,
-    "ip_vpn_flag": true,
-    "distance_billing_shipping_km": 4210,
-    "linked_cards_count": 3
-  },
-  "network_chargeback_frequency": 0.88
+  "refill_id": "RX-88210",
+  "medication": "Lisinopril 10mg",
+  "patient_id": "PAT-4421",
+  "pharmacy_id": "PHM-CENTRAL",
+  "requested_at": "2026-09-27T09:14:00Z",
+  "pharmacy_message": "No refills remaining on file. Provider authorization required.",
+  "insurance_status": "pending_pa",
+  "last_fill_date": "2026-06-28"
 }`,
       },
       {
-        label: 'telemetry.sh',
-        filename: 'telemetry.sh',
-        lang: 'bash',
-        code: `$ zeno-cli inspect-cluster --id=cls_8f912c --depth=2
-CLUSTER: cls_8f912c (Risk Level: CRITICAL)
-├── IP: 185.220.101.5 (Known datacenter proxy)
-├── Device Fingerprint: dfp_77a01e (Used in 12 failed checkouts)
-└── Drop Address: Str. Industriei 4, Bucharest, RO
-RESULT: Pattern matches coordinated card-testing ring`,
-      },
-    ],
-    simLogs: [
-      { time: '12:44:01.070', tag: 'STREAM', tagType: 'info', msg: 'Real-time event ingested: Order #1048 ($1,249.00)' },
-      { time: '12:44:01.085', tag: 'GEO', tagType: 'warn', msg: 'IP resolved: Bucharest, RO (Datacenter VPN detected)' },
-      { time: '12:44:01.104', tag: 'GRAPH', tagType: 'block', msg: 'Cluster match: Card hash linked to 3 prior chargebacks' },
-      { time: '12:44:01.122', tag: 'VELOCITY', tagType: 'warn', msg: 'High velocity: 4 orders in 45s across synthetic emails' },
-      { time: '12:44:01.138', tag: 'ANOMALY', tagType: 'block', msg: 'Risk Confidence: 94.2% · Flagged for review' },
-    ],
-  },
-  {
-    id: 'understand',
-    num: '03',
-    tabLabel: '03. AI Reason & Explain',
-    kicker: 'STAGE 03 // EXPLAINABLE AI',
-    title: 'Plain-language reasons instead of mysterious black-box scores',
-    desc: 'Zeno evaluates multidimensional risk signals and converts raw probabilities into clear, human-readable bullet points so merchants immediately understand what is happening.',
-    features: [
-      {
-        title: 'Explainable Evidence Cards',
-        desc: 'Know in seconds whether an address mismatch is a benign gift or stolen card.',
-      },
-      {
-        title: 'Transparent Confidence Vectors',
-        desc: 'Scoring breakdown shows account age, velocity weight, and reputation.',
-      },
-      {
-        title: 'Context-Aware Action Guides',
-        desc: 'Specific recommendations tell you whether to hold, ask for ID, or ship safely.',
-      },
-    ],
-    ctaText: 'Explore Reason Engine',
-    ctaHref: '#features',
-    views: [
-      {
-        label: 'risk-evaluation.json',
-        filename: 'risk-evaluation.json',
+        label: 'Blocker Classification',
+        filename: 'blocker-detection.json',
         lang: 'json',
         code: `{
-  "order_id": "#1048",
-  "decision": "REVIEW",
-  "confidence_score": 0.942,
-  "plain_reasons": [
-    "New customer — first order placed on this account ($1,249.00)",
-    "Shipping address is 4,200 km from billing credit card origin",
-    "Device fingerprint linked to coordinated reshipping drop address"
+  "refill_id": "RX-88210",
+  "blockers_detected": [
+    {
+      "type": "NO_REFILLS_REMAINING",
+      "source": "pharmacy_message",
+      "confidence": 0.98,
+      "requires_action_from": "PROVIDER"
+    },
+    {
+      "type": "PA_REQUIRED",
+      "source": "insurance_status",
+      "confidence": 0.95,
+      "requires_action_from": "PRACTICE_STAFF"
+    }
   ],
-  "recommended_action": "HOLD_FULFILLMENT_REQUEST_ID",
-  "evaluated_at": "2026-09-05T12:44:01.162Z"
+  "detected_at": "2026-09-27T09:14:03Z",
+  "sla_deadline": "2026-09-29T09:14:03Z"
 }`,
       },
       {
-        label: 'zeno explain',
-        filename: 'terminal: explain',
-        lang: 'bash',
-        code: `$ zeno explain --order=1048
---------------------------------------------------------------
-ORDER #1048 | CUSTOMER: Sarah K. (Unknown) | AMOUNT: $1,249.00
---------------------------------------------------------------
-DECISION: REVIEW REQUIRED (Confidence: 94%)
+        label: 'Blocker Types',
+        filename: 'blocker-types.ts',
+        lang: 'typescript',
+        code: `// Supported blocker classifications
+type BlockerType =
+  | 'NO_REFILLS_REMAINING'
+  | 'PROVIDER_REVIEW_REQUIRED'
+  | 'PATIENT_VISIT_REQUIRED'
+  | 'MISSING_INFORMATION'
+  | 'PA_REQUIRED'
+  | 'CLAIM_DENIED'
+  | 'PRODUCT_UNAVAILABLE'
+  | 'ADMINISTRATIVE_HOLD';
 
-EVIDENCE SUMMARY:
-  1. [FIRST ORDER]    New account with unusually high cart value.
-  2. [GEO MISMATCH]   Card issued in US, shipping to Romania.
-  3. [DEVICE MATCH]   Device fingerprint flagged in chargeback cluster.
-
-RECOMMENDATION: Do not ship yet. Verify billing identity.`,
-      },
-      {
-        label: 'merchant-alert.md',
-        filename: 'merchant-alert.md',
-        lang: 'markdown',
-        code: `### Zeno Risk Brief: Order #1048
-- **Order Total**: $1,249.00 (Median store cart: $118.00)
-- **Customer Email**: j.doe@unknown-mail.org (New buyer)
-- **Primary Flag**: Shipping address doesn't match cardholder
-- **Zeno Advice**: Hold fulfillment before dispatch.`,
+// AI interprets. Rules control. Humans decide.`,
       },
     ],
     simLogs: [
-      { time: '12:44:01.150', tag: 'REASON', tagType: 'info', msg: 'Synthesizing explainable decision vectors...' },
-      { time: '12:44:01.166', tag: 'SIGNAL', tagType: 'warn', msg: 'Fact 1: Account age 0 days, order value 10x store median' },
-      { time: '12:44:01.182', tag: 'SIGNAL', tagType: 'block', msg: 'Fact 2: Card country US != Shipping country RO (4,200 km)' },
-      { time: '12:44:01.198', tag: 'SIGNAL', tagType: 'block', msg: 'Fact 3: Device fingerprint matches known reshipping drop' },
-      { time: '12:44:01.214', tag: 'DECISION', tagType: 'warn', msg: 'Verdict: REVIEW (Plain explanation generated)' },
+      { time: '09:14:00.012', tag: 'INGEST', tagType: 'info', msg: 'Refill request received: RX-88210 · Lisinopril 10mg · PAT-4421' },
+      { time: '09:14:00.085', tag: 'AI', tagType: 'info', msg: 'Parsing pharmacy message: "No refills remaining on file..."' },
+      { time: '09:14:00.142', tag: 'BLOCKER', tagType: 'warn', msg: 'Classified: NO_REFILLS_REMAINING (confidence 98%)' },
+      { time: '09:14:00.198', tag: 'BLOCKER', tagType: 'warn', msg: 'Classified: PA_REQUIRED from insurance status (confidence 95%)' },
+      { time: '09:14:00.214', tag: 'SLA', tagType: 'ok', msg: 'SLA timer started · deadline: 2026-09-29T09:14:03Z' },
     ],
   },
   {
-    id: 'decide',
-    num: '04',
-    tabLabel: '04. Automate & Protect',
-    kicker: 'STAGE 04 // AUTOMATED DEFENSE',
-    title: 'Instant protection with merchant in total command',
-    desc: 'Configure automated holds for high-confidence threats while greenlighting trusted buyers with zero friction. You always maintain full control to approve, cancel, or refund in one click.',
+    id: 'route',
+    num: '02',
+    tabLabel: '02. Owner Identified',
+    kicker: 'STAGE 02 // WORK ROUTING',
+    title: 'The right person gets the right task automatically',
+    desc: 'Zeno applies business rules to determine who should act on each blocker. Tasks are routed to pharmacy staff, practice staff, or the provider without manual triage.',
     features: [
       {
-        title: 'Automated Fulfillment Gate',
-        desc: 'Hold high-risk orders automatically in Shopify/WooCommerce in < 50ms.',
+        title: 'Role-Based Task Assignment',
+        desc: 'Each blocker type maps to a responsible role: pharmacy, practice staff, or provider.',
       },
       {
-        title: '1-Click Merchant Resolution',
-        desc: 'Approve safe orders or cancel and restock fraudulent items with one click.',
+        title: 'Parallel Resolution',
+        desc: 'Independent blockers are worked simultaneously — PA and provider review don\'t have to wait for each other.',
       },
       {
-        title: 'Closed-Loop Model Feedback',
-        desc: 'Every decision you make refines Zeno’s cluster models for your store.',
+        title: 'Provider Context Packets',
+        desc: 'Providers receive a concise summary: why the refill reached them, prescription history, and the exact decision required.',
       },
     ],
-    ctaText: 'Protect Your Store',
-    ctaHref: '/register',
+    ctaText: 'See How Routing Works',
+    ctaHref: '#features',
     views: [
       {
-        label: 'action-dispatcher.ts',
-        filename: 'action-dispatcher.ts',
+        label: 'Task Routing',
+        filename: 'task-routing.json',
+        lang: 'json',
+        code: `{
+  "refill_id": "RX-88210",
+  "tasks_created": [
+    {
+      "task_id": "TSK-1001",
+      "blocker": "NO_REFILLS_REMAINING",
+      "assigned_to": "PROVIDER",
+      "assigned_user": "dr.patel@practice.com",
+      "priority": "HIGH",
+      "context_packet": {
+        "medication": "Lisinopril 10mg",
+        "last_fill": "2026-06-28",
+        "patient_summary": "Hypertension, well-controlled. No adverse events.",
+        "decision_required": "APPROVE_REFILL | REQUEST_VISIT | DENY"
+      }
+    },
+    {
+      "task_id": "TSK-1002",
+      "blocker": "PA_REQUIRED",
+      "assigned_to": "PRACTICE_STAFF",
+      "priority": "NORMAL",
+      "parallel": true
+    }
+  ]
+}`,
+      },
+      {
+        label: 'Routing Rules',
+        filename: 'routing-rules.ts',
         lang: 'typescript',
-        code: `// Automated policy execution on rendered decision
-zeno.on('decision.rendered', async ({ orderId, decision, reasons }) => {
-  if (decision === 'SAFE') {
-    await shopify.fulfillment.release(orderId);
-  } else if (decision === 'REVIEW') {
-    await shopify.orders.addTags(orderId, ['zeno-hold', 'needs-review']);
-    await notifyTeam({ orderId, reasons, priority: 'HIGH' });
-  } else if (decision === 'BLOCKED') {
-    await shopify.orders.cancel(orderId, { reason: 'fraud' });
-  }
-});`,
+        code: `const ROUTING_RULES: Record<BlockerType, AssignedRole> = {
+  NO_REFILLS_REMAINING:     'PROVIDER',
+  PROVIDER_REVIEW_REQUIRED: 'PROVIDER',
+  PATIENT_VISIT_REQUIRED:   'PROVIDER',
+  MISSING_INFORMATION:      'PRACTICE_STAFF',
+  PA_REQUIRED:              'PRACTICE_STAFF',
+  CLAIM_DENIED:             'PRACTICE_STAFF',
+  PRODUCT_UNAVAILABLE:      'PHARMACY',
+  ADMINISTRATIVE_HOLD:      'PRACTICE_STAFF',
+};
+
+// Clinical decisions always reach a licensed provider.
+// Administrative work is resolved before it reaches them.`,
       },
       {
-        label: 'zeno-policy.yml',
-        filename: 'zeno-policy.yml',
-        lang: 'yaml',
-        code: `version: "2.0"
-policies:
-  auto_hold:
-    enabled: true
-    min_confidence: 0.85
-    action: "HOLD_FULFILLMENT"
-    tags: ["zeno-hold", "review-required"]
-  notifications:
-    slack_channel: "#store-fraud-alerts"
-    sms_on_critical: true
-  merchant_override:
-    allow_instant_approve: true
-    retrain_on_override: true`,
-      },
-      {
-        label: 'audit.log',
-        filename: 'audit.log',
-        lang: 'bash',
-        code: `[12:44:01.220] POLICY_TRIGGER: Rule 'auto_hold_high_risk' matched
-[12:44:01.238] SHOPIFY_API: Tag 'zeno-hold' added to Order #1048 (18ms)
-[12:44:01.254] SLACK_ALERT: Push sent to #store-fraud-alerts
-[12:44:01.272] INVENTORY_SAVED: $1,249 protected from chargeback
-[12:44:01.285] AUDIT_STATE: Order paused awaiting merchant review`,
+        label: 'Context Packet',
+        filename: 'provider-context.md',
+        lang: 'markdown',
+        code: `### Refill Decision Required — RX-88210
+**Patient**: Jane D. (DOB: 1965-03-14)
+**Medication**: Lisinopril 10mg — prescribed for hypertension
+**Last Fill**: 2026-06-28 · 90-day supply
+**Reason reaching you**: No refills remaining on prescription
+
+**Clinical context**:
+- Last visit: 2026-02-10 · BP well-controlled
+- No adverse events or contraindications on file
+- Insurance coverage: active (PA pending for renewal)
+
+**Action required**: Approve refill | Request visit | Deny`,
       },
     ],
     simLogs: [
-      { time: '12:44:01.218', tag: 'POLICY', tagType: 'info', msg: 'Evaluation score 0.94 triggers policy: auto_hold' },
-      { time: '12:44:01.234', tag: 'API', tagType: 'ok', msg: 'Shopify fulfillment hold applied in 16ms' },
-      { time: '12:44:01.252', tag: 'ALERT', tagType: 'warn', msg: 'Instant alert pushed to Slack & dashboard' },
-      { time: '12:44:01.268', tag: 'SAVED', tagType: 'ok', msg: 'Inventory retained · $1,249 chargeback prevented' },
-      { time: '12:44:01.280', tag: 'ACTION', tagType: 'info', msg: 'Merchant action available: [APPROVE] or [BLOCK]' },
+      { time: '09:14:00.220', tag: 'ROUTE', tagType: 'info', msg: 'Applying routing rules to 2 detected blockers...' },
+      { time: '09:14:00.238', tag: 'TASK', tagType: 'ok', msg: 'TSK-1001 created → PROVIDER: dr.patel@practice.com (HIGH priority)' },
+      { time: '09:14:00.252', tag: 'TASK', tagType: 'ok', msg: 'TSK-1002 created → PRACTICE_STAFF: PA submission (NORMAL priority, parallel)' },
+      { time: '09:14:00.268', tag: 'NOTIFY', tagType: 'info', msg: 'Provider context packet generated and delivered' },
+      { time: '09:14:00.280', tag: 'PARALLEL', tagType: 'ok', msg: 'Both tasks running simultaneously — no sequential dependency' },
+    ],
+  },
+  {
+    id: 'resolve',
+    num: '03',
+    tabLabel: '03. Action & Verify',
+    kicker: 'STAGE 03 // RESOLUTION & VERIFICATION',
+    title: 'Action is taken. Zeno verifies the blocker is actually gone.',
+    desc: 'When a provider approves the refill or staff resolves the PA, Zeno doesn\'t just mark it done — it verifies the resolution against the original blocker criteria before allowing the workflow to continue.',
+    features: [
+      {
+        title: 'Human-in-the-Loop Safety',
+        desc: 'Clinical decisions — approve, deny, request visit — remain with the authorized provider. Zeno never overrides clinical judgment.',
+      },
+      {
+        title: 'Resolution Verification',
+        desc: 'Zeno checks that the resolution actually addressed the blocker before resuming the refill workflow.',
+      },
+      {
+        title: 'Escalation on Timeout',
+        desc: 'If a task isn\'t completed within SLA, Zeno surfaces the case and routes it to the appropriate supervisor.',
+      },
+    ],
+    ctaText: 'Request a Demo',
+    ctaHref: '/register',
+    views: [
+      {
+        label: 'Provider Decision',
+        filename: 'provider-decision.json',
+        lang: 'json',
+        code: `{
+  "task_id": "TSK-1001",
+  "refill_id": "RX-88210",
+  "decision": "APPROVE_REFILL",
+  "decided_by": "dr.patel@practice.com",
+  "decided_at": "2026-09-27T11:32:00Z",
+  "notes": "Patient stable, renew for 90 days. Schedule follow-up in 6 months.",
+  "new_refills_authorized": 3,
+  "follow_up_required": true,
+  "follow_up_window_days": 180
+}`,
+      },
+      {
+        label: 'Verification Check',
+        filename: 'verification.json',
+        lang: 'json',
+        code: `{
+  "refill_id": "RX-88210",
+  "blocker": "NO_REFILLS_REMAINING",
+  "verification": {
+    "status": "RESOLVED",
+    "evidence": "Provider authorized 3 new refills at 2026-09-27T11:32:00Z",
+    "verified_at": "2026-09-27T11:32:04Z"
+  },
+  "remaining_blockers": [
+    {
+      "type": "PA_REQUIRED",
+      "status": "IN_PROGRESS",
+      "assigned_to": "PRACTICE_STAFF",
+      "est_completion": "2026-09-27T14:00:00Z"
+    }
+  ],
+  "workflow_can_resume": false,
+  "reason": "Waiting for PA resolution before dispensing"
+}`,
+      },
+      {
+        label: 'Audit Record',
+        filename: 'audit-record.ts',
+        lang: 'typescript',
+        code: `// Every significant action is recorded with WHO / WHAT / WHEN / WHY
+interface AuditEntry {
+  timestamp: string;
+  actor: string;        // WHO
+  action: string;       // WHAT
+  reason: string;       // WHY
+  refill_id: string;
+  task_id?: string;
+}
+
+// Example entry
+const entry: AuditEntry = {
+  timestamp: "2026-09-27T11:32:00Z",
+  actor: "dr.patel@practice.com",
+  action: "APPROVE_REFILL",
+  reason: "Patient stable, no contraindications",
+  refill_id: "RX-88210",
+  task_id: "TSK-1001",
+};`,
+      },
+    ],
+    simLogs: [
+      { time: '11:32:00.010', tag: 'ACTION', tagType: 'ok', msg: 'Provider dr.patel approved refill RX-88210 (APPROVE_REFILL)' },
+      { time: '11:32:00.040', tag: 'VERIFY', tagType: 'info', msg: 'Verifying resolution satisfies NO_REFILLS_REMAINING blocker...' },
+      { time: '11:32:00.082', tag: 'VERIFY', tagType: 'ok', msg: 'Blocker resolved: 3 new refills authorized · evidence recorded' },
+      { time: '11:32:00.104', tag: 'AUDIT', tagType: 'ok', msg: 'Audit entry written: WHO=dr.patel WHAT=APPROVE WHEN=11:32 WHY=stable' },
+      { time: '11:32:00.118', tag: 'WAIT', tagType: 'warn', msg: 'PA_REQUIRED still in progress — workflow hold until TSK-1002 resolves' },
+    ],
+  },
+  {
+    id: 'resume',
+    num: '04',
+    tabLabel: '04. Workflow Resumes',
+    kicker: 'STAGE 04 // AUTOMATIC RESUMPTION',
+    title: 'All blockers cleared. Zeno resumes the refill workflow.',
+    desc: 'Once every blocker is verified as resolved, Zeno automatically resumes the refill workflow — notifying the pharmacy that the prescription is ready to dispense, with no manual hand-off required.',
+    features: [
+      {
+        title: 'Automatic Workflow Resumption',
+        desc: 'No staff member needs to manually restart the process. Zeno detects the clear state and triggers the next step.',
+      },
+      {
+        title: 'Pharmacy Notification',
+        desc: 'The pharmacy receives a structured notification with all relevant authorization details ready for dispensing.',
+      },
+      {
+        title: 'Patient Notification',
+        desc: 'The patient can be notified automatically that their prescription is ready — closing the loop without phone calls.',
+      },
+    ],
+    ctaText: 'See the Full Platform',
+    ctaHref: '/register',
+    views: [
+      {
+        label: 'Resumption Event',
+        filename: 'workflow-resume.json',
+        lang: 'json',
+        code: `{
+  "refill_id": "RX-88210",
+  "event": "WORKFLOW_RESUMED",
+  "triggered_at": "2026-09-27T14:08:00Z",
+  "all_blockers_cleared": true,
+  "blockers_resolved": [
+    { "type": "NO_REFILLS_REMAINING", "resolved_at": "2026-09-27T11:32:00Z" },
+    { "type": "PA_REQUIRED",          "resolved_at": "2026-09-27T14:07:55Z" }
+  ],
+  "next_action": "NOTIFY_PHARMACY",
+  "pharmacy_id": "PHM-CENTRAL",
+  "authorization_summary": {
+    "new_refills": 3,
+    "pa_approval_number": "PA-2026-887142",
+    "valid_through": "2027-09-27"
+  }
+}`,
+      },
+      {
+        label: 'Pharmacy Notice',
+        filename: 'pharmacy-notification.md',
+        lang: 'markdown',
+        code: `### Prescription Ready to Dispense — RX-88210
+
+**Patient**: Jane D.
+**Medication**: Lisinopril 10mg · 90-day supply
+**Authorized by**: Dr. R. Patel (2026-09-27 11:32)
+**New refills on file**: 3
+
+**Prior Authorization**:
+- PA Approval #: PA-2026-887142
+- Valid through: 2027-09-27
+- Insurance: BlueCross BlueShield (Plan ID: BCBS-TX-44)
+
+All blockers resolved. Prescription cleared for dispensing.`,
+      },
+      {
+        label: 'Timeline',
+        filename: 'refill-timeline.json',
+        lang: 'json',
+        code: `[
+  { "time": "09:14:00", "event": "Refill requested",             "status": "done" },
+  { "time": "09:14:03", "event": "Blocker detected (×2)",        "status": "done" },
+  { "time": "09:14:03", "event": "Provider task routed",         "status": "done" },
+  { "time": "09:14:03", "event": "PA task routed (parallel)",    "status": "done" },
+  { "time": "11:32:00", "event": "Provider approved refill",     "status": "done" },
+  { "time": "14:07:55", "event": "PA approved by insurer",       "status": "done" },
+  { "time": "14:08:00", "event": "All blockers cleared",         "status": "done" },
+  { "time": "14:08:01", "event": "Pharmacy notified",            "status": "done" },
+  { "time": "14:09:00", "event": "Patient notified",             "status": "pending" }
+]`,
+      },
+    ],
+    simLogs: [
+      { time: '14:07:55.010', tag: 'PA', tagType: 'ok', msg: 'PA_REQUIRED resolved: approval #PA-2026-887142 received' },
+      { time: '14:07:55.040', tag: 'CHECK', tagType: 'info', msg: 'All blocker conditions verified — zero open blockers remain' },
+      { time: '14:08:00.010', tag: 'RESUME', tagType: 'ok', msg: 'Workflow resumed automatically for RX-88210' },
+      { time: '14:08:00.055', tag: 'NOTIFY', tagType: 'ok', msg: 'Pharmacy PHM-CENTRAL notified with full authorization summary' },
+      { time: '14:08:00.082', tag: 'COMPLETE', tagType: 'ok', msg: 'Refill RX-88210 → DISPENSED ✓ · Total resolution time: 4h 54m' },
     ],
   },
 ];
-
 function highlightSyntax(line: string) {
   if (line.trim().startsWith('#') || line.trim().startsWith('//')) {
     return <span className="lp-cmt">{line}</span>;
@@ -2999,32 +3058,23 @@ function highlightSyntax(line: string) {
     const spaceIdx = line.indexOf(' ');
     const cmd = spaceIdx !== -1 ? line.slice(0, spaceIdx + 1) : line;
     const rest = spaceIdx !== -1 ? line.slice(spaceIdx + 1) : '';
-    return (
-      <>
-        <span className="lp-cmd">{cmd}</span>
-        <span>{rest}</span>
-      </>
-    );
+    return (<><span className="lp-cmd">{cmd}</span><span>{rest}</span></>);
   }
-  if (line.includes('✓ 200 OK') || line.includes('RESULT:') || line.includes('DECISION:')) {
+  if (line.includes('✓') || line.includes('RESULT:') || line.includes('DECISION:')) {
     return <span className="lp-str" style={{ fontWeight: 600 }}>{line}</span>;
   }
-  const parts = line.split(/(\b(?:import|from|export|const|async|await|return|if|else|version|policies|auto_hold|enabled|action|tags|true|false)\b|"[^"]*"|'[^']*'|\b\d+\.?\d*\b)/g);
+  const parts = line.split(/(\b(?:import|from|export|const|async|await|return|if|else|version|type|interface)\b|"[^"]*"|'[^']*'|\b\d+\.?\d*\b)/g);
   return (
     <>
       {parts.map((part, i) => {
-        if (/^(?:import|from|export|const|async|await|return|if|else|version|policies|auto_hold|enabled|action|tags)$/.test(part)) {
+        if (/^(?:import|from|export|const|async|await|return|if|else|version|type|interface)$/.test(part))
           return <span key={i} className="lp-kw">{part}</span>;
-        }
-        if (/^(?:true|false)$/.test(part)) {
+        if (/^(?:true|false)$/.test(part))
           return <span key={i} className="lp-num">{part}</span>;
-        }
-        if (/^"[^"]*"$|^'[^']*'$/.test(part)) {
+        if (/^"[^"]*"$|^'[^']*'$/.test(part))
           return <span key={i} className="lp-str">{part}</span>;
-        }
-        if (/^\d+\.?\d*$/.test(part)) {
+        if (/^\d+\.?\d*$/.test(part))
           return <span key={i} className="lp-num">{part}</span>;
-        }
         return <span key={i}>{part}</span>;
       })}
     </>
@@ -3035,22 +3085,22 @@ const PRESENTER_SCRIPTS = [
   {
     step: 0,
     speaker: "Presenter",
-    text: "Let's see what happens when a customer places an order. Here's incoming Order #1048 for $1,249.00 on your storefront. Click Inspect to see what Zeno does.",
+    text: "A refill request comes in for Lisinopril 10mg. Zeno reads the pharmacy message and insurance status and immediately classifies the blockers — before any human has to triage.",
   },
   {
     step: 1,
     speaker: "Presenter",
-    text: "In 18 milliseconds, Zeno streams and inspects 40+ telemetry signals — spotting a Bucharest datacenter proxy and velocity bursts across synthetic emails.",
+    text: "Two blockers are detected: NO_REFILLS_REMAINING and PA_REQUIRED. Zeno creates tasks for the right owners in parallel — the provider gets a context packet, practice staff gets the PA task.",
   },
   {
     step: 2,
     speaker: "Presenter",
-    text: "Instead of an obscure score like '87', Zeno's AI translates everything into 3 plain-English reasons with clear recommendations for your team.",
+    text: "The provider reviews the context packet and approves the refill. Zeno verifies the approval actually resolves the blocker, records the audit entry, and waits for the PA to clear.",
   },
   {
     step: 3,
     speaker: "Presenter",
-    text: "Total control: You can hold fulfillment or let it ship. Notice how Zeno instantly tags Shopify and saves $1,249 in chargebacks.",
+    text: "The PA is approved. All blockers are now verified as resolved. Zeno automatically resumes the workflow and notifies the pharmacy — no one had to manually hand anything off.",
   },
 ];
 
@@ -3062,32 +3112,26 @@ function DockerHowItWorks() {
   const [simulating, setSimulating] = useState(false);
   const [simStep, setSimStep] = useState<number | null>(null);
   const [demoDecision, setDemoDecision] = useState<'idle' | 'holding' | 'held' | 'approved'>('idle');
-  const [autoKey, setAutoKey] = useState(0); // incremented each auto-advance to restart CSS animation
+  const [autoKey, setAutoKey] = useState(0);
 
-  // Auto-play: refs for the section container, running timer, and user-interaction tracking
   const containerRef     = useRef<HTMLDivElement>(null);
   const autoTimerRef     = useRef<ReturnType<typeof setInterval> | null>(null);
   const isVisibleRef     = useRef(false);
   const userInteractRef  = useRef(false);
   const resumeTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const activeIndexRef   = useRef(0); // mirror of activeStepIndex for use inside interval
+  const activeIndexRef   = useRef(0);
 
-  // Keep the ref in sync with state so the interval always reads the latest value
   activeIndexRef.current = activeStepIndex;
 
   const step = WORKFLOW_STEPS[activeStepIndex];
   const view = step.views[activeViewIndex] || step.views[0];
 
   const stopAutoPlay = useCallback(() => {
-    if (autoTimerRef.current) {
-      clearInterval(autoTimerRef.current);
-      autoTimerRef.current = null;
-    }
+    if (autoTimerRef.current) { clearInterval(autoTimerRef.current); autoTimerRef.current = null; }
   }, []);
 
   const startAutoPlay = useCallback(() => {
     stopAutoPlay();
-    // Advance one step every 4 seconds; loop back to 0 after the last step
     autoTimerRef.current = setInterval(() => {
       if (!isVisibleRef.current || userInteractRef.current) return;
       setActiveStepIndex(prev => {
@@ -3103,36 +3147,24 @@ function DockerHowItWorks() {
     }, 4000);
   }, [stopAutoPlay]);
 
-  // Pause auto-play on user interaction; resume after 8 s of inactivity
   const onUserInteract = useCallback(() => {
     userInteractRef.current = true;
     if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
-    resumeTimerRef.current = setTimeout(() => {
-      userInteractRef.current = false;
-    }, 8000);
+    resumeTimerRef.current = setTimeout(() => { userInteractRef.current = false; }, 8000);
   }, []);
 
-  // IntersectionObserver: start auto-play when the section is visible, stop when not
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const obs = new IntersectionObserver(
       ([entry]) => {
         isVisibleRef.current = entry.isIntersecting;
-        if (entry.isIntersecting) {
-          startAutoPlay();
-        } else {
-          stopAutoPlay();
-        }
+        if (entry.isIntersecting) { startAutoPlay(); } else { stopAutoPlay(); }
       },
-      { threshold: 0.25 } // at least 25% visible before starting
+      { threshold: 0.25 }
     );
     obs.observe(el);
-    return () => {
-      obs.disconnect();
-      stopAutoPlay();
-      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
-    };
+    return () => { obs.disconnect(); stopAutoPlay(); if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current); };
   }, [startAutoPlay, stopAutoPlay]);
 
   const handleTabChange = useCallback((index: number) => {
@@ -3141,30 +3173,19 @@ function DockerHowItWorks() {
     setActiveViewIndex(0);
     setSimulating(false);
     setSimStep(null);
-    if (index === 0) {
-      setDemoDecision('idle');
-    }
+    if (index === 0) setDemoDecision('idle');
   }, [onUserInteract]);
 
   const handleCopy = () => {
     onUserInteract();
-    try {
-      navigator.clipboard.writeText(view.code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // fallback
-    }
+    try { navigator.clipboard.writeText(view.code); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* fallback */ }
   };
 
   const handleRunSimulation = () => {
     onUserInteract();
     if (simulating) return;
     setViewMode('code');
-    if (simStep !== null) {
-      setSimStep(null);
-      return;
-    }
+    if (simStep !== null) { setSimStep(null); return; }
     setSimulating(true);
     setSimStep(1);
     const total = step.simLogs.length;
@@ -3172,10 +3193,7 @@ function DockerHowItWorks() {
     const interval = setInterval(() => {
       curr += 1;
       setSimStep(curr);
-      if (curr >= total) {
-        clearInterval(interval);
-        setSimulating(false);
-      }
+      if (curr >= total) { clearInterval(interval); setSimulating(false); }
     }, 280);
   };
 
@@ -3183,6 +3201,7 @@ function DockerHowItWorks() {
 
   return (
     <div className="lp-hiw-container" ref={containerRef}>
+
       {/* Interactive Presenter Bar */}
       <div className="lp-presenter-bar lp-reveal">
         <div className="lp-presenter-info">
@@ -3196,72 +3215,43 @@ function DockerHowItWorks() {
           </div>
         </div>
         <div className="lp-presenter-controls">
-          <button
-            className="lp-pres-btn lp-pres-btn-nav"
-            disabled={activeStepIndex === 0}
-            onClick={() => handleTabChange(Math.max(0, activeStepIndex - 1))}
-            title="Previous step"
-            aria-label="Previous step"
-          >
+          <button className="lp-pres-btn lp-pres-btn-nav" disabled={activeStepIndex === 0}
+            onClick={() => handleTabChange(Math.max(0, activeStepIndex - 1))} title="Previous step" aria-label="Previous step">
             <ChevronLeft size={14} />
           </button>
-
           <div className="lp-pres-progress" role="tablist" aria-label="Walkthrough progress">
             {WORKFLOW_STEPS.map((_, i) => (
-              <span
-                key={i}
-                className={`lp-pres-bar ${i === activeStepIndex ? 'active' : ''}`}
-                onClick={() => handleTabChange(i)}
-                style={{ cursor: 'pointer' }}
-                title={`Jump to Step 0${i + 1}`}
-              />
+              <span key={i} className={`lp-pres-bar ${i === activeStepIndex ? 'active' : ''}`}
+                onClick={() => handleTabChange(i)} style={{ cursor: 'pointer' }} title={`Jump to Step 0${i + 1}`} />
             ))}
           </div>
-
-          <button
-            className="lp-pres-btn lp-pres-btn-nav"
-            disabled={activeStepIndex === WORKFLOW_STEPS.length - 1}
-            onClick={() => handleTabChange(Math.min(WORKFLOW_STEPS.length - 1, activeStepIndex + 1))}
-            title="Next step"
-            aria-label="Next step"
-          >
+          <button className="lp-pres-btn lp-pres-btn-nav" disabled={activeStepIndex === WORKFLOW_STEPS.length - 1}
+            onClick={() => handleTabChange(Math.min(WORKFLOW_STEPS.length - 1, activeStepIndex + 1))} title="Next step" aria-label="Next step">
             <ChevronRight size={14} />
           </button>
-
-          <button
-            className="lp-pres-btn lp-pres-btn-nav"
-            onClick={() => {
-              handleTabChange(0);
-              setDemoDecision('idle');
-            }}
-            title="Restart walkthrough demo"
-            aria-label="Restart demo"
-          >
+          <button className="lp-pres-btn lp-pres-btn-nav"
+            onClick={() => { handleTabChange(0); setDemoDecision('idle'); }} title="Restart walkthrough" aria-label="Restart demo">
             <RotateCcw size={13} />
           </button>
         </div>
       </div>
 
-      {/* Auto-play progress bar — shows time remaining until next step */}
+      {/* Auto-play progress bar */}
       {!userInteractRef.current && (
         <div className="lp-auto-progress">
           <div className="lp-auto-progress-bar" key={autoKey} />
         </div>
       )}
 
-      {/* Docker-Style Segmented Navigation Tabs */}
+      {/* Segmented Navigation Tabs */}
       <div className="lp-docker-tabs-wrap lp-reveal">
         <div className="lp-docker-tabs" role="tablist" aria-label="Zeno workflow stages">
           {WORKFLOW_STEPS.map((s, idx) => {
             const isActive = idx === activeStepIndex;
             return (
-              <button
-                key={s.id}
-                role="tab"
-                aria-selected={isActive}
+              <button key={s.id} role="tab" aria-selected={isActive}
                 className={`lp-dtab-btn ${isActive ? 'active' : ''}`}
-                onClick={() => handleTabChange(idx)}
-              >
+                onClick={() => handleTabChange(idx)}>
                 <span className="lp-dtab-icon" aria-hidden="true">
                   {idx === 0 && <Layers size={13} />}
                   {idx === 1 && <Terminal size={13} />}
@@ -3277,7 +3267,8 @@ function DockerHowItWorks() {
 
       {/* 2-Column Showcase */}
       <div className="lp-docker-stage lp-reveal lp-reveal-d1">
-        {/* Left Column: Story & Key Specs */}
+
+        {/* Left Column */}
         <div className="lp-dpanel-left">
           <div>
             <div className="lp-dstep-kicker">
@@ -3286,13 +3277,10 @@ function DockerHowItWorks() {
             </div>
             <h3 className="lp-dstep-title">{step.title}</h3>
             <p className="lp-dstep-desc">{step.desc}</p>
-
             <div className="lp-dfeature-list">
               {step.features.map((feat, i) => (
                 <div className="lp-dfeature-item" key={i}>
-                  <div className="lp-dfeature-icon" aria-hidden="true">
-                    <Check size={13} />
-                  </div>
+                  <div className="lp-dfeature-icon" aria-hidden="true"><Check size={13} /></div>
                   <div className="lp-dfeature-body">
                     <h4>{feat.title}</h4>
                     <p>{feat.desc}</p>
@@ -3301,47 +3289,32 @@ function DockerHowItWorks() {
               ))}
             </div>
           </div>
-
           <div className="lp-dpanel-footer">
             <Link to={step.ctaHref} className="lp-dstep-cta">
               {step.ctaText} <ArrowRight size={14} />
             </Link>
-
             <div className="lp-dstep-nav">
-              <button
-                className="lp-dstep-btn"
-                disabled={activeStepIndex === 0}
-                onClick={() => handleTabChange(Math.max(0, activeStepIndex - 1))}
-                aria-label="Previous stage"
-              >
+              <button className="lp-dstep-btn" disabled={activeStepIndex === 0}
+                onClick={() => handleTabChange(Math.max(0, activeStepIndex - 1))} aria-label="Previous stage">
                 <ChevronLeft size={16} />
               </button>
-
               <div className="lp-dstep-dots">
                 {WORKFLOW_STEPS.map((_, i) => (
-                  <span
-                    key={i}
-                    className={`lp-dstep-dot ${i === activeStepIndex ? 'active' : ''}`}
-                    onClick={() => handleTabChange(i)}
-                  />
+                  <span key={i} className={`lp-dstep-dot ${i === activeStepIndex ? 'active' : ''}`}
+                    onClick={() => handleTabChange(i)} />
                 ))}
               </div>
-
-              <button
-                className="lp-dstep-btn"
-                disabled={activeStepIndex === WORKFLOW_STEPS.length - 1}
-                onClick={() => handleTabChange(Math.min(WORKFLOW_STEPS.length - 1, activeStepIndex + 1))}
-                aria-label="Next stage"
-              >
+              <button className="lp-dstep-btn" disabled={activeStepIndex === WORKFLOW_STEPS.length - 1}
+                onClick={() => handleTabChange(Math.min(WORKFLOW_STEPS.length - 1, activeStepIndex + 1))} aria-label="Next stage">
                 <ChevronRight size={16} />
               </button>
             </div>
           </div>
         </div>
 
-        {/* Right Column: Docker-style Terminal Sandbox */}
+        {/* Right Column: Terminal */}
         <div className="lp-dpanel-right">
-          {/* Terminal Window Header Bar */}
+          {/* Terminal Top Bar */}
           <div className="lp-dterm-topbar">
             <div className="lp-dterm-left">
               <div className="lp-dterm-dots" aria-hidden="true">
@@ -3349,84 +3322,36 @@ function DockerHowItWorks() {
                 <span className="lp-dterm-dot yellow" />
                 <span className="lp-dterm-dot green" />
               </div>
-
-              {/* Sub-view switcher tabs */}
               <div className="lp-dterm-views">
-                <button
-                  className={`lp-dterm-view-btn ${viewMode === 'demo' && simStep === null ? 'active' : ''}`}
-                  onClick={() => {
-                    onUserInteract();
-                    setViewMode('demo');
-                    setSimStep(null);
-                  }}
-                  title="Interactive Storefront Order Demo"
-                >
+                <button className={`lp-dterm-view-btn ${viewMode === 'demo' && simStep === null ? 'active' : ''}`}
+                  onClick={() => { onUserInteract(); setViewMode('demo'); setSimStep(null); }}
+                  title="Interactive Demo">
                   <Sparkles size={12} color="#818cf8" />
                   Interactive Demo
                 </button>
                 {step.views.map((v, idx) => (
-                  <button
-                    key={v.filename}
+                  <button key={v.filename}
                     className={`lp-dterm-view-btn ${viewMode === 'code' && idx === activeViewIndex && simStep === null ? 'active' : ''}`}
-                    onClick={() => {
-                      onUserInteract();
-                      setViewMode('code');
-                      setActiveViewIndex(idx);
-                      setSimStep(null);
-                    }}
-                  >
+                    onClick={() => { onUserInteract(); setViewMode('code'); setActiveViewIndex(idx); setSimStep(null); }}>
                     <Code2 size={12} />
                     {v.filename}
                   </button>
                 ))}
               </div>
             </div>
-
             <div className="lp-dterm-actions">
-              <button
-                className="lp-dterm-run-btn"
-                onClick={handleRunSimulation}
-                title="Run real-time order detection simulation"
-              >
-                {simulating ? (
-                  <>
-                    <RotateCcw size={12} className="animate-spin" />
-                    Streaming...
-                  </>
-                ) : simStep !== null ? (
-                  <>
-                    <RotateCcw size={12} />
-                    View Code
-                  </>
-                ) : (
-                  <>
-                    <Play size={12} fill="currentColor" />
-                    Simulate Log
-                  </>
-                )}
+              <button className="lp-dterm-run-btn" onClick={handleRunSimulation} title="Run simulation">
+                {simulating ? (<><RotateCcw size={12} className="animate-spin" />Streaming...</>) :
+                 simStep !== null ? (<><RotateCcw size={12} />View Code</>) :
+                 (<><Play size={12} fill="currentColor" />Simulate Log</>)}
               </button>
-
-              <button
-                className="lp-dterm-copy-btn"
-                onClick={handleCopy}
-                title="Copy snippet"
-              >
-                {copied ? (
-                  <>
-                    <Check size={12} color="#4ade80" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy size={12} />
-                    Copy
-                  </>
-                )}
+              <button className="lp-dterm-copy-btn" onClick={handleCopy} title="Copy snippet">
+                {copied ? (<><Check size={12} color="#4ade80" />Copied!</>) : (<><Copy size={12} />Copy</>)}
               </button>
             </div>
           </div>
 
-          {/* Code Body / Simulated Logs / Interactive Demo */}
+          {/* Terminal Body */}
           <div className="lp-dterm-body">
             {simStep !== null ? (
               <div className="lp-sim-logs">
@@ -3446,191 +3371,172 @@ function DockerHowItWorks() {
               </div>
             ) : viewMode === 'demo' ? (
               <div className="lp-demo-interactive">
+
+                {/* Stage 01 */}
                 {activeStepIndex === 0 && (
                   <>
                     <div>
                       <div className="lp-demo-screen-header">
                         <div className="lp-demo-order-badge">
-                          <ShoppingBag size={14} color="#818cf8" />
-                          <span>STAGE 01 // INBOUND STORE ORDER</span>
+                          <Layers size={14} color="#818cf8" />
+                          <span>STAGE 01 // INBOUND REFILL REQUEST</span>
                         </div>
-                        <div className="lp-demo-order-amount">$1,249.00</div>
+                        <div className="lp-demo-order-amount">RX-88210</div>
                       </div>
-
                       <div className="lp-demo-order-box">
                         <div className="lp-demo-order-row">
-                          <span className="lp-demo-order-label">Order Number</span>
-                          <span className="lp-demo-order-val">#1048 &bull; Shopify Plus Store</span>
+                          <span className="lp-demo-order-label">Medication</span>
+                          <span className="lp-demo-order-val">Lisinopril 10mg · 90-day supply</span>
                         </div>
                         <div className="lp-demo-order-row">
-                          <span className="lp-demo-order-label">Customer Profile</span>
-                          <span className="lp-demo-order-val">Sarah K. (New Buyer &bull; s.k***@relay-mail.com)</span>
+                          <span className="lp-demo-order-label">Patient</span>
+                          <span className="lp-demo-order-val">Jane D. · DOB 1965-03-14</span>
                         </div>
                         <div className="lp-demo-order-row">
-                          <span className="lp-demo-order-label">Shipping Destination</span>
-                          <span className="lp-demo-order-val">Strada Industriei 4, Bucharest, RO</span>
+                          <span className="lp-demo-order-label">Pharmacy</span>
+                          <span className="lp-demo-order-val">Central Pharmacy (PHM-CENTRAL)</span>
                         </div>
                         <div className="lp-demo-order-row">
-                          <span className="lp-demo-order-label">Line Items</span>
-                          <span className="lp-demo-order-val">2x Arc&apos;teryx Alpha SV Jacket ($1,249.00)</span>
+                          <span className="lp-demo-order-label">Pharmacy Message</span>
+                          <span className="lp-demo-order-val">&ldquo;No refills remaining on file. Provider authorization required.&rdquo;</span>
                         </div>
                         <div className="lp-demo-order-row">
-                          <span className="lp-demo-order-label">Card Origin</span>
-                          <span className="lp-demo-order-val">Visa •••• 4242 &bull; Issued in Ohio, USA</span>
+                          <span className="lp-demo-order-label">Insurance Status</span>
+                          <span className="lp-demo-order-val">pending_pa &bull; BlueCross BlueShield</span>
                         </div>
                       </div>
                     </div>
-
                     <div>
-                      <button
-                        className="lp-demo-trigger-btn"
-                        onClick={() => handleTabChange(1)}
-                      >
-                        <Eye size={15} />
-                        <span>Inspect Order Signals with Zeno &rarr;</span>
+                      <button className="lp-demo-trigger-btn" onClick={() => handleTabChange(1)}>
+                        <Cpu size={15} />
+                        <span>Detect Blockers &rarr;</span>
                       </button>
                       <div className="lp-presenter-click-hint" onClick={() => handleTabChange(1)}>
-                        👉 Click to inspect live telemetry &amp; signals
+                        👉 Click to classify blockers automatically
                       </div>
                     </div>
                   </>
                 )}
 
+                {/* Stage 02 */}
                 {activeStepIndex === 1 && (
                   <>
                     <div>
                       <div className="lp-demo-screen-header">
                         <div className="lp-demo-order-badge">
-                          <Terminal size={14} color="#38bdf8" />
-                          <span>STAGE 02 // REAL-TIME TELEMETRY (18ms)</span>
+                          <Cpu size={14} color="#38bdf8" />
+                          <span>STAGE 02 // TASK ROUTING</span>
                         </div>
-                        <div className="lp-demo-pill-block">CONFIDENCE: 94.2%</div>
+                        <div className="lp-demo-pill-block">2 BLOCKERS · 2 TASKS CREATED</div>
                       </div>
-
                       <div className="lp-demo-telemetry-grid">
                         <div className="lp-demo-telemetry-item">
                           <div className="lp-demo-telemetry-left">
-                            <Globe size={14} color="#f87171" />
-                            <span>IP Geolocation: Bucharest, RO (Datacenter Proxy/Tor exit)</span>
+                            <Shield size={14} color="#f87171" />
+                            <span>NO_REFILLS_REMAINING &rarr; Provider task (HIGH priority)</span>
                           </div>
-                          <span className="lp-demo-pill-block">PROXY DETECTED</span>
+                          <span className="lp-demo-pill-block">PROVIDER</span>
                         </div>
                         <div className="lp-demo-telemetry-item">
                           <div className="lp-demo-telemetry-left">
                             <Layers size={14} color="#fbbf24" />
-                            <span>Cluster Graph: Card hash linked to 3 prior chargebacks</span>
+                            <span>PA_REQUIRED &rarr; Practice staff task (parallel)</span>
                           </div>
-                          <span className="lp-demo-pill-warn">FRAUD CLUSTER</span>
+                          <span className="lp-demo-pill-warn">STAFF</span>
                         </div>
                         <div className="lp-demo-telemetry-item">
                           <div className="lp-demo-telemetry-left">
-                            <Cpu size={14} color="#fbbf24" />
-                            <span>Velocity Radar: 4 orders submitted across 2 emails in 45s</span>
+                            <Cpu size={14} color="#4ade80" />
+                            <span>Context packet: medication history + decision required</span>
                           </div>
-                          <span className="lp-demo-pill-warn">HIGH VELOCITY</span>
+                          <span className="lp-demo-pill-warn">SENT</span>
                         </div>
                         <div className="lp-demo-telemetry-item">
                           <div className="lp-demo-telemetry-left">
-                            <Shield size={14} color="#f87171" />
-                            <span>Distance Matrix: 4,200 km billing vs shipping discrepancy</span>
+                            <Globe size={14} color="#818cf8" />
+                            <span>SLA deadline: 48 hours &bull; both tasks running simultaneously</span>
                           </div>
-                          <span className="lp-demo-pill-block">GEO MISMATCH</span>
+                          <span className="lp-demo-pill-warn">PARALLEL</span>
                         </div>
                       </div>
                     </div>
-
                     <div>
-                      <button
-                        className="lp-demo-trigger-btn"
-                        onClick={() => handleTabChange(2)}
-                      >
+                      <button className="lp-demo-trigger-btn" onClick={() => handleTabChange(2)}>
                         <Sparkles size={15} />
-                        <span>Generate Plain-Language Reasons &rarr;</span>
+                        <span>Provider Takes Action &rarr;</span>
                       </button>
                       <div className="lp-presenter-click-hint" onClick={() => handleTabChange(2)}>
-                        👉 Click to view explainable AI decision
+                        👉 Click to see provider review and verification
                       </div>
                     </div>
                   </>
                 )}
 
+                {/* Stage 03 */}
                 {activeStepIndex === 2 && (
                   <>
                     <div>
                       <div className="lp-demo-screen-header">
                         <div className="lp-demo-order-badge">
-                          <Cpu size={14} color="#a855f7" />
-                          <span>STAGE 03 // EXPLAINABLE RISK BRIEF</span>
+                          <Shield size={14} color="#a855f7" />
+                          <span>STAGE 03 // RESOLUTION &amp; VERIFICATION</span>
                         </div>
-                        <div className="lp-demo-pill-warn" style={{ color: '#f59e0b', borderColor: 'rgba(245,158,11,0.4)', background: 'rgba(245,158,11,0.15)' }}>
-                          RECOMMENDATION: HOLD FULFILLMENT
+                        <div className="lp-demo-pill-warn" style={{ color: '#4ade80', borderColor: 'rgba(74,222,128,0.4)', background: 'rgba(74,222,128,0.15)' }}>
+                          PROVIDER APPROVED
                         </div>
                       </div>
-
                       <div className="lp-demo-evidence-list">
                         <div className="lp-demo-evidence-item">
-                          <strong>1. High-Value First-Time Buyer:</strong> Account created 3 minutes before checkout. Cart value ($1,249.00) is 10.5&times; higher than store average cart size ($118.00).
+                          <strong>Provider decision (dr.patel):</strong> APPROVE_REFILL &mdash; &ldquo;Patient stable, renew for 90 days.&rdquo; 3 new refills authorized.
                         </div>
                         <div className="lp-demo-evidence-item">
-                          <strong>2. Severe Geographic Discrepancy:</strong> Card origin is Ohio, USA, but destination drop address is 4,200 km away in Bucharest, Romania through a known proxy.
+                          <strong>Blocker verification:</strong> NO_REFILLS_REMAINING &rarr; RESOLVED. Evidence: 3 new refills authorized at 11:32:00. Audit entry written.
                         </div>
                         <div className="lp-demo-evidence-item">
-                          <strong>3. Network Cluster Reputation:</strong> Device fingerprint matches a known automated card-testing cluster with 3 recent chargebacks in partner stores.
+                          <strong>Remaining blockers:</strong> PA_REQUIRED still in progress (TSK-1002 with practice staff, est. 14:00). Workflow on hold until cleared.
                         </div>
                       </div>
                     </div>
-
                     <div>
-                      <button
-                        className="lp-demo-trigger-btn"
-                        onClick={() => handleTabChange(3)}
-                      >
+                      <button className="lp-demo-trigger-btn" onClick={() => handleTabChange(3)}>
                         <Shield size={15} />
-                        <span>Execute Automated Defense &rarr;</span>
+                        <span>PA Clears &rarr; Workflow Resumes &rarr;</span>
                       </button>
                       <div className="lp-presenter-click-hint" onClick={() => handleTabChange(3)}>
-                        👉 Click to test merchant defense controls
+                        👉 Click to see automatic workflow resumption
                       </div>
                     </div>
                   </>
                 )}
 
+                {/* Stage 04 */}
                 {activeStepIndex === 3 && (
                   <>
                     <div>
                       <div className="lp-demo-screen-header">
                         <div className="lp-demo-order-badge">
-                          <Shield size={14} color="#4ade80" />
-                          <span>STAGE 04 // MERCHANT DEFENSE GATE</span>
+                          <CheckCircle2 size={14} color="#4ade80" />
+                          <span>STAGE 04 // WORKFLOW RESUMED</span>
                         </div>
-                        <div className="lp-demo-pill-block">RISK CONFIRMED</div>
+                        <div className="lp-demo-pill-block" style={{ color: '#4ade80', borderColor: 'rgba(74,222,128,0.4)', background: 'rgba(74,222,128,0.12)' }}>ALL BLOCKERS CLEARED</div>
                       </div>
 
                       {demoDecision === 'idle' && (
                         <div>
                           <div className="lp-demo-action-prompt">
-                            <div className="lp-demo-action-title">Zeno flagged Order #1048 for immediate action</div>
-                            <div className="lp-demo-action-sub">Choose a response to see live protection or automated policy in action:</div>
+                            <div className="lp-demo-action-title">PA approved &bull; all blockers verified as resolved</div>
+                            <div className="lp-demo-action-sub">Zeno is ready to automatically resume the workflow. Click to see it:</div>
                           </div>
-
                           <div className="lp-demo-action-buttons">
-                            <button
-                              className="lp-demo-btn-hold"
-                              onClick={() => { onUserInteract(); setDemoDecision('held'); }}
-                            >
-                              <Shield size={14} />
-                              <span>🛑 Hold Fulfillment (Shopify Tag)</span>
-                            </button>
-                            <button
-                              className="lp-demo-btn-approve"
-                              onClick={() => { onUserInteract(); setDemoDecision('approved'); }}
-                            >
-                              <span>✅ Approve &amp; Release</span>
+                            <button className="lp-demo-btn-hold"
+                              style={{ background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)', boxShadow: '0 4px 14px rgba(22,163,74,0.35)' }}
+                              onClick={() => { onUserInteract(); setDemoDecision('held'); }}>
+                              <CheckCircle2 size={14} />
+                              <span>Resume Workflow &amp; Notify Pharmacy</span>
                             </button>
                           </div>
-
-                          <div className="lp-presenter-click-hint" onClick={() => setDemoDecision('held')}>
-                            👉 Click &ldquo;Hold Fulfillment&rdquo; to simulate live defense
+                          <div className="lp-presenter-click-hint" onClick={() => { onUserInteract(); setDemoDecision('held'); }}>
+                            👉 Click to see automatic resumption in action
                           </div>
                         </div>
                       )}
@@ -3639,45 +3545,16 @@ function DockerHowItWorks() {
                         <div className="lp-demo-success-banner">
                           <div className="lp-demo-success-title">
                             <CheckCircle2 size={18} color="#4ade80" />
-                            <span>THREAT INTERCEPTED &bull; ORDER PUT ON HOLD</span>
+                            <span>WORKFLOW RESUMED &bull; PHARMACY NOTIFIED</span>
                           </div>
                           <div className="lp-demo-success-desc">
-                            Tag <code>zeno-hold</code> automatically attached to Shopify Order #1048 in <strong>18ms</strong>. Warehouse dispatch paused.
+                            Refill RX-88210 automatically resumed at 14:08:00. Central Pharmacy notified with PA approval #PA-2026-887142.
                             <br />
-                            <strong style={{ color: '#4ade80' }}>$1,249.00 in chargeback loss and lost inventory protected!</strong>
+                            <strong style={{ color: '#4ade80' }}>Total resolution time: 4h 54m &bull; Zero manual hand-offs.</strong>
                           </div>
                           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '10px' }}>
-                            <button
-                              className="lp-pres-btn lp-pres-btn-play"
-                              onClick={() => {
-                                setDemoDecision('idle');
-                                handleTabChange(0);
-                              }}
-                            >
-                              <RotateCcw size={13} />
-                              <span>Restart Walkthrough</span>
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      {demoDecision === 'approved' && (
-                        <div className="lp-demo-success-banner" style={{ borderColor: 'rgba(56,189,248,0.4)', background: 'rgba(14,165,233,0.15)' }}>
-                          <div className="lp-demo-success-title" style={{ color: '#38bdf8' }}>
-                            <Check size={18} color="#38bdf8" />
-                            <span>ORDER APPROVED &bull; FULFILLMENT RELEASED</span>
-                          </div>
-                          <div className="lp-demo-success-desc">
-                            Order #1048 approved by merchant. Zeno will continue tracking delivery confirmation telemetry.
-                          </div>
-                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '10px' }}>
-                            <button
-                              className="lp-pres-btn lp-pres-btn-play"
-                              onClick={() => {
-                                setDemoDecision('idle');
-                                handleTabChange(0);
-                              }}
-                            >
+                            <button className="lp-pres-btn lp-pres-btn-play"
+                              onClick={() => { setDemoDecision('idle'); handleTabChange(0); }}>
                               <RotateCcw size={13} />
                               <span>Restart Walkthrough</span>
                             </button>
@@ -3687,6 +3564,7 @@ function DockerHowItWorks() {
                     </div>
                   </>
                 )}
+
               </div>
             ) : (
               <pre className="lp-dterm-code-pre">
@@ -3702,187 +3580,174 @@ function DockerHowItWorks() {
             )}
           </div>
 
-          {/* Terminal Window Footer */}
+          {/* Terminal Footer */}
           <div className="lp-dterm-footer">
             <div className="lp-dterm-status">
-              <span
-                className="lp-dterm-status-dot"
+              <span className="lp-dterm-status-dot"
                 style={{
                   background: simStep !== null && !simulating ? '#38bdf8' : simulating ? '#f59e0b' : '#4ade80',
                   boxShadow: `0 0 8px ${simStep !== null && !simulating ? 'rgba(56,189,248,0.6)' : simulating ? 'rgba(245,158,11,0.6)' : 'rgba(74,222,128,0.6)'}`
                 }}
               />
               <span>
-                {simulating
-                  ? 'SIMULATING EVENT INGESTION...'
-                  : simStep !== null
-                  ? 'SIMULATION COMPLETE'
-                  : viewMode === 'demo'
-                  ? 'INTERACTIVE ORDER DEMO ACTIVE'
-                  : 'ZENO ENGINE ONLINE'}
+                {simulating ? 'SIMULATING...' : simStep !== null ? 'SIMULATION COMPLETE' : viewMode === 'demo' ? 'INTERACTIVE DEMO ACTIVE' : 'ZENO ENGINE ONLINE'}
               </span>
             </div>
             <div className="lp-dterm-meta">
-              <span>⚡ Latency: 18ms</span>
-              <span>🔒 HMAC-SHA256</span>
+              <span>⚡ Latency: &lt; 5s</span>
+              <span>🔒 Role-based access</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Docker-Style Bottom Performance Metrics */}
+      {/* Bottom Performance Metrics */}
       <div className="lp-docker-metrics lp-reveal lp-reveal-d2">
         <div className="lp-dmetric-card">
-          <div className="lp-dmetric-val"><span className="accent">&lt; 45ms</span></div>
-          <div className="lp-dmetric-label">Sub-Second Latency</div>
-          <p className="lp-dmetric-desc">Evaluated instantaneously before customer checkout completes.</p>
-        </div>
-        <div className="lp-dmetric-card">
-          <div className="lp-dmetric-val"><span className="accent">99.8%</span></div>
-          <div className="lp-dmetric-label">Threat Interception</div>
-          <p className="lp-dmetric-desc">Pinpoints card testing, synthetic buyers, and coordinated rings.</p>
-        </div>
-        <div className="lp-dmetric-card">
-          <div className="lp-dmetric-val"><span className="accent">0 Code</span></div>
-          <div className="lp-dmetric-label">Frictionless Setup</div>
-          <p className="lp-dmetric-desc">Native 1-click Shopify &amp; WooCommerce apps plus universal webhooks.</p>
-        </div>
-        <div className="lp-dmetric-card">
           <div className="lp-dmetric-val"><span className="accent">100%</span></div>
-          <div className="lp-dmetric-label">Explainable Evidence</div>
-          <p className="lp-dmetric-desc">Every flag provides plain-language reasons, not cryptic scores.</p>
+          <div className="lp-dmetric-label">Blockers Classified</div>
+          <p className="lp-dmetric-desc">Every stuck refill gets a named blocker before any human has to triage.</p>
+        </div>
+        <div className="lp-dmetric-card">
+          <div className="lp-dmetric-val"><span className="accent">0</span></div>
+          <div className="lp-dmetric-label">Manual Hand-offs</div>
+          <p className="lp-dmetric-desc">Workflow resumption is automatic once all blockers are verified resolved.</p>
+        </div>
+        <div className="lp-dmetric-card">
+          <div className="lp-dmetric-val"><span className="accent">Parallel</span></div>
+          <div className="lp-dmetric-label">Resolution</div>
+          <p className="lp-dmetric-desc">Independent blockers are worked simultaneously — no rigid sequential queue.</p>
+        </div>
+        <div className="lp-dmetric-card">
+          <div className="lp-dmetric-val"><span className="accent">Full</span></div>
+          <div className="lp-dmetric-label">Audit Trail</div>
+          <p className="lp-dmetric-desc">Every action records WHO, WHAT, WHEN, and WHY with no gaps.</p>
         </div>
       </div>
 
-      {/* Upgraded Transaction Lifecycle Pipeline */}
+      {/* Refill Lifecycle Pipeline */}
       <div className="lp-journey lp-reveal lp-reveal-d3">
         <div className="lp-journey-header">
           <div className="lp-journey-label">
             <Sparkles size={13} />
-            Watch an order move through Zeno
+            Watch a refill move through Zeno
           </div>
         </div>
-
         <div className="lp-journey-track">
-          {/* Stage 1: Ingest */}
           <div className="lp-journey-stage">
             <div className="lp-journey-stage-top">
-              <span className="lp-journey-stage-label">01 // Ingest</span>
-              <span className="lp-journey-stage-badge">Webhook</span>
+              <span className="lp-journey-stage-label">01 // Request</span>
+              <span className="lp-journey-stage-badge">Inbound</span>
             </div>
             <div className="lp-journey-card">
-              <div className="lp-journey-card-amt">$129.00</div>
-              <div className="lp-journey-card-hint">Sarah M. · returning buyer</div>
+              <div className="lp-journey-card-amt">Lisinopril 10mg</div>
+              <div className="lp-journey-card-hint">Jane D. &bull; 90-day supply</div>
             </div>
             <div className="lp-journey-card">
-              <div className="lp-journey-card-amt">$890.00</div>
-              <div className="lp-journey-card-hint">New account · first order</div>
+              <div className="lp-journey-card-amt">Metformin 500mg</div>
+              <div className="lp-journey-card-hint">Robert K. &bull; refill needed</div>
             </div>
             <div className="lp-journey-card">
-              <div className="lp-journey-card-amt">$1,499.00</div>
-              <div className="lp-journey-card-hint">Unknown · unusual shipping</div>
+              <div className="lp-journey-card-amt">Atorvastatin 40mg</div>
+              <div className="lp-journey-card-hint">Maria L. &bull; urgent request</div>
             </div>
           </div>
-
-          {/* Stage 2: Inspect */}
           <div className="lp-journey-stage">
             <div className="lp-journey-stage-top">
-              <span className="lp-journey-stage-label">02 // Inspect</span>
-              <span className="lp-journey-stage-badge">Telemetry</span>
+              <span className="lp-journey-stage-label">02 // Detect</span>
+              <span className="lp-journey-stage-badge">Blocker</span>
             </div>
             <div className="lp-journey-card">
-              <div className="lp-journey-card-amt">$129.00</div>
-              <div className="lp-journey-card-hint">Order history ✓ · Matching card ✓</div>
+              <div className="lp-journey-card-amt">Lisinopril 10mg</div>
+              <div className="lp-journey-card-hint">NO_REFILLS_REMAINING + PA_REQUIRED</div>
             </div>
             <div className="lp-journey-card">
-              <div className="lp-journey-card-amt">$890.00</div>
-              <div className="lp-journey-card-hint">New customer · High value basket</div>
+              <div className="lp-journey-card-amt">Metformin 500mg</div>
+              <div className="lp-journey-card-hint">PROVIDER_REVIEW_REQUIRED</div>
             </div>
             <div className="lp-journey-card">
-              <div className="lp-journey-card-amt">$1,499.00</div>
-              <div className="lp-journey-card-hint">No history · 4,200 km geo mismatch</div>
+              <div className="lp-journey-card-amt">Atorvastatin 40mg</div>
+              <div className="lp-journey-card-hint">CLAIM_DENIED &bull; appeal needed</div>
             </div>
           </div>
-
-          {/* Stage 3: Reason */}
           <div className="lp-journey-stage">
             <div className="lp-journey-stage-top">
-              <span className="lp-journey-stage-label">03 // Reason</span>
-              <span className="lp-journey-stage-badge">Explainable</span>
+              <span className="lp-journey-stage-label">03 // Route</span>
+              <span className="lp-journey-stage-badge">Owner</span>
             </div>
             <div className="lp-journey-card">
-              <div className="lp-journey-card-amt">$129.00</div>
-              <div className="lp-journey-card-hint">"Trusted buyer, zero anomalies."</div>
+              <div className="lp-journey-card-amt">Lisinopril 10mg</div>
+              <div className="lp-journey-card-hint">Provider + Staff (parallel)</div>
             </div>
             <div className="lp-journey-card">
-              <div className="lp-journey-card-amt">$890.00</div>
-              <div className="lp-journey-card-hint">"Large first cart — check before ship."</div>
+              <div className="lp-journey-card-amt">Metformin 500mg</div>
+              <div className="lp-journey-card-hint">Provider with context packet</div>
             </div>
             <div className="lp-journey-card">
-              <div className="lp-journey-card-amt">$1,499.00</div>
-              <div className="lp-journey-card-hint">"VPN proxy &amp; cluster flag. Hold order."</div>
+              <div className="lp-journey-card-amt">Atorvastatin 40mg</div>
+              <div className="lp-journey-card-hint">Practice staff &bull; appeal task</div>
             </div>
           </div>
-
-          {/* Stage 4: Resolve */}
           <div className="lp-journey-stage">
             <div className="lp-journey-stage-top">
               <span className="lp-journey-stage-label">04 // Resolve</span>
-              <span className="lp-journey-stage-badge">Decision</span>
+              <span className="lp-journey-stage-badge">Outcome</span>
             </div>
             <div className="lp-journey-card">
               <div className="lp-journey-card-result">
-                <div className="lp-badge lp-badge-safe"><span className="lp-badge-dot"/>SAFE ✓</div>
+                <div className="lp-badge lp-badge-safe"><span className="lp-badge-dot"/>DISPENSED &#10003;</div>
               </div>
             </div>
             <div className="lp-journey-card">
               <div className="lp-journey-card-result">
-                <div className="lp-badge lp-badge-review"><span className="lp-badge-dot"/>REVIEW</div>
+                <div className="lp-badge lp-badge-safe"><span className="lp-badge-dot"/>APPROVED &#10003;</div>
               </div>
             </div>
             <div className="lp-journey-card">
               <div className="lp-journey-card-result">
-                <div className="lp-badge lp-badge-blocked"><span className="lp-badge-dot"/>BLOCKED ✗</div>
+                <div className="lp-badge lp-badge-review"><span className="lp-badge-dot"/>IN PROGRESS</div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
     </div>
   );
 }
 
-/* ── ORDERS FLOW VISUAL (problem section) ────────────────────────────────── */
+
+/* ── REFILL FLOW VISUAL (problem section) ────────────────────────────────── */
 function OrdersFlowVisual() {
-  const orders = [
-    { id:'#2041', amt:'$129',    hint:'Returning customer',      badge:'safe'    },
-    { id:'#2042', amt:'$1,499',  hint:'New account, high value', badge:'review'  },
-    { id:'#2043', amt:'$89',     hint:'Trusted buyer',           badge:'safe'    },
-    { id:'#2044', amt:'$3,200',  hint:'Unusual shipping',        badge:'blocked' },
-    { id:'#2045', amt:'$245',    hint:'Regular order',           badge:'safe'    },
+  const refills = [
+    { id:'RX-8801', med:'Lisinopril 10mg',    hint:'No refills remaining',    badge:'review'  },
+    { id:'RX-8802', med:'Metformin 500mg',     hint:'Provider approved',       badge:'safe'    },
+    { id:'RX-8803', med:'Atorvastatin 40mg',   hint:'PA required',             badge:'review'  },
+    { id:'RX-8804', med:'Sertraline 50mg',     hint:'Claim denied',            badge:'blocked' },
+    { id:'RX-8805', med:'Amlodipine 5mg',      hint:'Ready to dispense',       badge:'safe'    },
   ];
 
   return (
     <div className="lp-orders-flow">
-      <div className="lp-flow-label">Incoming orders</div>
+      <div className="lp-flow-label">Active refill requests</div>
       <div className="lp-flow-orders">
-        {orders.map(o => (
+        {refills.map(o => (
           <div className="lp-flow-order" key={o.id}>
             <div className="lp-flow-left">
               <span className="lp-flow-order-id">{o.id}</span>
-              <span className="lp-flow-order-amt">{o.amt}</span>
+              <span className="lp-flow-order-amt">{o.med}</span>
               <span className="lp-flow-order-hint">{o.hint}</span>
             </div>
             <div className={`lp-badge lp-badge-${o.badge}`}>
               <span className="lp-badge-dot" />
-              {o.badge === 'safe' ? 'SAFE ✓' : o.badge === 'review' ? 'REVIEW' : 'BLOCKED ✗'}
+              {o.badge === 'safe' ? 'RESOLVED ✓' : o.badge === 'review' ? 'BLOCKED' : 'ESCALATED ✗'}
             </div>
           </div>
         ))}
       </div>
       <div className="lp-flow-watching">
         <div className="lp-flow-watching-dot" />
-        <span>Zeno is watching every order</span>
+        <span>Zeno is working every blocker</span>
       </div>
     </div>
   );
@@ -3891,11 +3756,11 @@ function OrdersFlowVisual() {
 /* ── DASHBOARD MOCKUP ─────────────────────────────────────────────────────── */
 function DashboardMockup() {
   const rows = [
-    { id:'#1048', name:'Sarah K.',  hint:'2 orders before',   amt:'$149', badge:'safe' },
-    { id:'#1049', name:'Unknown',   hint:'Unusual activity',  amt:'$1,249', badge:'review' },
-    { id:'#1050', name:'Tom R.',    hint:'Loyal customer',    amt:'$89',  badge:'safe' },
-    { id:'#1051', name:'M. Garcia', hint:'Flagged address',   amt:'$2,100', badge:'blocked' },
-    { id:'#1052', name:'Anna W.',   hint:'First order',       amt:'$320', badge:'review' },
+    { id:'RX-8821', name:'Lisinopril 10mg',  hint:'Awaiting provider',     amt:'Jane D.',    badge:'review'  },
+    { id:'RX-8822', name:'Metformin 500mg',  hint:'PA approved · resolved', amt:'Robert K.', badge:'safe'    },
+    { id:'RX-8823', name:'Atorvastatin 40mg',hint:'Claim denied · appealing',amt:'Maria L.', badge:'review'  },
+    { id:'RX-8824', name:'Sertraline 50mg',  hint:'Escalated — SLA exceeded',amt:'Paul W.',  badge:'blocked' },
+    { id:'RX-8825', name:'Amlodipine 5mg',   hint:'Provider approved',     amt:'Susan T.',   badge:'safe'    },
   ];
   return (
     <div className="lp-dash">
@@ -3903,24 +3768,24 @@ function DashboardMockup() {
         <div className="lp-dash-dot" style={{background:'#f87171'}} />
         <div className="lp-dash-dot" style={{background:'#fbbf24'}} />
         <div className="lp-dash-dot" style={{background:'#4ade80'}} />
-        <span className="lp-dash-title">Zeno — Today's Orders</span>
+        <span className="lp-dash-title">Zeno — Refill Command Center</span>
       </div>
       <div className="lp-dash-body">
         <div className="lp-dash-stats">
           <div className="lp-dash-stat">
-            <div className="lp-dash-stat-label">Safe</div>
-            <div className="lp-dash-stat-val green">47</div>
+            <div className="lp-dash-stat-label">Resolved Today</div>
+            <div className="lp-dash-stat-val green">31</div>
           </div>
           <div className="lp-dash-stat">
-            <div className="lp-dash-stat-label">Review</div>
-            <div className="lp-dash-stat-val amber">3</div>
+            <div className="lp-dash-stat-label">Awaiting Provider</div>
+            <div className="lp-dash-stat-val amber">8</div>
           </div>
           <div className="lp-dash-stat">
-            <div className="lp-dash-stat-label">Blocked</div>
-            <div className="lp-dash-stat-val red">2</div>
+            <div className="lp-dash-stat-label">Insurance Blocked</div>
+            <div className="lp-dash-stat-val red">4</div>
           </div>
         </div>
-        <div className="lp-dash-orders-label">Recent orders</div>
+        <div className="lp-dash-orders-label">Active refill cases</div>
         {rows.map(r => (
           <div className="lp-dash-order-row" key={r.id}>
             <div className="lp-dash-order-info">
@@ -3930,7 +3795,7 @@ function DashboardMockup() {
             <div className="lp-dash-order-right">
               <span className="lp-dash-order-amt">{r.amt}</span>
               <div className={`lp-badge lp-badge-${r.badge}`} style={{fontSize:'10px',padding:'3px 8px'}}>
-                {r.badge === 'safe' ? 'SAFE ✓' : r.badge === 'review' ? 'REVIEW' : 'BLOCKED'}
+                {r.badge === 'safe' ? 'RESOLVED ✓' : r.badge === 'review' ? 'AWAITING' : 'ESCALATED'}
               </div>
             </div>
           </div>
@@ -3946,33 +3811,33 @@ function ReasonCard() {
     <div className="lp-reason-card">
       <div className="lp-reason-top">
         <div className="lp-reason-order">
-          <span className="lp-reason-order-num">ORDER #1048</span>
-          <span className="lp-reason-order-amt">$1,249</span>
+          <span className="lp-reason-order-num">REFILL RX-88210</span>
+          <span className="lp-reason-order-amt">Lisinopril 10mg</span>
         </div>
         <div className="lp-badge lp-badge-review" style={{fontSize:'12px'}}>
           <span className="lp-badge-dot" />
-          REVIEW
+          AWAITING PROVIDER
         </div>
       </div>
       <div className="lp-reason-body">
-        <div className="lp-reason-why-label">Why Zeno flagged this</div>
+        <div className="lp-reason-why-label">Why this refill is blocked</div>
         <div className="lp-reason-items">
           <div className="lp-reason-item">
             <div className="lp-reason-item-dot" />
-            <span>New customer — first order on this account</span>
+            <span>No refills remaining — prescription has expired</span>
           </div>
           <div className="lp-reason-item">
             <div className="lp-reason-item-dot" />
-            <span>Unusually large order for this product category</span>
+            <span>Prior authorization required by insurer before dispensing</span>
           </div>
           <div className="lp-reason-item">
             <div className="lp-reason-item-dot" />
-            <span>Shipping address doesn't match billing details</span>
+            <span>Provider context packet sent — decision pending</span>
           </div>
         </div>
         <div className="lp-reason-action">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a5a8f4" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          Now you know what to check before you ship.
+          Zeno routes this to the provider. No manual triage needed.
         </div>
       </div>
     </div>
@@ -3999,8 +3864,8 @@ function Nav({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
 
   const links = [
     { href:'#how-it-works',  label:'How It Works' },
-    { href:'#features',      label:'Features' },
-    { href:'#testimonials',  label:'Testimonials' },
+    { href:'#features',      label:'For Pharmacies' },
+    { href:'#testimonials',  label:'For Practices' },
     { href:'#security',      label:'Security' },
   ];
 
@@ -4019,8 +3884,8 @@ function Nav({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
         </div>
 
         <div className="lp-nav-actions">
-          <Link to="/login" className="lp-btn lp-btn-ghost">Log In</Link>
-          <Link to="/register" className="lp-btn lp-btn-primary">Get Started</Link>
+          <Link to="/login" className="lp-btn lp-btn-ghost">Sign In</Link>
+          <Link to="/register" className="lp-btn lp-btn-primary">Request Demo</Link>
         </div>
 
         <button
@@ -4039,8 +3904,8 @@ function Nav({ logoVariant }: { logoVariant: 'dark' | 'light' }) {
             <a key={l.href} href={l.href} onClick={close}>{l.label}</a>
           ))}
           <div className="lp-mm-divider" />
-          <Link to="/login" onClick={close}>Log In</Link>
-          <Link to="/register" onClick={close} className="lp-mm-primary">Get Started →</Link>
+          <Link to="/login" onClick={close}>Sign In</Link>
+          <Link to="/register" onClick={close} className="lp-mm-primary">Request Demo →</Link>
         </div>
       )}
     </nav>
@@ -4094,20 +3959,25 @@ export function Landing() {
               {/* LEFT — copy */}
               <div className="lp-hero-left">
 
+                <div className="lp-hero-tag">
+                  <span className="lp-hero-tag-dot" />
+                  Prescription Refill Resolution Platform
+                </div>
 
                 <h1>
-                  Stop bad orders<br />
-                  <span className="lp-h1-accent">before they cost you.</span>
+                  Resolve stuck refills<br />
+                  <span className="lp-h1-accent">before they become patient delays.</span>
                 </h1>
 
                 <p className="lp-hero-sub">
-                  Zeno watches your store around the clock, spots suspicious
-                  orders, and tells you what to do — before you lose money.
+                  Zeno intelligently identifies refill blockers, routes the right
+                  work to the right person, and automatically resumes the workflow
+                  when the blocker is resolved.
                 </p>
 
                 <div className="lp-hero-ctas">
                   <Link to="/register" className="lp-btn-hero-primary">
-                    Protect My Store <ArrowRight size={16} />
+                    Request a Demo <ArrowRight size={16} />
                   </Link>
                   <a href="#how-it-works" className="lp-btn-hero-secondary">
                     See How It Works
@@ -4116,9 +3986,9 @@ export function Landing() {
 
                 <div className="lp-hero-trust">
                   {[
-                    'No technical skills needed',
-                    'Quick setup',
-                    'You always decide',
+                    'AI interprets. Rules control. Humans decide.',
+                    'Built for pharmacies & practices',
+                    'Every refill gets a clear next step',
                   ].map(t => (
                     <div className="lp-hero-trust-item" key={t}>
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -4144,17 +4014,17 @@ export function Landing() {
           <div className="wrap lp-trust-inner">
             {[
               { icon: (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              ), label: '24/7 Protection' },
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              ), label: 'Blocker Detection' },
               { icon: (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              ), label: 'Fast Decisions' },
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+              ), label: 'Workflow Orchestration' },
               { icon: (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-              ), label: 'Simple to Use' },
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              ), label: 'Human-in-the-Loop' },
               { icon: (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-              ), label: 'Built for Growing Stores' },
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              ), label: 'Full Audit Trail' },
             ].map(item => (
               <div className="lp-trust-item" key={item.label}>
                 <div className="lp-trust-icon" aria-hidden="true">{item.icon}</div>
@@ -4276,9 +4146,10 @@ export function Landing() {
           <div className="wrap">
             <div className="lp-problem-header lp-reveal">
               <div className="lp-eyebrow">The problem</div>
-              <h2 className="lp-section-h2">Running your store<br />is hard enough.</h2>
+              <h2 className="lp-section-h2">Refills get stuck.<br />Patients wait.</h2>
               <p className="lp-section-sub">
-                You shouldn't have to wonder which orders are real.
+                Every stuck refill is an unresolved blocker. Without a system
+                to identify and route that blocker, nothing moves.
               </p>
             </div>
 
@@ -4287,27 +4158,27 @@ export function Landing() {
               <div className="lp-problem-items">
                 {[
                   {
-                    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>,
-                    title: 'Fake Orders',
-                    desc: 'Orders that look real but leave you with the bill and nothing to show for it.',
+                    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
+                    title: 'No Refills Remaining',
+                    desc: 'The prescription has expired and no one knows who needs to act or when.',
                     delay: 'lp-reveal-d1',
                   },
                   {
                     icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-                    title: 'Wasted Time',
-                    desc: 'Hours spent checking orders one by one, pulling you away from running your store.',
+                    title: 'Phone Tag & Manual Follow-Up',
+                    desc: 'Staff chase providers by phone. Providers don\'t have context. Nothing gets resolved.',
                     delay: 'lp-reveal-d2',
                   },
                   {
-                    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>,
-                    title: 'Good Customers Blocked',
-                    desc: 'Too many rules can turn away real buyers and hurt your sales.',
+                    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+                    title: 'Prior Authorization Delays',
+                    desc: 'PA requests sit unworked because no one owns the task or knows it\'s overdue.',
                     delay: 'lp-reveal-d3',
                   },
                   {
-                    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
-                    title: 'Uncertainty',
-                    desc: "An alert shouldn't leave you wondering what to do next.",
+                    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+                    title: 'No Visibility on Status',
+                    desc: 'Patients call asking for updates. Staff have no clear picture of where anything stands.',
                     delay: 'lp-reveal-d4',
                   },
                 ].map(item => (
@@ -4321,7 +4192,7 @@ export function Landing() {
                 ))}
               </div>
 
-              {/* right — live orders flow visual */}
+              {/* right — live refill flow visual */}
               <div className="lp-reveal lp-reveal-d2">
                 <OrdersFlowVisual />
               </div>
@@ -4336,9 +4207,11 @@ export function Landing() {
           <div className="wrap">
             <div className="lp-hiw-header lp-reveal">
               <div className="lp-eyebrow">How it works</div>
-              <h2 className="lp-section-h2">Accelerate how you detect,<br />analyze, and stop bad orders</h2>
+              <h2 className="lp-section-h2">From stuck refill to<br />dispensed prescription</h2>
               <p className="lp-section-sub">
-                From checkout webhook to explainable risk mitigation in under 50ms — simple for merchants, powerful under the hood.
+                Zeno identifies the blocker, determines who needs to act,
+                routes the work, verifies the resolution, and resumes the
+                workflow — automatically.
               </p>
             </div>
 
@@ -4354,19 +4227,19 @@ export function Landing() {
             <div className="lp-product-layout">
 
               <div className="lp-product-copy lp-reveal">
-                <div className="lp-eyebrow">The dashboard</div>
-                <h2>Know what's happening<br />in your store.</h2>
+                <div className="lp-eyebrow">The platform</div>
+                <h2>Every refill.<br />A clear next step.</h2>
                 <p>
-                  One simple view of the orders that matter.
-                  At a glance you see what's safe, what to check,
-                  and what's been stopped.
+                  The Refill Command Center gives every person involved —
+                  pharmacy, practice staff, and provider — a single view of
+                  what needs to happen and whose turn it is.
                 </p>
                 <div className="lp-product-checks">
                   {[
-                    "Today's safe, review, and blocked orders",
-                    'See who is buying and why Zeno flagged an order',
-                    'A short list of orders that need your attention',
-                    'No confusing charts — just clear answers',
+                    'Active refills, awaiting-provider count, and insurance blockers at a glance',
+                    'See who owns each task and whether it\'s overdue',
+                    'Provider context packets ready — no back-and-forth phone calls',
+                    'Automatic workflow resumption once every blocker is resolved',
                   ].map(c => (
                     <div className="lp-product-check" key={c}>
                       <div className="lp-product-check-icon">✓</div>
@@ -4396,16 +4269,18 @@ export function Landing() {
               </div>
 
               <div className="lp-explain-copy lp-reveal">
-                <div className="lp-eyebrow">Clear answers</div>
-                <h2>Don't just get an alert.<br />Know why.</h2>
+                <div className="lp-eyebrow">AI that helps</div>
+                <h2>AI interprets.<br />Rules control. Humans decide.</h2>
                 <p>
-                  When Zeno flags an order, it tells you exactly what
-                  to look at — in plain language, not confusing numbers.
+                  Zeno uses AI to remove administrative friction —
+                  not to replace clinical judgment. Every clinical decision
+                  stays with a licensed healthcare professional.
                 </p>
                 <div className="lp-explain-tagline">
-                  "Is the shipping address different from the billing address?
-                  Is this a new customer placing an unusually large order?
-                  Zeno points it out so you can check before you ship."
+                  "AI can classify blockers, extract missing information, summarize
+                  refill context, and recommend administrative next actions.
+                  It cannot prescribe, change dosage, approve treatment, or
+                  make any clinical decision."
                 </div>
               </div>
 
@@ -4526,88 +4401,88 @@ export function Landing() {
 
           <div className="wrap">
             <div className="lp-features-header lp-reveal">
-              <div className="lp-eyebrow">Features</div>
-              <h2 className="lp-section-h2">Everything you need.<br />Nothing confusing.</h2>
+              <div className="lp-eyebrow">Capabilities</div>
+              <h2 className="lp-section-h2">Built for the complexity<br />of real refill workflows.</h2>
             </div>
 
             <div className="lp-bento lp-reveal lp-reveal-d1">
 
-              {/* Cell A — Check orders instantly (wide) */}
+              {/* Cell A — Intelligent Blocker Detection (wide) */}
               <div className="lp-bento-cell lp-bento-a">
                 <div className="lp-bento-icon" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8588e6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8588e6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                 </div>
-                <h3>Check Orders Instantly</h3>
-                <p>Know whether an order looks safe before you ship it.</p>
+                <h3>Intelligent Blocker Detection</h3>
+                <p>Zeno reads pharmacy and insurance messages and classifies the exact reason a refill is stuck.</p>
                 <div className="lp-mini-order-list">
                   <div className="lp-mini-order-row">
-                    <span>Order #1060 · $149</span>
-                    <div className="lp-badge lp-badge-safe" style={{fontSize:'10px',padding:'3px 8px'}}>SAFE ✓</div>
+                    <span>NO_REFILLS_REMAINING</span>
+                    <div className="lp-badge lp-badge-review" style={{fontSize:'10px',padding:'3px 8px'}}>PROVIDER</div>
                   </div>
                   <div className="lp-mini-order-row">
-                    <span>Order #1061 · $1,299</span>
-                    <div className="lp-badge lp-badge-review" style={{fontSize:'10px',padding:'3px 8px'}}>REVIEW</div>
+                    <span>PA_REQUIRED</span>
+                    <div className="lp-badge lp-badge-review" style={{fontSize:'10px',padding:'3px 8px'}}>STAFF</div>
                   </div>
                   <div className="lp-mini-order-row">
-                    <span>Order #1062 · $89</span>
-                    <div className="lp-badge lp-badge-safe" style={{fontSize:'10px',padding:'3px 8px'}}>SAFE ✓</div>
+                    <span>CLAIM_DENIED</span>
+                    <div className="lp-badge lp-badge-blocked" style={{fontSize:'10px',padding:'3px 8px'}}>ESCALATE</div>
                   </div>
                 </div>
               </div>
 
-              {/* Cell B — Clear answers */}
+              {/* Cell B — Workflow Orchestration */}
               <div className="lp-bento-cell lp-bento-b">
                 <div className="lp-bento-icon" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8588e6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8588e6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
                 </div>
-                <h3>Clear Answers</h3>
-                <p>No confusing scores. Just simple recommendations you can act on immediately.</p>
+                <h3>Workflow Orchestration</h3>
+                <p>Administrative work is automatically routed to the right person. No manual triage required.</p>
               </div>
 
-              {/* Cell C — Know your customers */}
+              {/* Cell C — Parallel Resolution */}
               <div className="lp-bento-cell lp-bento-c">
                 <div className="lp-bento-icon" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8588e6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8588e6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="5 12 12 5 19 12"/></svg>
                 </div>
-                <h3>Know Your Customers</h3>
-                <p>See who's buying and whether they've ordered from you before.</p>
+                <h3>Parallel Resolution</h3>
+                <p>Independent blockers are worked simultaneously instead of sequentially.</p>
               </div>
 
-              {/* Cell D — Spot repeat problems */}
+              {/* Cell D — Provider Context Packets */}
               <div className="lp-bento-cell lp-bento-d">
                 <div className="lp-bento-icon" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8588e6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8588e6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                 </div>
-                <h3>Spot Repeat Problems</h3>
-                <p>Zeno remembers suspicious activity so you don't have to.</p>
+                <h3>Provider Context Packets</h3>
+                <p>Providers receive a concise summary: why the refill reached them, history, and the exact decision required.</p>
                 <div className="lp-memory-dots" aria-hidden="true">
                   {[
-                    '#f87171','#f87171','#fbbf24',
-                    '#fbbf24','#f87171','#4ade80',
                     '#4ade80','#4ade80','#fbbf24',
-                    '#f87171',
+                    '#fbbf24','#4ade80','#4ade80',
+                    '#4ade80','#fbbf24','#f87171',
+                    '#4ade80',
                   ].map((c, i) => (
                     <div key={i} className="lp-memory-dot" style={{background:c, opacity: 0.7}} />
                   ))}
                 </div>
               </div>
 
-              {/* Cell E — Short review list */}
+              {/* Cell E — Human-in-the-Loop */}
               <div className="lp-bento-cell lp-bento-e">
                 <div className="lp-bento-icon" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8588e6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8588e6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 </div>
-                <h3>A Short Review List</h3>
-                <p>See the few orders that actually need your attention — not hundreds of false alarms.</p>
+                <h3>Human-in-the-Loop Safety</h3>
+                <p>Clinical decisions remain with authorized healthcare professionals. Zeno never overrides clinical judgment.</p>
               </div>
 
-              {/* Cell F — Data protection */}
+              {/* Cell F — Audit Trail */}
               <div className="lp-bento-cell lp-bento-f">
                 <div className="lp-bento-icon" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8588e6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8588e6" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                 </div>
-                <h3>Keep Customer Data Safe</h3>
-                <p>Your store's information stays protected. We never share it.</p>
+                <h3>Full Audit Trail</h3>
+                <p>Every workflow action records WHO acted, WHAT they did, WHEN, and WHY. No gaps.</p>
               </div>
 
             </div>
@@ -4621,7 +4496,7 @@ export function Landing() {
           <div className="wrap">
             <div className="lp-results-header lp-reveal">
               <div className="lp-eyebrow">The difference</div>
-              <h2 className="lp-section-h2">What changes<br />with Zeno</h2>
+              <h2 className="lp-section-h2">From refill tracking<br />to refill resolution</h2>
             </div>
 
             <div className="lp-ba-grid lp-reveal lp-reveal-d1">
@@ -4633,11 +4508,11 @@ export function Landing() {
                 </div>
                 <div className="lp-ba-list">
                   {[
-                    'Hours spent checking orders one by one',
-                    'No way to tell real orders from fake ones',
-                    'Suspicious orders slip through unnoticed',
-                    'Good customers accidentally blocked',
-                    'Confusing alerts with no explanation',
+                    'Refill stuck → message sent → waiting → follow-up call',
+                    'No one knows which blockers exist or who owns them',
+                    'Provider called without context — delays clinical decision',
+                    'PA and provider review happen sequentially, not in parallel',
+                    'Refill manually restarted after every resolved blocker',
                   ].map(item => (
                     <div className="lp-ba-item" key={item}>
                       <span className="lp-ba-item-icon">✗</span>
@@ -4654,11 +4529,11 @@ export function Landing() {
                 </div>
                 <div className="lp-ba-list">
                   {[
-                    'Clear recommendations on every order',
-                    'Spend less time manually checking',
-                    'Suspicious orders caught before you ship',
-                    'More confidence, fewer wrong calls',
-                    'Plain-language explanations for every flag',
+                    'Blocker detected, classified, and routed automatically',
+                    'Every blocker has a named owner and an SLA timer',
+                    'Provider receives a concise context packet — one decision, fast',
+                    'Independent blockers resolved in parallel simultaneously',
+                    'Workflow resumes automatically once all blockers are verified',
                   ].map(item => (
                     <div className="lp-ba-item" key={item}>
                       <span className="lp-ba-item-icon">✓</span>
@@ -4751,33 +4626,33 @@ export function Landing() {
 
           <div className="wrap">
             <div className="lp-testi-header lp-reveal">
-              <div className="lp-eyebrow">Merchants</div>
-              <h2 className="lp-section-h2">Merchants sleep better<br />with Zeno.</h2>
+              <div className="lp-eyebrow">Early access</div>
+              <h2 className="lp-section-h2">The people managing<br />refills every day.</h2>
               <p className="lp-section-sub">
-                Because they know someone is watching the orders.
+                What they deal with — and what Zeno changes.
               </p>
             </div>
 
             <div className="lp-testi-grid">
               {[
                 {
-                  quote: 'I used to spend hours checking suspicious orders. Now Zeno tells me which ones actually need my attention. I get that time back every single day.',
-                  name: 'Priya Sharma',
-                  store: 'Boutique Owner',
+                  quote: 'We spend half our day chasing providers by phone for refill authorizations. By the time they respond, we\'ve already called the patient three times. There has to be a better way.',
+                  name: 'Pharmacy Manager',
+                  store: 'Independent Community Pharmacy',
                   color: '#8588e6',
                   delay: 'lp-reveal-d1',
                 },
                 {
-                  quote: "We were losing money to bad orders without even realising it. Zeno started catching them straight away. The explanation it gives is what I love most — I finally understand why.",
-                  name: 'Marcus Obi',
-                  store: 'Electronics Retailer',
+                  quote: "Our front desk routes refill requests manually. When a PA comes back denied, no one knows about it until the patient calls again. The information is there — it's just not moving to the right person.",
+                  name: 'Practice Operations Lead',
+                  store: 'Multi-Provider Primary Care Practice',
                   color: '#4ade80',
                   delay: 'lp-reveal-d2',
                 },
                 {
-                  quote: "The best part is how simple it is. I'm not a tech person at all. I just see a green, yellow, or red on each order. That's all I need.",
-                  name: 'Li Wei',
-                  store: 'Apparel Brand',
+                  quote: "I get refill requests with almost no context. I approve most of them because I don't have time to dig through charts, but I know I should have more information before I decide.",
+                  name: 'Primary Care Physician',
+                  store: 'Internal Medicine Practice',
                   color: '#fbbf24',
                   delay: 'lp-reveal-d3',
                 },
@@ -4812,27 +4687,28 @@ export function Landing() {
 
             <div className="lp-security-copy lp-reveal">
               <div className="lp-eyebrow">Security</div>
-              <h2>Your store deserves<br />serious protection.</h2>
+              <h2>Built for healthcare<br />workflow environments.</h2>
               <p>
-                Zeno keeps your information protected while quietly
-                watching over your orders — every hour of every day.
+                Zeno is designed with role-based access, organization isolation,
+                and human approval gates for clinical decisions — because the
+                stakes in healthcare workflows are high.
               </p>
               <div className="lp-sec-items">
                 {[
                   {
                     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
-                    title: 'Everything is kept safe',
-                    desc: 'Your store data and customer information are protected at all times.',
+                    title: 'Role-based access control',
+                    desc: 'Pharmacy, practice staff, and providers see only what their role requires. Least-privilege by design.',
                   },
                   {
                     icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
-                    title: 'Your data is yours',
-                    desc: 'We never sell or share your information. Ever.',
+                    title: 'Human approval for clinical decisions',
+                    desc: 'No AI action can substitute for a licensed provider decision. Every clinical step requires human authorization.',
                   },
                   {
-                    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-                    title: 'Always watching',
-                    desc: 'Zeno monitors your orders around the clock, even when you sleep.',
+                    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>,
+                    title: 'Complete audit trail',
+                    desc: 'Every workflow action is logged with WHO, WHAT, WHEN, and WHY. No gaps, no ambiguity.',
                   },
                 ].map(item => (
                   <div className="lp-sec-item" key={item.title}>
@@ -4845,7 +4721,7 @@ export function Landing() {
                 ))}
               </div>
               <div style={{marginTop:'28px',display:'flex',flexDirection:'column',gap:'10px'}}>
-                {['Protected','Monitoring active','Your data stays private'].map(label => (
+                {['Organization data isolated','Role-based access enforced','Clinical decisions require human approval'].map(label => (
                   <div key={label} style={{display:'flex',alignItems:'center',gap:'10px',fontSize:'13px',color:'rgba(232,234,240,0.5)',fontWeight:500}}>
                     <div style={{width:'18px',height:'18px',borderRadius:'50%',background:'rgba(74,222,128,0.15)',border:'1px solid rgba(74,222,128,0.3)',display:'flex',alignItems:'center',justifyContent:'center',color:'#4ade80',fontSize:'9px',fontWeight:800,flexShrink:0}}>✓</div>
                     {label}
@@ -4871,21 +4747,21 @@ export function Landing() {
                 <div className="lp-cta-orb" />
               </div>
               <div className="lp-cta-content">
-                <div className="lp-eyebrow" style={{justifyContent:'center'}}>Get started</div>
-                <h2>Spend less time worrying<br />about orders.</h2>
+                <div className="lp-eyebrow" style={{justifyContent:'center'}}>Stop chasing blockers</div>
+                <h2>Give every refill<br />a clear next step.</h2>
                 <p>
-                  Let Zeno watch the risk while you focus on
-                  growing your store.
+                  Zeno doesn't just track stuck refills.
+                  It resolves them.
                 </p>
                 <div className="lp-cta-actions">
                   <Link to="/register" className="lp-btn-hero-primary">
-                    Start Protecting My Store <ArrowRight size={16} />
+                    Request a Demo <ArrowRight size={16} />
                   </Link>
                   <Link to="/login" className="lp-btn-hero-secondary">
-                    Log In
+                    Sign In
                   </Link>
                 </div>
-                <p className="lp-cta-reassurance">Quick setup. No technical skills needed.</p>
+                <p className="lp-cta-reassurance">Built for pharmacies and physician practices.</p>
               </div>
             </div>
           </div>
@@ -4906,11 +4782,11 @@ export function Landing() {
                 </div>
                 <nav className="lp-footer-nav" aria-label="Footer navigation">
                   <a href="#how-it-works">How It Works</a>
-                  <a href="#features">Features</a>
-                  <a href="#testimonials">Testimonials</a>
+                  <a href="#features">For Pharmacies</a>
+                  <a href="#testimonials">For Practices</a>
                   <a href="#security">Security</a>
-                  <Link to="/login">Log In</Link>
-                  <Link to="/register" style={{color:'#8588e6',fontWeight:600}}>Get Started</Link>
+                  <Link to="/login">Sign In</Link>
+                  <Link to="/register" style={{color:'#8588e6',fontWeight:600}}>Request Demo</Link>
                 </nav>
                 <div className="lp-footer-legal">
                   <a href="#">Privacy Policy</a>
@@ -4920,7 +4796,7 @@ export function Landing() {
                 <p className="lp-footer-copy">
                   © {new Date().getFullYear()} Zeno.
                   <span className="lp-footer-dot">·</span>
-                  Protecting merchants worldwide.
+                  Prescription Refill Resolution Platform.
                 </p>
               </div>
 
