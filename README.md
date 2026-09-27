@@ -128,7 +128,7 @@ flowchart LR
     api -->|Optional request<br/>timeout + retry| ai[FastAPI AI service]
     ai -->|Mock provider| mock[Mock model]
     ai -->|Configured provider only| llm[External LLM provider]
-    redis[(Redis 7<br/>Compose service)] -.->|Healthy-start dependency;<br/>not used by workflow| api
+    redis[(Redis 7<br/>Compose service)] -.->|Startup dependency only<br/>not used by workflow| api
 
     classDef app fill:#24213a,stroke:#9b8cff,color:#fff
     classDef data fill:#173c36,stroke:#54c6a9,color:#fff
@@ -253,7 +253,7 @@ sequenceDiagram
     Flow->>Flow: Apply deterministic blocker rules
 
     alt No blocker
-        Flow->>DB: Increment refills used; save READY
+        Flow->>DB: Increment refills used and save READY
         Flow->>DB: Append REFILL_READY event
         API-->>UI: READY refill
     else Blocker found
@@ -467,7 +467,7 @@ sequenceDiagram
     opt Self-service registration
         User->>Browser: Submit profile and organization details
         Browser->>API: POST /api/auth/register (public)
-        API->>Auth: Reject ADMIN role; create organization if needed
+        API->>Auth: Reject ADMIN role and create organization if needed
         Auth->>DB: Save organization and user
         Auth-->>Browser: Signed JWT
     end
@@ -480,7 +480,7 @@ sequenceDiagram
         Auth-->>User: Send link through configured email service
         User->>Browser: Submit token + new password
         Browser->>API: POST /api/auth/reset-password (public)
-        API->>Auth: Validate expiry and unused status; update password
+        API->>Auth: Validate expiry and unused status then update password
         Auth->>DB: Mark token used
     end
 ```
