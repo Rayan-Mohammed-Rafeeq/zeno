@@ -4,39 +4,28 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { ZenoMark } from '@/components/brand/Logo';
 import {
-  LayoutDashboard, Users, Receipt, Network, FileSearch,
-  BarChart3, FileText, Database, Settings,
+  LayoutDashboard, FileText, Settings,
   Moon, Sun, Monitor, ChevronDown, AlertTriangle,
-  LogOut, Menu, X, Activity, PanelLeftClose, PanelLeft,
+  LogOut, Menu, X, PanelLeftClose, PanelLeft,
+  Pill, History, Activity
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /* ─── nav structure ─────────────────────────────────────── */
 const NAV = [
   {
-    section: 'OVERVIEW',
-    items: [{ name: 'Dashboard',      href: '/dashboard',      icon: LayoutDashboard }],
-  },
-  {
-    section: 'INVESTIGATE',
+    section: 'REFILL WORKFLOW',
     items: [
-      { name: 'Customers',      href: '/customers',      icon: Users       },
-      { name: 'Transactions',   href: '/transactions',   icon: Receipt     },
-      { name: 'Risk Clusters',  href: '/clusters',       icon: Network     },
-      { name: 'Investigations', href: '/investigations', icon: FileSearch  },
-      { name: 'Live Events',    href: '/live-events',    icon: Activity    },
+      { name: 'Dashboard',        href: '/dashboard',     icon: LayoutDashboard },
+      { name: 'Refills & Cases',  href: '/refills',       icon: Pill            },
+      { name: 'Prescriptions',    href: '/prescriptions', icon: FileText        },
+      { name: 'Audit Timeline',   href: '/audit',         icon: History         },
     ],
   },
   {
-    section: 'MEASURE',
-    items: [{ name: 'Evaluation', href: '/evaluation', icon: BarChart3 }],
-  },
-  {
-    section: 'SYSTEM',
+    section: 'ADMINISTRATION',
     items: [
-      { name: 'Audit Trail', href: '/audit',    icon: FileText  },
-      { name: 'Dataset',     href: '/dataset',  icon: Database  },
-      { name: 'Settings',    href: '/settings', icon: Settings  },
+      { name: 'Settings',         href: '/settings',      icon: Settings        },
     ],
   },
 ];

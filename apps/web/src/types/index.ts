@@ -18,8 +18,11 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'ANALYST' | 'ADMIN' | 'VIEWER';
-  merchantId: string;
+  username?: string;
+  role: 'ANALYST' | 'ADMIN' | 'VIEWER' | 'PHARMACIST' | 'PRACTICE_STAFF' | 'PROVIDER' | string;
+  roleDisplayName?: string;
+  organizationId?: number;
+  merchantId?: string;
   createdAt: string;
 }
 

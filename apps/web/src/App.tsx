@@ -14,20 +14,12 @@ import { ResetPassword }  from '@/pages/auth/ResetPassword';
 
 // App pages
 import { Dashboard }           from '@/pages/Dashboard';
-import { Customers }            from '@/pages/Customers';
-import { CustomerDetail }       from '@/pages/CustomerDetail';
-import { Transactions }         from '@/pages/Transactions';
-import { TransactionDetail }    from '@/pages/TransactionDetail';
-import { Clusters }             from '@/pages/Clusters';
-import { ClusterDetail }        from '@/pages/ClusterDetail';
-import { Investigations }       from '@/pages/Investigations';
-import { InvestigationDetail }  from '@/pages/InvestigationDetail';
-import { Evaluation }           from '@/pages/Evaluation';
-import { AuditTrail }           from '@/pages/AuditTrail';
-import { Dataset }              from '@/pages/Dataset';
-import { Settings }             from '@/pages/Settings';
-import { Landing }              from '@/pages/Landing';
-import { LiveEvents }           from '@/pages/LiveEvents';
+import { Refills }             from '@/pages/Refills';
+import { RefillDetail }        from '@/pages/RefillDetail';
+import { Prescriptions }       from '@/pages/Prescriptions';
+import { AuditTrail }          from '@/pages/AuditTrail';
+import { Settings }            from '@/pages/Settings';
+import { Landing }             from '@/pages/Landing';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -67,19 +59,11 @@ function App() {
                     <AppLayout>
                       <Routes>
                         <Route path="/dashboard"              element={<Dashboard />}          />
-                        <Route path="/customers"              element={<Customers />}          />
-                        <Route path="/customers/:id"          element={<CustomerDetail />}     />
-                        <Route path="/transactions"           element={<Transactions />}       />
-                        <Route path="/transactions/:id"       element={<TransactionDetail />}  />
-                        <Route path="/clusters"               element={<Clusters />}           />
-                        <Route path="/clusters/:id"           element={<ClusterDetail />}      />
-                        <Route path="/investigations"         element={<Investigations />}     />
-                        <Route path="/investigations/:id"     element={<InvestigationDetail />}/>
-                        <Route path="/evaluation"             element={<Evaluation />}         />
+                        <Route path="/refills"                element={<Refills />}            />
+                        <Route path="/refills/:id"            element={<RefillDetail />}       />
+                        <Route path="/prescriptions"          element={<Prescriptions />}      />
                         <Route path="/audit"                  element={<AuditTrail />}         />
-                        <Route path="/dataset"                element={<Dataset />}            />
                         <Route path="/settings"               element={<Settings />}           />
-                        <Route path="/live-events"            element={<LiveEvents />}         />
                       </Routes>
                     </AppLayout>
                   </ThemeProvider>

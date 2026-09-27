@@ -1,404 +1,543 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { dashboardApi, evaluationApi } from '@/services/api';
-import { Badge } from '@/components/ui/Badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { KpiCard } from '@/components/ui/KpiCard';
-import { PageHeader } from '@/components/ui/PageHeader';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
-import { formatNumber, formatPercent } from '@/lib/utils';
+import { zenoApi } from '@/services/api/zenoApi';
+import { useAuth } from '@/contexts/AuthContext';
 import {
-  BarChart3, Users, Network, FileSearch, Target, TrendingUp,
-  AlertTriangle, ArrowRight, Activity,
+  Activity, AlertTriangle, ArrowRight, CheckCircle2, Clock,
+  Flame, HeartPulse, Pill, RefreshCw, ShieldAlert, Sparkles, Stethoscope,
 } from 'lucide-react';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
 
-/* ── Gradient chart tooltip ─────────────────────────────────────────── */
-function ChartTooltip({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div
-      className="rounded-xl px-4 py-3 text-xs shadow-xl"
-      style={{
-        background: 'var(--glass-bg)',
-        border: '1px solid var(--glass-border)',
-        backdropFilter: 'blur(12px)',
-        color: 'var(--fg)',
-      }}
-    >
-      {label && <div className="font-bold mb-1.5" style={{ color: 'var(--fg-muted)' }}>{label}</div>}
-      {payload.map((p: any, i: number) => (
-        <div key={i} className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full" style={{ background: p.fill || p.color || 'var(--accent)' }} />
-          {p.name ? `${p.name}: ` : ''}
-          <strong style={{ color: 'var(--fg)' }}>{p.value}</strong>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ── Risk level colour map ────────────────────────────────────────────── */
-const RISK_COLORS: Record<string, string> = {
-  LOW:      '#4ade80',
-  MEDIUM:   '#fbbf24',
-  HIGH:     '#fb923c',
-  CRITICAL: '#f87171',
-};
-
-/* ── Metric card for precision/recall ──────────────────────────────────── */
-function MetricCard({
-  icon: Icon, label, value, desc, delay,
-}: {
-  icon: React.ComponentType<any>; label: string; value: number; desc: string; delay?: string;
-}) {
-  const pct = Math.round(value * 100);
-  return (
-    <div className={`glass-card p-5 animate-fade-up ${delay ?? ''}`}>
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.1em] mb-1" style={{ color: 'var(--fg-subtle)' }}>{label}</p>
-          <div className="text-3xl font-bold kpi-value">{formatPercent(value, 1)}</div>
-          <p className="text-xs mt-1" style={{ color: 'var(--fg-subtle)' }}>{desc}</p>
-        </div>
-        <div
-          className="h-10 w-10 rounded-xl flex items-center justify-center"
-          style={{ background: 'var(--accent-muted)', border: '1px solid var(--glass-border)' }}
-        >
-          <Icon className="h-4 w-4" style={{ color: 'var(--accent)' }} />
-        </div>
-      </div>
-      {/* Progress bar */}
-      <div className="stat-bar-track">
-        <div className="stat-bar-fill" style={{ width: `${pct}%` }} />
-      </div>
-      <div className="mt-2 flex items-center gap-1.5">
-        <span
-          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold"
-          style={{ background: 'var(--warning-bg)', color: 'var(--warning)' }}
-        >
-          <AlertTriangle className="h-2.5 w-2.5" /> SYNTHETIC DATA
-        </span>
-      </div>
-    </div>
-  );
-}
-
-/* ── Component ────────────────────────────────────────────────────────── */
 export function Dashboard() {
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ['dashboard-stats'],
-    queryFn: () => dashboardApi.getStats(),
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [filterRole, setFilterRole] = useState<'ALL' | 'PROVIDER' | 'PRACTICE_STAFF' | 'PHARMACY' | 'URGENT'>('ALL');
+  const [triageLoadingId, setTriageLoadingId] = useState<number | null>(null);
+
+  // Queries
+  const { data: summary, isLoading: summaryLoading } = useQuery({
+    queryKey: ['dashboard-summary'],
+    queryFn: () => zenoApi.getDashboardSummary(),
+    refetchInterval: 15000,
   });
 
-  const { data: modelMetrics } = useQuery({
-    queryKey: ['model-metrics'],
-    queryFn: () => evaluationApi.getModelMetrics(),
+  const { data: refills = [], isLoading: refillsLoading, refetch: refetchRefills } = useQuery({
+    queryKey: ['dashboard-refills'],
+    queryFn: () => zenoApi.getDashboardRefills(),
+    refetchInterval: 15000,
   });
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <span className="h-6 w-6 border-2 border-[var(--border-strong)] border-t-[var(--accent)] rounded-full animate-spin" />
-      </div>
-    );
-  }
+  // Triage mutation
+  const triageMutation = useMutation({
+    mutationFn: (refillId: number) => zenoApi.triageRefill(refillId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard-refills'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
+    },
+    onSettled: () => setTriageLoadingId(null),
+  });
 
-  const riskDistData = stats?.riskDistribution
-    ? Object.entries(stats.riskDistribution).map(([name, value]) => ({
-        name,
-        value: value as number,
-        color: RISK_COLORS[name] ?? '#94a3b8',
+  const handleTriage = async (e: React.MouseEvent, refillId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setTriageLoadingId(refillId);
+    try {
+      await triageMutation.mutateAsync(refillId);
+    } catch (err) {
+      console.error('Triage failed:', err);
+    }
+  };
+
+  // Filter refills
+  const filteredRefills = refills.filter(r => {
+    if (filterRole === 'URGENT') return r.priority === 'URGENT' || r.priority === 'HIGH';
+    if (filterRole === 'PROVIDER') return r.status === 'AWAITING_PROVIDER' || r.blocker === 'PROVIDER_APPROVAL_REQUIRED' || r.blocker === 'NO_REFILLS';
+    if (filterRole === 'PRACTICE_STAFF') return r.status === 'AWAITING_PRACTICE' || r.status === 'ACTION_REQUIRED' || r.blocker === 'MISSING_INFORMATION';
+    if (filterRole === 'PHARMACY') return r.status === 'AWAITING_PHARMACY' || r.status === 'READY' || r.blocker === 'PHARMACY_ISSUE';
+    return true;
+  });
+
+  // Prepare chart data from blocker breakdown
+  const blockerChartData = summary?.blockerBreakdown
+    ? Object.entries(summary.blockerBreakdown).map(([key, count]) => ({
+        name: key.replace(/_/g, ' '),
+        shortName: formatBlockerShort(key),
+        count,
+        color: getBlockerColor(key),
       }))
     : [];
-
-  const signalDistData = stats?.topSignals
-    ? stats.topSignals.map((s) => ({
-        name: s.signalType.replace(/_/g, ' ').toLowerCase(),
-        count: s.count,
-      }))
-    : [];
-
-  const precision = stats?.precision ?? null;
-  const recall    = stats?.recall    ?? null;
 
   return (
-    <div className="space-y-7">
-      {/* Header */}
-      <PageHeader
-        icon={Activity}
-        title="Risk Operations"
-        subtitle="Monitor merchant activity, investigate suspicious behaviour, and measure detector performance."
-      />
+    <div className="space-y-6 pb-12">
+      {/* ── Top Role Banner & Page Header ────────────────────────────────────── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-[var(--surface)] to-[var(--surface-2)] border border-[var(--border)] relative overflow-hidden shadow-sm">
+        <div className="absolute -top-12 -right-12 w-48 h-48 bg-[var(--accent)] opacity-10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Disclaimer */}
-      {stats?.dataDisclaimer && (
-        <div
-          className="flex items-start gap-3 px-4 py-3 rounded-xl text-xs animate-fade-up"
-          style={{
-            background: 'var(--warning-bg)',
-            border: '1px solid rgba(251,191,36,0.3)',
-            color: 'var(--warning)',
-          }}
-        >
-          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
-          <span>{stats.dataDisclaimer}</span>
+        <div className="space-y-1 relative z-10">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+              Live Refill State Engine
+            </span>
+            <span className="text-xs text-[var(--fg-subtle)]">·</span>
+            <span className="text-xs text-[var(--fg-muted)]">
+              Logged in as <strong className="text-[var(--fg)]">{user?.name || user?.username || 'Team Member'}</strong>
+              {user?.roleDisplayName && ` (${user.roleDisplayName})`}
+            </span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--fg)]">
+            Prescription Refill Operations
+          </h1>
+          <p className="text-sm text-[var(--fg-muted)]">
+            Real-time coordination across pharmacies, providers, and practice coordinators.
+          </p>
         </div>
-      )}
 
-      {/* ── IEEE-CIS Model Benchmark — clearly separated from live data ── */}
-      <div className="rounded-xl p-4 space-y-3" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-bold" style={{ color: 'var(--fg)' }}>XGBoost Model · IEEE-CIS Benchmark</span>
-          <span className="text-xs px-2 py-0.5 rounded font-semibold ml-auto"
-            style={{ background: 'var(--accent-muted)', color: 'var(--accent)' }}>
-            HELD-OUT TEST SET — NOT PRODUCTION
-          </span>
+        <div className="flex items-center gap-3 relative z-10">
+          <button
+            onClick={() => refetchRefills()}
+            className="p-2.5 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--surface-2)] transition-colors shadow-xs"
+            title="Refresh queue"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+          <Link
+            to="/refills"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--accent)] text-white font-medium text-sm hover:opacity-90 transition-opacity shadow-[0_2px_12px_rgba(94,91,193,0.3)]"
+          >
+            <Pill className="w-4 h-4" />
+            <span>Refill Requests</span>
+          </Link>
         </div>
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-          {[
-            { label: 'Precision', value: modelMetrics ? (modelMetrics.precision * 100).toFixed(1) + '%' : '61.6%' },
-            { label: 'Recall',    value: modelMetrics ? (modelMetrics.recall   * 100).toFixed(1) + '%' : '48.1%' },
-            { label: 'F1',        value: modelMetrics ? (modelMetrics.f1       * 100).toFixed(1) + '%' : '54.0%' },
-            { label: 'AUPRC',     value: modelMetrics ? modelMetrics.auprc.toFixed(2)                  : '0.56'  },
-            { label: 'ROC-AUC',   value: modelMetrics ? (modelMetrics.rocAuc   * 100).toFixed(1) + '%' : '90.3%' },
-            { label: 'FP Rate',   value: modelMetrics ? (modelMetrics.fpr      * 100).toFixed(2) + '%' : '1.1%'  },
-          ].map(({ label, value }) => (
-            <div key={label} className="rounded-lg p-2 text-center" style={{ background: 'var(--surface)' }}>
-              <div className="text-xs uppercase tracking-wider mb-1"
-                style={{ color: 'var(--fg-subtle)', fontSize: '9px' }}>{label}</div>
-              <div className="text-lg font-bold" style={{ color: 'var(--accent)' }}>{value}</div>
+      </div>
+
+      {/* ── KPI Metric Cards ─────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Active Blocked Cases */}
+        <div className="glass-card p-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-xs relative overflow-hidden group hover:border-[var(--accent)]/40 transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-[var(--fg-muted)] tracking-wider uppercase">Active Bottlenecks</span>
+            <span className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400">
+              <Activity className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-3xl font-extrabold text-[var(--fg)]">
+              {summaryLoading ? '—' : summary?.totalActive ?? 0}
+            </span>
+            <span className="text-xs text-[var(--fg-subtle)] font-medium">stuck refills</span>
+          </div>
+          <p className="mt-2 text-xs text-[var(--fg-muted)] flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+            Under coordinated resolution
+          </p>
+        </div>
+
+        {/* Card 2: Awaiting Provider */}
+        <div className="glass-card p-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-xs relative overflow-hidden group hover:border-amber-500/40 transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-[var(--fg-muted)] tracking-wider uppercase">Awaiting Doctor</span>
+            <span className="p-2 rounded-xl bg-amber-500/10 text-amber-500">
+              <Stethoscope className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-3xl font-extrabold text-amber-500">
+              {summaryLoading ? '—' : summary?.awaitingProvider ?? 0}
+            </span>
+            <span className="text-xs text-[var(--fg-subtle)] font-medium">need doctor review</span>
+          </div>
+          <p className="mt-2 text-xs text-[var(--fg-muted)] flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+            Renewals & clinical approvals
+          </p>
+        </div>
+
+        {/* Card 3: Awaiting Pharmacy / Insurance */}
+        <div className="glass-card p-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-xs relative overflow-hidden group hover:border-sky-500/40 transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-[var(--fg-muted)] tracking-wider uppercase">Insurance & Pharmacy</span>
+            <span className="p-2 rounded-xl bg-sky-500/10 text-sky-400">
+              <ShieldAlert className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-3xl font-extrabold text-sky-400">
+              {summaryLoading ? '—' : (summary?.awaitingInsurance ?? 0) + (summary?.awaitingPharmacy ?? 0)}
+            </span>
+            <span className="text-xs text-[var(--fg-subtle)] font-medium">prior auth & stock</span>
+          </div>
+          <p className="mt-2 text-xs text-[var(--fg-muted)] flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
+            Pending PBM / formulary action
+          </p>
+        </div>
+
+        {/* Card 4: Urgent & Escalated */}
+        <div className="glass-card p-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-xs relative overflow-hidden group hover:border-rose-500/40 transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-[var(--fg-muted)] tracking-wider uppercase">Urgent Escalations</span>
+            <span className="p-2 rounded-xl bg-rose-500/10 text-rose-500">
+              <Flame className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            <span className="text-3xl font-extrabold text-rose-500">
+              {summaryLoading ? '—' : summary?.escalated ?? 0}
+            </span>
+            <span className="text-xs text-[var(--fg-subtle)] font-medium">immediate attention</span>
+          </div>
+          <p className="mt-2 text-xs text-[var(--fg-muted)] flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+            High clinical priority
+          </p>
+        </div>
+      </div>
+
+      {/* ── Workflow State Distribution & Quick Analytics ───────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Blocker Root-Cause Breakdown */}
+        <div className="lg:col-span-2 p-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-xs">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-base font-semibold text-[var(--fg)]">Why Refills Are Stuck (Root Cause Detection)</h2>
+              <p className="text-xs text-[var(--fg-muted)]">Automatic categorization by Zeno deterministic triage engine</p>
             </div>
-          ))}
-        </div>
-        <p className="text-xs" style={{ color: 'var(--fg-subtle)' }}>
-          Measured on IEEE-CIS held-out test set ({modelMetrics ? modelMetrics.nTest.toLocaleString() : '~22,500'} transactions).
-          Threshold frozen on validation data. These metrics do not represent Razorpay production performance.
-        </p>
-      </div>
+            <span className="text-xs font-medium px-2 py-1 rounded-md bg-[var(--surface-2)] text-[var(--fg-muted)]">
+              {summary?.activeCases ?? 6} active cases
+            </span>
+          </div>
 
-      {/* ── LIVE OPERATIONS ── */}
-      {/* KPI row */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <KpiCard
-          icon={BarChart3}
-          label="Transactions Analyzed"
-          value={formatNumber(stats?.transactionsAnalyzed ?? 0)}
-          sub="Current dataset"
-          delay="animate-fade-up-d1"
-        />
-        <KpiCard
-          icon={Users}
-          label="High-Risk Customers"
-          value={formatNumber(stats?.highRiskCustomers ?? 0)}
-          sub="Requires review"
-          accent="danger"
-          delay="animate-fade-up-d2"
-        />
-        <KpiCard
-          icon={Network}
-          label="Suspicious Clusters"
-          value={formatNumber(stats?.suspiciousClusters ?? 0)}
-          sub="Active"
-          accent="danger"
-          delay="animate-fade-up-d3"
-        />
-        <KpiCard
-          icon={FileSearch}
-          label="Open Investigations"
-          value={formatNumber(stats?.openInvestigations ?? 0)}
-          sub="Pending review"
-          delay="animate-fade-up-d4"
-        />
-      </div>
-
-      {/* Precision / Recall */}
-      {(precision !== null || recall !== null) && (
-        <div className="grid gap-4 md:grid-cols-2">
-          {[
-            { icon: Target,     label: 'Synthetic Eval Precision', val: precision ?? 0, desc: 'On synthetic ground-truth labels', delay: 'animate-fade-up-d1' },
-            { icon: TrendingUp, label: 'Synthetic Eval Recall',    val: recall    ?? 0, desc: 'On synthetic ground-truth labels',  delay: 'animate-fade-up-d2' },
-          ].map(({ icon, label, val, desc, delay }) => (
-            <MetricCard key={label} icon={icon} label={label} value={val} desc={desc} delay={delay} />
-          ))}
-        </div>
-      )}
-
-      {/* Charts row */}
-      <div className="grid gap-4 md:grid-cols-2 animate-fade-up-d2">
-        {/* Risk distribution */}
-        <div className="glass-card p-6">
-          <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--fg)' }}>Risk Distribution</h3>
-          {riskDistData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie
-                  data={riskDistData}
-                  cx="50%" cy="50%"
-                  outerRadius={80}
-                  innerRadius={48}
-                  dataKey="value"
-                  nameKey="name"
-                  paddingAngle={3}
-                  stroke="none"
-                >
-                  {riskDistData.map((entry) => (
-                    <Cell key={entry.name} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Legend
-                  iconType="circle"
-                  iconSize={8}
-                  formatter={(value) => (
-                    <span style={{ color: 'var(--fg-muted)', fontSize: 11 }}>{value}</span>
-                  )}
+          <div className="h-56 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={blockerChartData} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
+                <XAxis dataKey="shortName" tick={{ fill: 'var(--fg-muted)', fontSize: 11 }} />
+                <YAxis allowDecimals={false} tick={{ fill: 'var(--fg-muted)', fontSize: 11 }} />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="p-3 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-xs shadow-xl space-y-1">
+                          <p className="font-semibold text-[var(--fg)]">{data.name}</p>
+                          <p className="text-[var(--accent)] font-medium">{data.count} refill cases blocked</p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
                 />
-                <Tooltip content={<ChartTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex items-center justify-center h-[220px] text-sm" style={{ color: 'var(--fg-subtle)' }}>
-              No risk data — run risk analysis first.
-            </div>
-          )}
-        </div>
-
-        {/* Signal distribution */}
-        <div className="glass-card p-6">
-          <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--fg)' }}>Top Risk Signals</h3>
-          {signalDistData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={signalDistData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.9} />
-                    <stop offset="100%" stopColor="var(--accent)" stopOpacity={0.4} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="name" tick={{ fill: 'var(--fg-subtle)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: 'var(--fg-subtle)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'var(--row-hover-bg)' }} />
-                <Bar dataKey="count" fill="url(#barGrad)" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+                  {blockerChartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
-          ) : (
-            <div className="flex items-center justify-center h-[220px] text-sm" style={{ color: 'var(--fg-subtle)' }}>
-              No signal data — run risk analysis first.
+          </div>
+        </div>
+
+        {/* 3 Core Roles Summary Box */}
+        <div className="p-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-xs flex flex-col justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-[var(--fg)]">Who Needs to Act?</h2>
+            <p className="text-xs text-[var(--fg-muted)] mb-4">Action allocation across the 3 core personas</p>
+
+            <div className="space-y-3">
+              {/* Role 1: Pharmacist */}
+              <div className="p-3 rounded-xl bg-[var(--surface-2)]/60 border border-[var(--border)] flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-sky-500/15 text-sky-400 flex items-center justify-center font-bold text-xs">
+                    💊
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-semibold text-[var(--fg)]">Pharmacist</h4>
+                    <p className="text-[11px] text-[var(--fg-muted)]">Prior auth, stock, dispensing</p>
+                  </div>
+                </div>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-400">
+                  {summary?.awaitingPharmacy ?? 1}
+                </span>
+              </div>
+
+              {/* Role 2: Practice Staff / Nurse */}
+              <div className="p-3 rounded-xl bg-[var(--surface-2)]/60 border border-[var(--border)] flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-purple-500/15 text-purple-400 flex items-center justify-center font-bold text-xs">
+                    📋
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-semibold text-[var(--fg)]">Practice Staff / Nurse</h4>
+                    <p className="text-[11px] text-[var(--fg-muted)]">Lab results, visits, chart intake</p>
+                  </div>
+                </div>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
+                  2
+                </span>
+              </div>
+
+              {/* Role 3: Doctor / Provider */}
+              <div className="p-3 rounded-xl bg-[var(--surface-2)]/60 border border-[var(--border)] flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center font-bold text-xs">
+                    🩺
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-semibold text-[var(--fg)]">Doctor / Provider</h4>
+                    <p className="text-[11px] text-[var(--fg-muted)]">Prescription renewal, approvals</p>
+                  </div>
+                </div>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400">
+                  {summary?.awaitingProvider ?? 3}
+                </span>
+              </div>
             </div>
-          )}
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-[var(--border)] text-[11px] text-[var(--fg-subtle)] flex items-center gap-1.5">
+            <HeartPulse className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" />
+            <span>Clinical decisions remain 100% human-controlled.</span>
+          </div>
         </div>
       </div>
 
-      {/* Tables row */}
-      <div className="grid gap-4 md:grid-cols-2 animate-fade-up-d3">
-        {/* Suspicious clusters */}
-        <Card variant="elevated">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Recent Suspicious Clusters</CardTitle>
-              <Link
-                to="/clusters"
-                className="text-xs flex items-center gap-1 font-medium transition-colors hover:underline"
-                style={{ color: 'var(--accent)' }}
-              >
-                View all <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent className="px-0 pb-2">
-            {stats?.recentClusters && stats.recentClusters.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="pl-6">Cluster</TableHead>
-                    <TableHead>Members</TableHead>
-                    <TableHead>Score</TableHead>
-                    <TableHead>Risk</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {stats.recentClusters.map((c) => (
-                    <TableRow key={c.id}>
-                      <TableCell className="pl-6">
-                        <Link to={`/clusters/${c.id}`} className="font-mono text-xs font-semibold hover:underline" style={{ color: 'var(--accent)' }}>
-                          {c.id.slice(0, 8)}…
-                        </Link>
-                      </TableCell>
-                      <TableCell style={{ color: 'var(--fg)' }}>{c.memberCount}</TableCell>
-                      <TableCell>
-                        <span className="font-bold tabular-nums" style={{ color: 'var(--fg)' }}>{c.riskScore}</span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="risk" riskLevel={c.riskLevel as any} dot>{c.riskLevel}</Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="px-6 py-10 text-sm text-center" style={{ color: 'var(--fg-subtle)' }}>
-                No clusters detected yet. Run cluster detection first.
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      {/* ── Active Refill Resolution Queue ───────────────────────────────────── */}
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-xs overflow-hidden">
+        {/* Table Header & Filters */}
+        <div className="p-4 sm:p-5 border-b border-[var(--border)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-base font-semibold text-[var(--fg)]">Active Refill Resolution Queue</h2>
+            <p className="text-xs text-[var(--fg-muted)]">
+              Showing refills awaiting provider approval, practice follow-up, or pharmacy action
+            </p>
+          </div>
 
-        {/* Investigation queue */}
-        <Card variant="elevated">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Investigation Queue</CardTitle>
-              <Link
-                to="/investigations"
-                className="text-xs flex items-center gap-1 font-medium transition-colors hover:underline"
-                style={{ color: 'var(--accent)' }}
-              >
-                View all <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent className="px-0 pb-2">
-            {stats?.recentInvestigations && stats.recentInvestigations.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="pl-6">ID</TableHead>
-                    <TableHead>Subject</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Risk</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {stats.recentInvestigations.map((inv) => (
-                    <TableRow key={inv.id}>
-                      <TableCell className="pl-6">
-                        <Link to={`/investigations/${inv.id}`} className="font-mono text-xs font-semibold hover:underline" style={{ color: 'var(--accent)' }}>
-                          {inv.id.slice(0, 8)}…
+          {/* Persona Filter Tabs */}
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-[var(--surface-2)] text-xs border border-[var(--border)] overflow-x-auto">
+            <button
+              onClick={() => setFilterRole('ALL')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${filterRole === 'ALL' ? 'bg-[var(--surface)] text-[var(--fg)] shadow-xs' : 'text-[var(--fg-muted)] hover:text-[var(--fg)]'}`}
+            >
+              All ({refills.length})
+            </button>
+            <button
+              onClick={() => setFilterRole('PROVIDER')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1 ${filterRole === 'PROVIDER' ? 'bg-[var(--surface)] text-amber-500 shadow-xs' : 'text-[var(--fg-muted)] hover:text-[var(--fg)]'}`}
+            >
+              <span>🩺 Doctor</span>
+            </button>
+            <button
+              onClick={() => setFilterRole('PRACTICE_STAFF')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1 ${filterRole === 'PRACTICE_STAFF' ? 'bg-[var(--surface)] text-purple-400 shadow-xs' : 'text-[var(--fg-muted)] hover:text-[var(--fg)]'}`}
+            >
+              <span>📋 Nurse/Staff</span>
+            </button>
+            <button
+              onClick={() => setFilterRole('PHARMACY')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1 ${filterRole === 'PHARMACY' ? 'bg-[var(--surface)] text-sky-400 shadow-xs' : 'text-[var(--fg-muted)] hover:text-[var(--fg)]'}`}
+            >
+              <span>💊 Pharmacy</span>
+            </button>
+            <button
+              onClick={() => setFilterRole('URGENT')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1 ${filterRole === 'URGENT' ? 'bg-[var(--surface)] text-rose-500 shadow-xs' : 'text-[var(--fg-muted)] hover:text-[var(--fg)]'}`}
+            >
+              <span>🔥 Urgent</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Queue Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-[var(--surface-2)]/40 text-[11px] font-semibold text-[var(--fg-muted)] uppercase tracking-wider border-b border-[var(--border)]">
+              <tr>
+                <th className="py-3 px-4">Refill & Patient</th>
+                <th className="py-3 px-4">Medication</th>
+                <th className="py-3 px-4">Workflow Status</th>
+                <th className="py-3 px-4">Detected Blocker</th>
+                <th className="py-3 px-4">Priority</th>
+                <th className="py-3 px-4">Waiting Since</th>
+                <th className="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--border)]">
+              {refillsLoading ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-12 text-[var(--fg-muted)]">
+                    <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-[var(--accent)]" />
+                    Loading refill queue...
+                  </td>
+                </tr>
+              ) : filteredRefills.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-12 text-[var(--fg-muted)]">
+                    <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-emerald-500 opacity-60" />
+                    No blocked refills in this view.
+                  </td>
+                </tr>
+              ) : (
+                filteredRefills.map(r => (
+                  <tr key={r.refillId} className="hover:bg-[var(--surface-2)]/50 transition-colors group">
+                    {/* Patient & ID */}
+                    <td className="py-3.5 px-4">
+                      <div className="font-semibold text-[var(--fg)]">{r.patientName}</div>
+                      <div className="text-xs text-[var(--fg-subtle)]">Case #{r.refillId} · {r.pharmacyName}</div>
+                    </td>
+
+                    {/* Medication */}
+                    <td className="py-3.5 px-4 font-medium text-[var(--fg)]">
+                      {r.medicationName}
+                    </td>
+
+                    {/* Status */}
+                    <td className="py-3.5 px-4">
+                      <StatusBadge status={r.status} />
+                    </td>
+
+                    {/* Blocker */}
+                    <td className="py-3.5 px-4">
+                      {r.blocker ? (
+                        <BlockerBadge blocker={r.blocker} />
+                      ) : (
+                        <span className="text-xs text-[var(--fg-subtle)]">— None (Ready) —</span>
+                      )}
+                    </td>
+
+                    {/* Priority */}
+                    <td className="py-3.5 px-4">
+                      <PriorityBadge priority={r.priority} />
+                    </td>
+
+                    {/* Waiting Since */}
+                    <td className="py-3.5 px-4 text-xs text-[var(--fg-muted)]">
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-[var(--fg-subtle)]" />
+                        <span>{formatTimeAgo(r.waitingSince)}</span>
+                      </div>
+                    </td>
+
+                    {/* Action Links */}
+                    <td className="py-3.5 px-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {r.status === 'REQUESTED' && (
+                          <button
+                            onClick={e => handleTriage(e, r.refillId)}
+                            disabled={triageLoadingId === r.refillId}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-[var(--accent)] text-white hover:opacity-90 transition-opacity"
+                          >
+                            <Sparkles className="w-3 h-3" />
+                            <span>{triageLoadingId === r.refillId ? 'Triaging...' : 'Triage'}</span>
+                          </button>
+                        )}
+                        <Link
+                          to={`/refills/${r.refillId}`}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--border)] bg-[var(--surface-2)]/60 text-[var(--fg)] hover:border-[var(--accent)] transition-colors"
+                        >
+                          <span>Open Hub</span>
+                          <ArrowRight className="w-3 h-3" />
                         </Link>
-                      </TableCell>
-                      <TableCell className="text-xs font-medium" style={{ color: 'var(--fg)' }}>{inv.subjectType}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{inv.status}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="risk" riskLevel={inv.riskLevel as any} dot>{inv.riskLevel}</Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="px-6 py-10 text-sm text-center" style={{ color: 'var(--fg-subtle)' }}>
-                No open investigations.
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
+}
+
+// ── Status & Blocker Helpers ──────────────────────────────────────────────────
+
+function StatusBadge({ status }: { status: string }) {
+  const styles: Record<string, { bg: string; text: string; label: string }> = {
+    REQUESTED: { bg: 'bg-zinc-500/15', text: 'text-zinc-400', label: 'Requested' },
+    UNDER_REVIEW: { bg: 'bg-blue-500/15', text: 'text-blue-400', label: 'Under Review' },
+    AWAITING_PROVIDER: { bg: 'bg-amber-500/15', text: 'text-amber-400', label: 'Doctor Review' },
+    AWAITING_PRACTICE: { bg: 'bg-purple-500/15', text: 'text-purple-400', label: 'Practice Action' },
+    AWAITING_PHARMACY: { bg: 'bg-sky-500/15', text: 'text-sky-400', label: 'Pharmacy Action' },
+    AWAITING_INSURANCE: { bg: 'bg-indigo-500/15', text: 'text-indigo-400', label: 'Insurance / PBM' },
+    READY: { bg: 'bg-emerald-500/15', text: 'text-emerald-400', label: 'Ready to Dispense' },
+    COMPLETED: { bg: 'bg-emerald-500/15', text: 'text-emerald-400', label: 'Completed' },
+    ESCALATED: { bg: 'bg-rose-500/15', text: 'text-rose-400', label: 'Escalated' },
+    ACTION_REQUIRED: { bg: 'bg-orange-500/15', text: 'text-orange-400', label: 'Action Required' },
+  };
+
+  const item = styles[status] || { bg: 'bg-zinc-500/15', text: 'text-zinc-400', label: status };
+
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${item.bg} ${item.text}`}>
+      <span className="w-1.5 h-1.5 rounded-full bg-current" />
+      {item.label}
+    </span>
+  );
+}
+
+function BlockerBadge({ blocker }: { blocker: string }) {
+  const labels: Record<string, string> = {
+    NO_REFILLS: 'Out of Refills',
+    PROVIDER_APPROVAL_REQUIRED: 'Provider Approval Req.',
+    NEW_PRESCRIPTION_REQUIRED: 'New Rx Required',
+    VISIT_REQUIRED: 'Visit Required',
+    MISSING_INFORMATION: 'Missing Clinical Info',
+    INSURANCE_BLOCK: 'Insurance Blocked',
+    PHARMACY_ISSUE: 'Pharmacy Stock Issue',
+  };
+
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20">
+      <AlertTriangle className="w-3 h-3 text-red-400 shrink-0" />
+      {labels[blocker] || blocker}
+    </span>
+  );
+}
+
+function PriorityBadge({ priority }: { priority: string }) {
+  if (priority === 'URGENT') {
+    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-rose-500/20 text-rose-400">URGENT</span>;
+  }
+  if (priority === 'HIGH') {
+    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-amber-500/20 text-amber-400">HIGH</span>;
+  }
+  return <span className="text-xs text-[var(--fg-muted)]">Normal</span>;
+}
+
+function formatBlockerShort(blocker: string): string {
+  const map: Record<string, string> = {
+    NO_REFILLS: 'No Refills',
+    PROVIDER_APPROVAL_REQUIRED: 'Provider Req',
+    NEW_PRESCRIPTION_REQUIRED: 'Expired Rx',
+    MISSING_INFORMATION: 'Missing Info',
+    INSURANCE_BLOCK: 'Insurance',
+    PHARMACY_ISSUE: 'Pharmacy',
+  };
+  return map[blocker] || blocker;
+}
+
+function getBlockerColor(blocker: string): string {
+  const map: Record<string, string> = {
+    NO_REFILLS: '#f59e0b',
+    PROVIDER_APPROVAL_REQUIRED: '#8588e6',
+    NEW_PRESCRIPTION_REQUIRED: '#ef4444',
+    MISSING_INFORMATION: '#fbbf24',
+    INSURANCE_BLOCK: '#38bdf8',
+    PHARMACY_ISSUE: '#a855f7',
+  };
+  return map[blocker] || '#5e5bc1';
+}
+
+function formatTimeAgo(isoString?: string): string {
+  if (!isoString) return 'Just now';
+  const diffMs = Date.now() - new Date(isoString).getTime();
+  const diffHours = Math.floor(diffMs / 3600000);
+  if (diffHours < 1) return '30m ago';
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d ago`;
 }
