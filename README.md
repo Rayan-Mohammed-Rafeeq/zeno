@@ -238,16 +238,16 @@ sequenceDiagram
 
     Staff->>UI: Submit refill request
     UI->>API: POST /api/refills + bearer token
-    API->>Auth: Validate JWT; attach user, role, organization
+    API->>Auth: Validate token and attach identity claims
     Auth-->>API: Authenticated principal
-    API->>DB: Load prescription, patient, pharmacy, user
+    API->>DB: Load prescription and related records
     API->>DB: Save REQUESTED refill + REFILL_REQUESTED event
     API-->>UI: New refill
 
     Staff->>UI: Start triage
     UI->>API: POST /api/refills/{id}/triage
     API->>Auth: Validate bearer token
-    API->>Flow: triage(refillId, actor)
+    API->>Flow: Triage refill with authenticated actor
     Flow->>DB: Load refill and prescription
     Flow->>DB: Save UNDER_REVIEW + status event
     Flow->>Flow: Apply deterministic blocker rules
@@ -287,7 +287,7 @@ sequenceDiagram
     API->>API: Load case and linked refill
     API->>Builder: Build bounded case context
     Builder->>DB: Load recent events and existing actions
-    Builder-->>API: Selected refill, prescription, case, role, action and timeline data
+    Builder-->>API: Selected refill and bounded workflow context
     API->>Client: POST analysis + correlation ID
     Client->>AI: POST /api/ai/refill-resolution/analyze
     AI->>AI: Validate request and optional service bearer key
@@ -305,7 +305,7 @@ sequenceDiagram
         API->>DB: Append AI_RECOMMENDATION_RECEIVED event
         API-->>UI: Recommendation for human review
         Reviewer->>UI: Review and manually create/complete an action
-    else AI disabled, invalid, timeout, or unavailable
+    else AI disabled or unavailable, or response invalid or timed out
         API->>DB: Append manual-workflow event
         API-->>UI: Continue with manual workflow
     end
@@ -456,7 +456,7 @@ sequenceDiagram
     API->>Auth: Authenticate credentials
     Auth->>DB: Find user
     Auth->>Auth: BCrypt password match + active account check
-    Auth-->>Browser: Signed JWT with username, role, organization
+    Auth-->>Browser: Signed JWT with account and organization claims
     Browser->>Browser: Store access token
     User->>Browser: Open protected workspace
     Browser->>API: REST request + Authorization: Bearer JWT
@@ -465,7 +465,7 @@ sequenceDiagram
     API-->>Browser: Response
 
     opt Self-service registration
-        User->>Browser: Submit profile, role, organization
+        User->>Browser: Submit profile and organization details
         Browser->>API: POST /api/auth/register (public)
         API->>Auth: Reject ADMIN role; create organization if needed
         Auth->>DB: Save organization and user
@@ -475,7 +475,7 @@ sequenceDiagram
     opt Password reset
         User->>Browser: Request reset link
         Browser->>API: POST /api/auth/forgot-password (public)
-        API->>Auth: Generate random, expiring, one-use token
+        API->>Auth: Generate random token with expiry and one-use limit
         Auth->>DB: Save reset token
         Auth-->>User: Send link through configured email service
         User->>Browser: Submit token + new password
