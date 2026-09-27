@@ -910,9 +910,9 @@ export function Register() {
     if (password.length < 8)  { setError('Password must be at least 8 characters.'); return; }
     setLoading(true);
     try {
-      await register({ name, email, password, confirmPassword: confirm, merchantName });
+      await register({ name, email, password, confirmPassword: confirm, merchantName, role: selectedRole });
       setSuccess(true);
-      setTimeout(() => navigate('/verify-email'), 1800);
+      setTimeout(() => navigate('/login'), 1800);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Registration failed.';
       setError(msg);
@@ -1023,7 +1023,7 @@ export function Register() {
               {success && (
                 <div className="zeno-success" role="status">
                   <CheckCircle size={15} style={{ flexShrink: 0, marginTop: 1 }} aria-hidden />
-                  <span>Workspace created! Redirecting…</span>
+                  <span>Workspace created! Redirecting to sign in…</span>
                 </div>
               )}
 

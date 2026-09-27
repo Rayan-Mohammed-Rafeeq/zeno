@@ -66,8 +66,8 @@ public class SecurityConfig {
                 .requestMatchers("/v3/api-docs/**").permitAll()
                 .requestMatchers("/swagger-ui/**").permitAll()
                 .requestMatchers("/swagger-ui.html").permitAll()
-                // Admin-only registration
-                .requestMatchers("/api/auth/register").hasAuthority("ADMIN")
+                // Self-service registration creates only regular organization accounts.
+                .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                 // Require authentication for everything else
                 .anyRequest().authenticated()
             )

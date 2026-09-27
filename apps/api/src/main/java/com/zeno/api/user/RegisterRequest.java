@@ -7,5 +7,6 @@ public record RegisterRequest(
         String firstName,
         String lastName,
         String email,
-        Long organizationId
+        Long organizationId,
+        String organizationName
 ) {}

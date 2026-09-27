@@ -121,16 +121,20 @@ export const authApi = {
       return { message: 'Registration successful. Please check your email to verify your account.' };
     }
 
-    // confirmPassword is client-side only — send only the fields the backend expects
-    return apiRequest<{ message: string }>('/auth/register', {
+    const [firstName, ...lastNameParts] = data.name.trim().split(/\s+/);
+    await apiRequest('/auth/register', {
       method: 'POST',
       body: JSON.stringify({
-        name: data.name,
+        username: data.email.split('@')[0],
         email: data.email,
         password: data.password,
-        merchantName: data.merchantName,
+        role: data.role,
+        firstName,
+        lastName: lastNameParts.join(' '),
+        organizationName: data.merchantName,
       }),
     });
+    return { message: 'Workspace created. You can now sign in.' };
   },
 
   async resendVerification(data: { email: string }): Promise<{ message: string }> {

@@ -486,6 +486,7 @@ export interface RegisterRequest {
   password: string;
   confirmPassword: string;
   merchantName: string;
+  role: 'PROVIDER' | 'PRACTICE_STAFF' | 'PHARMACIST';
 }
 
 export interface VerifyEmailRequest {

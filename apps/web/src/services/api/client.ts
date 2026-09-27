@@ -43,7 +43,15 @@ export async function apiRequest<T>(
     throw new ApiError(message, response.status, errorBody);
   }
 
-  const body = await response.json();
+  const responseText = await response.text();
+  if (!responseText.trim()) return undefined as T;
+
+  let body: any;
+  try {
+    body = JSON.parse(responseText);
+  } catch {
+    throw new ApiError('The server returned an invalid response.', response.status, responseText);
+  }
   return (body?.data !== undefined ? body.data : body) as T;
 }
 

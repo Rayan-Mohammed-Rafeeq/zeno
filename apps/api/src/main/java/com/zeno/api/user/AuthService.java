@@ -77,14 +77,13 @@ public class AuthService {
     }
 
     public AuthResponse register(RegisterRequest request) {
+        if (request.username() == null || request.username().isBlank()
+                || request.password() == null || request.email() == null
+                || request.role() == null || request.firstName() == null) {
+            throw new BusinessException("Username, email, password, name, and role are required.");
+        }
         if (userRepository.existsByUsername(request.username())) {
             throw new BusinessException("Username already exists: " + request.username());
-        }
-
-        Organization organization = null;
-        if (request.organizationId() != null) {
-            organization = organizationRepository.findById(request.organizationId())
-                    .orElseThrow(() -> ResourceNotFoundException.of("Organization", request.organizationId()));
         }
 
         UserRole role;
@@ -92,6 +91,27 @@ public class AuthService {
             role = UserRole.valueOf(request.role().toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new BusinessException("Invalid role: " + request.role());
+        }
+        if (role == UserRole.ADMIN) {
+            throw new BusinessException("Administrator accounts can only be created by an administrator.");
+        }
+
+        Organization organization;
+        if (request.organizationId() != null) {
+            organization = organizationRepository.findById(request.organizationId())
+                    .orElseThrow(() -> ResourceNotFoundException.of("Organization", request.organizationId()));
+        } else {
+            if (request.organizationName() == null || request.organizationName().isBlank()) {
+                throw new BusinessException("Organization name is required.");
+            }
+            Organization.OrganizationType type = role == UserRole.PHARMACIST || role == UserRole.PHARMACY_STAFF
+                    ? Organization.OrganizationType.PHARMACY
+                    : Organization.OrganizationType.PRACTICE;
+            organization = organizationRepository.save(Organization.builder()
+                    .name(request.organizationName().trim())
+                    .type(type)
+                    .email(request.email().trim())
+                    .build());
         }
 
         User user = User.builder()

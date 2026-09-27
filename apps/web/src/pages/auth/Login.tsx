@@ -929,7 +929,7 @@ export function Login() {
     setError('');
     setLoading(true);
     try {
-      await login({ email, password });
+      await login({ email, password }, selectedRole);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Invalid email or password.';
       setError(msg);

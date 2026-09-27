@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (data: LoginRequest) => Promise<void>;
+  login: (data: LoginRequest, expectedRole?: User['role']) => Promise<void>;
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -33,16 +33,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const login = async (data: LoginRequest) => {
+  const login = async (data: LoginRequest, expectedRole?: User['role']) => {
     const { user } = await authApi.login(data);
+    const actualRole = user.role === 'PHARMACY_STAFF' ? 'PHARMACIST' : user.role;
+    if (expectedRole && actualRole !== expectedRole) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      const labels: Record<string, string> = {
+        PROVIDER: 'Doctor / Provider',
+        PRACTICE_STAFF: 'Practice Staff / Nurse',
+        PHARMACIST: 'Pharmacist',
+        ADMIN: 'Administrator',
+      };
+      throw new Error(`This account uses the ${labels[actualRole] ?? actualRole} profile. Select that profile to sign in.`);
+    }
     setUser(user);
     navigate('/dashboard');
   };
 
   const register = async (data: RegisterRequest) => {
     await authApi.register(data);
-    // Redirect to verify-email so the user knows to check their inbox
-    navigate('/verify-email');
   };
 
   const logout = async () => {
