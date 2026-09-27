@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" width="220" height="220">
+  <title>Zeno</title>
+  <style>
+    :root { color-scheme: light dark; }
+    .zeno-ribbon { fill: #ffffff; }
+    .zeno-accent { fill: #8588e6; }
+  </style>
+  <g transform="translate(-149.20012, -128.80196)">
+    <!-- White diagonal ribbon -->
+    <path
+       class="zeno-ribbon"
+       d="m 208.702,150.7152 q 0,-7.24346 8.51726,-7.24346 l 88.72144,64.67371 q 5.67816,4.13912 5.67816,9.83039 v 40.3564 q 0,7.24345 -8.51725,1.03478 l -88.72144,-64.67371 q -5.67817,-4.13911 -5.67817,-9.8304 z"
+       fill="#ffffff"
+       style="stroke-width:0.605993" />
+    <!-- Lavender dot -->
+    <ellipse
+       class="zeno-accent"
+       cx="216.40025"
+       cy="235.96991"
+       fill="#8588e6"
+       rx="9.6188698"
+       ry="9.9283047"
+       style="stroke-width:1.08582" />
+    <!-- Lavender bar 1 -->
+    <rect
+       class="zeno-accent"
+       x="209.01912"
+       y="254.70947"
+       width="16"
+       height="57.992519"
+       rx="8"
+       fill="#8588e6"
+       style="stroke-width:1.34621" />
+    <!-- Lavender bar 2 (tallest) -->
+    <rect
+       class="zeno-accent"
+       x="232.02286"
+       y="222.94724"
+       width="22.807566"
+       height="111.18494"
+       rx="11.403783"
+       fill="#8588e6"
+       style="stroke-width:1.31253" />
+    <!-- Lavender bar 3 -->
+    <rect
+       class="zeno-accent"
+       x="262.45303"
+       y="248.51706"
+       width="17.23774"
+       height="68"
+       rx="8.6188698"
+       fill="#8588e6"
+       style="stroke-width:1.03796" />
+    <!-- Lavender bar 4 (shortest) -->
+    <rect
+       class="zeno-accent"
+       x="286.69452"
+       y="266.27933"
+       width="16"
+       height="33.954697"
+       rx="8"
+       fill="#8588e6"
+       style="stroke-width:0.899136" />
+  </g>
+</svg>

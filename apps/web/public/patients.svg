@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 597.9624 746.85157"
+   fill="none"
+   version="1.1"
+   id="svg19"
+   sodipodi:docname="profile-users.svg"
+   width="597.9624"
+   height="746.85156"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs19" />
+  <sodipodi:namedview
+     id="namedview19"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.6463398"
+     inkscape:cx="237.49118"
+     inkscape:cy="333.41595"
+     inkscape:window-width="1440"
+     inkscape:window-height="829"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg19" />
+  <ellipse
+     cx="442.09476"
+     cy="719.54974"
+     rx="155.86761"
+     ry="24.2075"
+     fill="#d9d6d2"
+     opacity="0.55"
+     id="ellipse1"
+     style="fill:#808080;stroke-width:0.571561" />
+  <!-- Soft circular badge -->
+  <!-- Subtle ground shadow -->
+  <ellipse
+     cx="161.28271"
+     cy="718.77612"
+     rx="139.62228"
+     ry="28.075436"
+     fill="#d9d6d2"
+     opacity="0.55"
+     id="ellipse2"
+     style="fill:#808080;stroke-width:0.582572" />
+  <!-- Back row: tan person -->
+  <circle
+     cx="132.22649"
+     cy="184.58765"
+     r="102"
+     fill="#e4b98f"
+     id="circle3" />
+  <ellipse
+     cx="139.62228"
+     cy="587.26642"
+     rx="139.62228"
+     ry="28.075436"
+     fill="#d9d6d2"
+     opacity="0.55"
+     id="ellipse3"
+     style="fill:#808080;stroke-width:0.582572" />
+  <path
+     d="m 10.226486,404.58765 c 0,-100 50,-152 122.000004,-152 72,0 122,52 122,152 v 180 H 10.226486 Z"
+     fill="#f0a44c"
+     id="path3" />
+  <!-- Back row: orange-haired person -->
+  <circle
+     cx="464.22647"
+     cy="184.58765"
+     r="104"
+     fill="#f2b47c"
+     id="circle4" />
+  <path
+     d="m 379.99571,160.7586 c 10.65799,-67.557013 64.65846,-94.852771 114.39572,-81.204892 35.52663,9.553516 59.68473,35.484482 68.21112,73.016162 -24.1581,-24.56619 -53.28993,-36.16689 -87.39549,-36.16689 -35.52663,0 -68.21112,14.33029 -95.21135,44.35562 z"
+     fill="#202226"
+     id="path21"
+     style="stroke-width:0.696322" />
+  <path
+     d="m 336.22649,405.58765 c 0,-101 54,-153 128,-153 74,0 128,52 128,153 v 179 h -256 z"
+     fill="#3b8ec9"
+     id="path4" />
+  <!-- Back row: dark-haired person -->
+  <path
+     d="m 177.22649,406.58765 c 0,-107 56,-164 133,-164 77,0 133,57 133,164 v 178 h -266 z"
+     fill="#3a3d43"
+     id="path6" />
+  <circle
+     cx="310.22647"
+     cy="131.58765"
+     r="111"
+     fill="#d9a77b"
+     id="circle5" />
+  <circle
+     cx="280.69656"
+     cy="141.75005"
+     r="7"
+     fill="#4a4038"
+     id="circle22" />
+  <path
+     d="M 223.08119,151.27947 C 203.97427,34.346874 56.850945,34.346874 35.833333,159.83553 66.404403,111.35126 101.75222,95.665192 138.05537,95.665192 c 35.34782,0 63.05285,18.538088 85.02582,55.614278 z"
+     fill="#e37a42"
+     id="path28"
+     style="stroke-width:1.16719" />
+  <path
+     d="m 205.26067,90.189969 c 6.51179,-69.61455 60.23399,-99.3457498 114.77017,-87.7433298 47.21042,10.1521198 79.76934,42.0587898 86.28112,89.9187798 -25.23316,-23.92999 -52.90823,-34.08212 -87.90906,-34.08212 -39.0707,0 -75.69948,10.87728 -113.14223,31.90667 z"
+     fill="#f2d17b"
+     id="path22"
+     style="stroke-width:0.76828" />
+  <path
+     d="m 205.22649,144.58765 c 13,-85.999999 80,-124.999999 146,-96.999999 42,18 66,52.999999 66,103.999999 -35,-36 -69,-51 -109,-51 -39,0 -75,15 -103,44 z"
+     fill="#24262a"
+     id="path7" />
+  <circle
+     cx="335.69656"
+     cy="141.75005"
+     fill="#4a4038"
+     id="circle23"
+     r="7" />
+  <!-- Front-left person -->
+  <path
+     d="m 23.226486,483.58765 c 0,-124 67.000003,-193 152.000004,-193 85,0 152,69 152,193 v 230 H 23.226486 Z"
+     fill="#3e75c5"
+     id="path8" />
+  <circle
+     cx="83.773506"
+     cy="167.81842"
+     r="31"
+     stroke="#292b30"
+     stroke-width="12"
+     id="circle24" />
+  <circle
+     cx="175.22649"
+     cy="238.58765"
+     r="123"
+     fill="#e4b98f"
+     id="circle7" />
+  <path
+     d="m 288.69658,177.75004 c 15,10 30,10 44,0"
+     stroke="#9b6651"
+     stroke-width="7"
+     stroke-linecap="round"
+     id="path23" />
+  <path
+     d="m 51.790589,232.96372 c 15,-99 91.000001,-139.000001 161.000001,-119 50,14 84,52 96,107 -34,-36 -75,-53 -123,-53 -50,0 -96.000001,21 -134.000001,65 z"
+     fill="#202226"
+     id="path9" />
+  <!-- Front-left tie -->
+  <path
+     d="m 150.22649,379.58765 h 50 l 18,76 -43,172 -43,-172 z"
+     fill="#f0c83d"
+     id="path10" />
+  <path
+     d="m 150.22649,379.58765 25,35 25,-35"
+     stroke="#e1b72f"
+     stroke-width="7"
+     id="path11" />
+  <!-- Front-right person -->
+  <path
+     d="m 295.22649,483.58765 c 0,-123 66,-187 150,-187 84,0 150,64 150,187 v 230 h -300 z"
+     fill="#5bcb39"
+     id="path12" />
+  <circle
+     cx="445.22647"
+     cy="248.58765"
+     r="120"
+     fill="#f1b97d"
+     id="circle11" />
+  <!-- Blonde hair -->
+  <path
+     d="m 323.41452,231.58765 c 7.85827,-96 72.68895,-136.999999 138.50192,-121 56.97242,14 96.26375,58 104.12204,124 -30.4508,-33 -63.84843,-47 -106.08661,-47 -47.14959,0 -91.35233,15 -136.53735,44 z"
+     fill="#f2d17b"
+     id="path13"
+     style="stroke-width:0.991102" />
+  <path
+     d="m 450.23931,51.044917 c -53,10 -83,47.999995 -85,82.999993 h 98 c -1,-27 -6,-54.999993 -13,-82.999993 z"
+     fill="#f2d17b"
+     id="path14" />
+  <!-- Glasses -->
+  <circle
+     cx="403.22647"
+     cy="246.58765"
+     r="31"
+     stroke="#292b30"
+     stroke-width="12"
+     id="circle14" />
+  <circle
+     cx="484.22647"
+     cy="246.58765"
+     r="31"
+     stroke="#292b30"
+     stroke-width="12"
+     id="circle15" />
+  <path
+     d="m 434.22649,246.58765 h 19"
+     stroke="#292b30"
+     stroke-width="12"
+     stroke-linecap="round"
+     id="path15" />
+  <!-- Minimal facial features -->
+  <circle
+     cx="147.22649"
+     cy="244.58765"
+     r="7"
+     fill="#4a4038"
+     id="circle16" />
+  <circle
+     cx="202.22649"
+     cy="244.58765"
+     r="7"
+     fill="#4a4038"
+     id="circle17" />
+  <path
+     d="m 155.22649,280.58765 c 15,10 30,10 44,0"
+     stroke="#9b6651"
+     stroke-width="7"
+     stroke-linecap="round"
+     id="path17" />
+  <circle
+     cx="414.22647"
+     cy="245.58765"
+     r="6"
+     fill="#4a4038"
+     id="circle18" />
+  <circle
+     cx="474.22647"
+     cy="245.58765"
+     r="6"
+     fill="#4a4038"
+     id="circle19" />
+  <path
+     d="m 421.22649,280.58765 c 14,9 29,9 44,0"
+     stroke="#a16a53"
+     stroke-width="7"
+     stroke-linecap="round"
+     id="path19" />
+  <path
+     d="m 437.31622,53.232946 c 53,10 83,47.999994 85,82.999994 h -98 c 1,-27 6,-54.999994 13,-82.999994 z"
+     fill="#f2d17b"
+     id="path20" />
+</svg>
