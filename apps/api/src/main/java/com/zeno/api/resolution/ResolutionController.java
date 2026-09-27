@@ -26,23 +26,25 @@ public class ResolutionController {
     private final ObjectMapper objectMapper;
 
     @GetMapping
-    public ResponseEntity<List<ResolutionCase>> getAll(
+    public ResponseEntity<List<ResolutionCaseResponse>> getAll(
             @AuthenticationPrincipal ZenoPrincipal principal) {
         Long orgId = principal != null ? principal.getOrganizationId() : null;
         if (orgId != null) {
-            return ResponseEntity.ok(caseService.findActiveByOrganizationId(orgId));
+            return ResponseEntity.ok(caseService.findActiveByOrganizationId(orgId).stream()
+                    .map(ResolutionCaseResponse::from).toList());
         }
         return ResponseEntity.ok(List.of());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ResolutionCase> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(caseService.findByIdOrRefillId(id));
+    public ResponseEntity<ResolutionCaseResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(ResolutionCaseResponse.from(caseService.findByIdOrRefillId(id)));
     }
 
     @GetMapping("/refill/{refillId}")
     public ResponseEntity<?> getByRefillId(@PathVariable Long refillId) {
         return caseService.findOptionalByRefillRequestId(refillId)
+                .map(ResolutionCaseResponse::from)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.noContent().build());
     }
@@ -54,7 +56,7 @@ public class ResolutionController {
     }
 
     @PostMapping("/{id}/actions")
-    public ResponseEntity<ResolutionAction> createAction(
+    public ResponseEntity<ResolutionActionResponse> createAction(
             @PathVariable Long id,
             @RequestBody CreateActionRequest req,
             @AuthenticationPrincipal ZenoPrincipal principal) {
@@ -64,37 +66,37 @@ public class ResolutionController {
                 req.description(), req.dueAt()
         );
         ResolutionAction action = caseService.createAction(id, cmd, actor);
-        return ResponseEntity.status(HttpStatus.CREATED).body(action);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ResolutionActionResponse.from(action));
     }
 
     @PostMapping("/{id}/actions/{actionId}/complete")
-    public ResponseEntity<ResolutionAction> completeAction(
+    public ResponseEntity<ResolutionActionResponse> completeAction(
             @PathVariable Long id,
             @PathVariable Long actionId,
             @RequestBody Map<String, String> body,
             @AuthenticationPrincipal ZenoPrincipal principal) {
         User actor = resolveActor(principal);
         String notes = body.getOrDefault("notes", "");
-        return ResponseEntity.ok(caseService.completeAction(id, actionId, notes, actor));
+        return ResponseEntity.ok(ResolutionActionResponse.from(caseService.completeAction(id, actionId, notes, actor)));
     }
 
     @PostMapping("/{id}/resolve")
-    public ResponseEntity<ResolutionCase> resolve(
+    public ResponseEntity<ResolutionCaseResponse> resolve(
             @PathVariable Long id,
             @RequestBody(required = false) ResolveCaseRequest req,
             @AuthenticationPrincipal ZenoPrincipal principal) {
         User actor = resolveActor(principal);
-        return ResponseEntity.ok(caseService.resolve(id, req, actor));
+        return ResponseEntity.ok(ResolutionCaseResponse.from(caseService.resolve(id, req, actor)));
     }
 
     @PostMapping("/{id}/escalate")
-    public ResponseEntity<ResolutionCase> escalate(
+    public ResponseEntity<ResolutionCaseResponse> escalate(
             @PathVariable Long id,
             @RequestBody Map<String, String> body,
             @AuthenticationPrincipal ZenoPrincipal principal) {
         User actor = resolveActor(principal);
         String reason = body.getOrDefault("reason", "Escalated");
-        return ResponseEntity.ok(caseService.escalate(id, reason, actor));
+        return ResponseEntity.ok(ResolutionCaseResponse.from(caseService.escalate(id, reason, actor)));
     }
 
     /**

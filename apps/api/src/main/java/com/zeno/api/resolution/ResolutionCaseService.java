@@ -62,19 +62,19 @@ public class ResolutionCaseService {
     @Transactional
     public ResolutionCase findByIdOrRefillId(Long id) {
         // 1. Try finding by resolution case ID
-        Optional<ResolutionCase> byCaseId = caseRepository.findById(id);
+        Optional<ResolutionCase> byCaseId = caseRepository.findWithDetailsById(id);
         if (byCaseId.isPresent()) {
             return byCaseId.get();
         }
 
         // 2. Try finding by refill request ID
-        Optional<ResolutionCase> byRefillId = caseRepository.findByRefillRequestId(id);
+        Optional<ResolutionCase> byRefillId = caseRepository.findWithDetailsByRefillRequestId(id);
         if (byRefillId.isPresent()) {
             return byRefillId.get();
         }
 
         // 3. If a refill request exists with this ID, auto-initialize case if blocked
-        Optional<RefillRequest> refillOpt = refillRepository.findById(id);
+        Optional<RefillRequest> refillOpt = refillRepository.findWithDetailsById(id);
         if (refillOpt.isPresent()) {
             RefillRequest refill = refillOpt.get();
             BlockerType blocker = refill.getBlockerType() != null ? refill.getBlockerType() : BlockerType.OTHER;
@@ -86,12 +86,12 @@ public class ResolutionCaseService {
 
     @Transactional
     public Optional<ResolutionCase> findOptionalByRefillRequestId(Long refillId) {
-        Optional<ResolutionCase> existing = caseRepository.findByRefillRequestId(refillId);
+        Optional<ResolutionCase> existing = caseRepository.findWithDetailsByRefillRequestId(refillId);
         if (existing.isPresent()) {
             return existing;
         }
 
-        Optional<RefillRequest> refillOpt = refillRepository.findById(refillId);
+        Optional<RefillRequest> refillOpt = refillRepository.findWithDetailsById(refillId);
         if (refillOpt.isPresent()) {
             RefillRequest refill = refillOpt.get();
             if (refill.getBlockerType() != null) {
