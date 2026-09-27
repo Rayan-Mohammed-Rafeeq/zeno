@@ -11,8 +11,9 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { ZenoVisualization } from '@/components/brand/ZenoVisualization';
 import { AuthPurpleDecorations } from '@/components/brand/AuthPurpleDecorations';
+import { AlertCircle, Eye, EyeOff, ArrowRight, Mail, Lock } from 'lucide-react';
+import { AccountTypeSelector, type AccountRole } from '@/components/auth/AccountTypeSelector';
 import { useForceDark } from '@/hooks/useForceDark';
-import { AlertCircle, Eye, EyeOff, ArrowRight, Mail, Lock, ShieldCheck } from 'lucide-react';
 
 const LOGIN_STYLES = `
   /* ── Page shell ── */
@@ -359,7 +360,7 @@ const LOGIN_STYLES = `
     position: relative;
     z-index: 1;
     width: 100%;
-    max-width: 400px;
+    max-width: 520px;
   }
 
   /* ── Floating card ── */
@@ -367,7 +368,7 @@ const LOGIN_STYLES = `
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 20px;
-    padding: 36px 36px 28px;
+    padding: 48px 48px 40px;
     box-shadow: var(--card-shadow);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
@@ -399,7 +400,7 @@ const LOGIN_STYLES = `
 
   /* ── Card header area ── */
   .zeno-card-header {
-    margin-bottom: 28px;
+    margin-bottom: 18px;
   }
 
   /* Accent pill above the heading */
@@ -895,12 +896,33 @@ const LOGIN_STYLES = `
 
 export function Login() {
   const { login }               = useAuth();
-  const [email, setEmail]       = useState('');
-  const [password, setPassword] = useState('');
+  const [step, setStep]         = useState<'role' | 'credentials'>('role');
+  const [selectedRole, setSelectedRole] = useState<AccountRole>('PROVIDER');
+  const [email, setEmail]       = useState('dr.patel');
+  const [password, setPassword] = useState('password123');
   const [showPw, setShowPw]     = useState(false);
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
   useForceDark();
+
+  const handleRoleSelect = (role: AccountRole) => {
+    setSelectedRole(role);
+    if (role === 'PHARMACIST') {
+      setEmail('sarah.chen');
+      setPassword('password123');
+    } else if (role === 'PRACTICE_STAFF') {
+      setEmail('lisa.martinez');
+      setPassword('password123');
+    } else if (role === 'PROVIDER') {
+      setEmail('dr.patel');
+      setPassword('password123');
+    }
+  };
+
+  const handleRoleContinue = () => {
+    setError('');
+    setStep('credentials');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -919,12 +941,12 @@ export function Login() {
   const logoSrc = '/dark-logo.svg';
 
   const testimonials = [
-    { initials: 'SK', avatarBg: '#4f46e5', name: 'Sarah K.',  role: 'Head of Risk · Retailio',      quote: 'ZENO helped us catch suspicious activity much earlier without slowing down legitimate customers.' },
-    { initials: 'JT', avatarBg: '#5e5bc1', name: 'James T.',  role: 'COO · MarketNest',              quote: 'False positives dropped significantly after we introduced ZENO\'s risk intelligence layer.' },
-    { initials: 'PM', avatarBg: '#4338ca', name: 'Priya M.',  role: 'Trust & Safety · Shopwave',    quote: 'The risk signals are clear enough for our team to act on immediately — no guesswork needed.' },
-    { initials: 'LB', avatarBg: '#6366f1', name: 'Lucas B.',  role: 'Fraud Analyst · Vendly',       quote: 'Coordinated abuse patterns that used to take days to find now surface in hours.' },
-    { initials: 'AN', avatarBg: '#7c3aed', name: 'Aisha N.',  role: 'Risk Manager · Storefront Pro',quote: 'Our team trusts the signals. That confidence alone has changed how we operate.' },
-    { initials: 'EV', avatarBg: '#4f46e5', name: 'Elena V.',  role: 'Security Lead · PatchCart',    quote: 'Synthetic account clusters were being flagged within the first week of going live.' },
+    { initials: 'RK', avatarBg: '#4f46e5', name: 'Rachel K.',  role: 'Pharmacy Manager · Central Rx',        quote: 'Zeno routes provider requests before we even pick up the phone. Our refill queue is half what it was.' },
+    { initials: 'MT', avatarBg: '#5e5bc1', name: 'Marcus T.',  role: 'Practice Operations · Lakeside Health', quote: 'The context packets are the biggest change. Providers actually have what they need to decide quickly.' },
+    { initials: 'PA', avatarBg: '#4338ca', name: 'Dr. Priya A.', role: 'Internal Medicine · WellCare Group',  quote: 'I used to approve refills blind. Now I have a clear summary of why it reached me and what I need to decide.' },
+    { initials: 'JN', avatarBg: '#6366f1', name: 'James N.',   role: 'Head of Operations · MedFirst Clinics', quote: 'Parallel resolution is what sold us. PA and provider review no longer block each other.' },
+    { initials: 'AM', avatarBg: '#7c3aed', name: 'Aisha M.',   role: 'Practice Administrator · River Health',  quote: 'The audit trail alone is worth it. We can now show exactly what happened on any refill case.' },
+    { initials: 'EV', avatarBg: '#4f46e5', name: 'Elena V.',   role: 'Pharmacy Director · MetroPharm',        quote: 'Blocked refills now have a clear owner and a deadline. Nothing sits in limbo waiting for someone to notice.' },
   ];
 
   const [tIdx, setTIdx] = useState(0);
@@ -957,8 +979,8 @@ export function Login() {
 
             <div className="zeno-hero-copy">
               <h1 className="zeno-hero-headline">
-                Intelligence that
-                <span className="zeno-hero-headline-accent">stops abuse.</span>
+                Resolve stuck refills
+                <span className="zeno-hero-headline-accent">before patients wait.</span>
               </h1>
             </div>
 
@@ -1022,10 +1044,6 @@ export function Login() {
 
               {/* Card header */}
               <div className="zeno-card-header">
-                <div className="zeno-accent-pill">
-                  <ShieldCheck size={11} aria-hidden />
-                  Secure sign-in
-                </div>
                 <h2 className="zeno-auth-heading">Welcome back</h2>
                 <p className="zeno-auth-subheading">Sign in to your ZENO workspace</p>
               </div>
@@ -1038,62 +1056,99 @@ export function Login() {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} noValidate>
+              {/* ── STEP 1: Role selector ── */}
+              {step === 'role' && (
+                <>
+                  <AccountTypeSelector
+                    selectedRole={selectedRole}
+                    onSelectRole={handleRoleSelect}
+                    title="Who are you?"
+                    subtitle="Select your role to access your workspace"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRoleContinue}
+                    className="zeno-submit"
+                    aria-label="Continue"
+                  >
+                    Continue <ArrowRight size={15} aria-hidden />
+                  </button>
+                </>
+              )}
 
-                {/* Email */}
-                <div className="zeno-field">
-                  <label htmlFor="zeno-email" className="zeno-label">Email address</label>
-                  <div className="zeno-input-wrap">
-                    <span className="zeno-input-icon"><Mail size={15} aria-hidden /></span>
-                    <input
-                      id="zeno-email"
-                      type="email"
-                      required
-                      autoComplete="email"
-                      placeholder="you@company.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="zeno-input"
-                      aria-label="Email address"
-                    />
+              {/* ── STEP 2: Credentials form ── */}
+              {step === 'credentials' && (
+                <form onSubmit={handleSubmit} noValidate>
+
+                  {/* Back to role picker */}
+                  <button
+                    type="button"
+                    onClick={() => setStep('role')}
+                    className="flex items-center gap-1.5 text-xs text-indigo-500 hover:text-indigo-700 font-medium mb-4 transition-colors"
+                    aria-label="Back to role selection"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M19 12H5M12 5l-7 7 7 7"/>
+                    </svg>
+                    Change role
+                  </button>
+
+                  {/* Email */}
+                  <div className="zeno-field">
+                    <label htmlFor="zeno-email" className="zeno-label">Username or email</label>
+                    <div className="zeno-input-wrap">
+                      <span className="zeno-input-icon"><Mail size={15} aria-hidden /></span>
+                      <input
+                        id="zeno-email"
+                        type="text"
+                        required
+                        autoComplete="username"
+                        placeholder="e.g. dr.patel"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="zeno-input"
+                        aria-label="Username or email"
+                        autoFocus
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Password */}
-                <div className="zeno-field">
-                  <div className="zeno-field-row">
-                    <label htmlFor="zeno-password" className="zeno-label" style={{ margin: 0 }}>Password</label>
-                    <Link to="/forgot-password" className="zeno-forgot" tabIndex={0}>Forgot password?</Link>
+                  {/* Password */}
+                  <div className="zeno-field">
+                    <div className="zeno-field-row">
+                      <label htmlFor="zeno-password" className="zeno-label" style={{ margin: 0 }}>Password</label>
+                      <Link to="/forgot-password" className="zeno-forgot" tabIndex={0}>Forgot password?</Link>
+                    </div>
+                    <div className="zeno-input-wrap zeno-pw-wrap">
+                      <span className="zeno-input-icon"><Lock size={15} aria-hidden /></span>
+                      <input
+                        id="zeno-password"
+                        type={showPw ? 'text' : 'password'}
+                        required
+                        autoComplete="current-password"
+                        placeholder="Enter your password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="zeno-input zeno-input-pw"
+                        aria-label="Password"
+                      />
+                      <button type="button" className="zeno-pw-toggle" onClick={() => setShowPw(v => !v)}
+                        aria-label={showPw ? 'Hide password' : 'Show password'}>
+                        {showPw ? <EyeOff size={15} aria-hidden /> : <Eye size={15} aria-hidden />}
+                      </button>
+                    </div>
                   </div>
-                  <div className="zeno-input-wrap zeno-pw-wrap">
-                    <span className="zeno-input-icon"><Lock size={15} aria-hidden /></span>
-                    <input
-                      id="zeno-password"
-                      type={showPw ? 'text' : 'password'}
-                      required
-                      autoComplete="current-password"
-                      placeholder="Enter your password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="zeno-input zeno-input-pw"
-                      aria-label="Password"
-                    />
-                    <button type="button" className="zeno-pw-toggle" onClick={() => setShowPw(v => !v)}
-                      aria-label={showPw ? 'Hide password' : 'Show password'}>
-                      {showPw ? <EyeOff size={15} aria-hidden /> : <Eye size={15} aria-hidden />}
-                    </button>
-                  </div>
-                </div>
 
-                {/* Submit */}
-                <button type="submit" disabled={loading} className="zeno-submit" aria-label="Sign in">
-                  {loading
-                    ? <span className="zeno-spinner" aria-hidden />
-                    : <>Sign in <ArrowRight size={15} aria-hidden /></>
-                  }
-                </button>
+                  {/* Submit */}
+                  <button type="submit" disabled={loading} className="zeno-submit" aria-label="Sign in">
+                    {loading
+                      ? <span className="zeno-spinner" aria-hidden />
+                      : <>Sign in <ArrowRight size={15} aria-hidden /></>
+                    }
+                  </button>
 
-              </form>
+                </form>
+              )}
 
             </div>{/* /card */}
 

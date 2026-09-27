@@ -12,67 +12,107 @@ import type {
 import { apiRequest, MOCK_API_ENABLED, delay } from './client';
 import { mockCurrentUser } from './mockData';
 
-// Shape returned by POST /auth/login (after ApiResponse unwrap)
-interface LoginResponseBackend {
-  accessToken: string;
-  userId: string;
-  email: string;
-  name: string;
-  role: User['role'];
-}
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
-// Shape returned by GET /auth/me (after ApiResponse unwrap)
+// Shape returned by the authenticated Spring Boot /api/auth/me endpoint.
 interface UserResponseBackend {
-  id: string;
-  email: string;
+  id: number;
+  username: string;
+  email?: string;
   name: string;
   role: User['role'];
-  status: string;
-  emailVerified: boolean;
+  roleDisplayName: string;
+  organizationId?: number;
+  active: boolean;
   createdAt: string;
 }
 
 function backendUserToUser(u: UserResponseBackend): User {
   return {
-    id: u.id,
-    email: u.email,
+    id: String(u.id),
+    username: u.username,
+    email: u.email || `${u.username}@zeno.example`,
     name: u.name,
     role: u.role ?? 'ANALYST',
-    merchantId: '',
+    roleDisplayName: u.roleDisplayName,
+    organizationId: u.organizationId,
     createdAt: u.createdAt,
   };
 }
 
 export const authApi = {
   async login(data: LoginRequest): Promise<{ user: User; tokens: AuthTokens }> {
-    if (MOCK_API_ENABLED) {
-      await delay();
-      const tokens: AuthTokens = {
-        accessToken: 'mock-access-token',
-        refreshToken: 'mock-refresh-token',
+    const username = data.email.includes('@') ? data.email.split('@')[0] : data.email;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: username,
+          password: data.password,
+        }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || 'Invalid username or password');
+      }
+
+      const body = await res.json();
+      const token = body.token || body.accessToken;
+      if (!token) throw new Error('Login response did not include an access token');
+      localStorage.setItem('accessToken', token);
+
+      const user: User = {
+        id: String(body.username || username),
+        username: body.username || username,
+        email: body.email || `${body.username || username}@zeno.example`,
+        name: `${body.firstName || ''} ${body.lastName || ''}`.trim() || body.username || username,
+        role: body.role || 'PRACTICE_STAFF',
+        roleDisplayName: body.roleDisplayName || body.role,
+        organizationId: body.organizationId,
+        createdAt: new Date().toISOString(),
       };
-      localStorage.setItem('accessToken', tokens.accessToken);
-      return { user: mockCurrentUser, tokens };
+
+      return { user, tokens: { accessToken: token, refreshToken: '' } };
+    } catch (err) {
+      if (!MOCK_API_ENABLED) throw err;
+      console.warn('Backend unavailable in explicit mock mode; using demo login:', err);
     }
 
-    const res = await apiRequest<LoginResponseBackend>('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+    // Graceful offline/demo fallback based on username/email
+    let role = 'PHARMACIST';
+    let roleDisplayName = 'Pharmacist';
+    let name = 'Sarah Chen';
 
-    localStorage.setItem('accessToken', res.accessToken);
+    if (username.includes('patel') || username.includes('doctor') || username.includes('williams')) {
+      role = 'PROVIDER';
+      roleDisplayName = 'Doctor / Provider';
+      name = 'Dr. Arun Patel';
+    } else if (username.includes('martinez') || username.includes('nurse') || username.includes('staff')) {
+      role = 'PRACTICE_STAFF';
+      roleDisplayName = 'Practice Staff / Nurse';
+      name = 'Lisa Martinez';
+    } else if (username.includes('admin')) {
+      role = 'ADMIN';
+      roleDisplayName = 'System Administrator';
+      name = 'System Admin';
+    }
 
-    // Build a User from the login response fields (avoids a second /me round-trip)
+    const mockToken = 'zeno-demo-jwt-token';
+    localStorage.setItem('accessToken', mockToken);
+
     const user: User = {
-      id: res.userId,
-      email: res.email,
-      name: res.name,
-      role: res.role ?? 'ANALYST',
-      merchantId: '',
+      id: username,
+      username,
+      email: `${username}@zeno.example`,
+      name,
+      role,
+      roleDisplayName,
       createdAt: new Date().toISOString(),
     };
 
-    return { user, tokens: { accessToken: res.accessToken, refreshToken: '' } };
+    return { user, tokens: { accessToken: mockToken, refreshToken: '' } };
   },
 
   async register(data: RegisterRequest): Promise<{ message: string }> {
@@ -150,8 +190,12 @@ export const authApi = {
       return mockCurrentUser;
     }
 
-    const res = await apiRequest<UserResponseBackend>('/auth/me');
-    return backendUserToUser(res);
+    const token = localStorage.getItem('accessToken');
+    const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new Error('Your session has expired. Please sign in again.');
+    return backendUserToUser(await res.json() as UserResponseBackend);
   },
 
   async logout(): Promise<void> {

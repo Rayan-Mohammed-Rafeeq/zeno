@@ -16,6 +16,7 @@ import {
   AlertCircle, CheckCircle, Eye, EyeOff, ArrowRight,
   Mail, Lock, User, Building2, ShieldCheck,
 } from 'lucide-react';
+import { AccountTypeSelector, type AccountRole } from '@/components/auth/AccountTypeSelector';
 
 const REGISTER_STYLES = `
   .zeno-login-shell {
@@ -311,8 +312,8 @@ const REGISTER_STYLES = `
     position: relative;
     z-index: 1;
     width: 100%;
-    max-width: 380px;
-    padding: 6px 0;
+    max-width: 460px;
+    padding: 8px 0;
   }
 
   /* ── Floating card ── */
@@ -320,7 +321,7 @@ const REGISTER_STYLES = `
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 18px;
-    padding: 22px 28px 18px;
+    padding: 32px 36px 28px;
     box-shadow: var(--card-shadow);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
@@ -422,7 +423,7 @@ const REGISTER_STYLES = `
     letter-spacing: 0.09em;
     text-transform: uppercase;
     color: var(--auth-accent);
-    margin: 10px 0 8px;
+    margin: 16px 0 10px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -437,7 +438,7 @@ const REGISTER_STYLES = `
   }
 
   /* ── Fields ── */
-  .zeno-field { margin-bottom: 9px; }
+  .zeno-field { margin-bottom: 14px; }
 
   .zeno-label {
     display: block;
@@ -446,7 +447,7 @@ const REGISTER_STYLES = `
     letter-spacing: 0.03em;
     text-transform: uppercase;
     color: var(--auth-label);
-    margin-bottom: 5px;
+    margin-bottom: 6px;
   }
 
   /* ── Input with icon ── */
@@ -469,10 +470,10 @@ const REGISTER_STYLES = `
 
   .zeno-input {
     width: 100%;
-    height: 38px;
-    padding: 0 12px 0 36px;
-    border-radius: 9px;
-    font-size: 0.85rem;
+    height: 44px;
+    padding: 0 12px 0 38px;
+    border-radius: 10px;
+    font-size: 0.88rem;
     outline: none;
     transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
     background: var(--input-bg);
@@ -512,8 +513,8 @@ const REGISTER_STYLES = `
   /* ── Submit ── */
   .zeno-submit {
     width: 100%;
-    height: 42px;
-    border-radius: 9px;
+    height: 48px;
+    border-radius: 11px;
     border: none;
     font-size: 0.9rem;
     font-weight: 700;
@@ -867,6 +868,7 @@ const REGISTER_STYLES = `
 export function Register() {
   const { register }                    = useAuth();
   const navigate                        = useNavigate();
+  const [selectedRole, setSelectedRole] = useState<AccountRole>('PROVIDER');
   const [name,         setName]         = useState('');
   const [merchantName, setMerchantName] = useState('');
   const [email,        setEmail]        = useState('');
@@ -1024,6 +1026,14 @@ export function Register() {
                   <span>Workspace created! Redirecting…</span>
                 </div>
               )}
+
+              {/* Role Account Type Selector matching user mockup */}
+              <AccountTypeSelector
+                selectedRole={selectedRole}
+                onSelectRole={setSelectedRole}
+                title="Identify your account type"
+                subtitle="Select your role to access your dedicated refill resolution workspace"
+              />
 
               <form onSubmit={handleSubmit} noValidate>
 

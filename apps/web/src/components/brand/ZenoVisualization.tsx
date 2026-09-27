@@ -77,14 +77,14 @@ const NODES: NodeDef[] = [
   { id: 'n7', cx: 402,  cy: 332,  r: 30, icon: 'shield',      delay: 2.4, floatAmp: 9  },
 ];
 
-/* Icon SVG src mapped to each node */
+/* Icon SVG src mapped to each node — all files exist in /public */
 const NODE_ICON_SRC: Record<IconType, string> = {
-  account:     '/profile-users.svg',
+  account:     '/patients.svg',
   transaction: '/network.svg',
   device:      '/devices.svg',
-  payment:     '/wallet.svg',
-  location:    '/store.svg',
-  order:       '/orders.svg',
+  payment:     '/doctor_role.svg',
+  location:    '/pharmacy.svg',
+  order:       '/prescription.svg',
   shield:      '/shield.svg',
 };
 
