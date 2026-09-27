@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -84,10 +85,12 @@ public class RefillController {
     }
 
     @GetMapping("/{id}/timeline")
-    public ResponseEntity<List<RefillEvent>> getTimeline(@PathVariable Long id) {
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<RefillEventResponse>> getTimeline(@PathVariable Long id) {
         // Verify refill exists
         refillService.findById(id);
-        List<RefillEvent> events = eventRepository.findByRefillRequestIdOrderByCreatedAtAsc(id);
+        List<RefillEventResponse> events = eventRepository.findByRefillRequestIdOrderByCreatedAtAsc(id)
+                .stream().map(RefillEventResponse::from).toList();
         return ResponseEntity.ok(events);
     }
 

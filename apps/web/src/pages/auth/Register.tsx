@@ -1049,7 +1049,7 @@ export function Register() {
                       type="text"
                       required
                       autoFocus
-                      placeholder="Acme Store"
+                      placeholder="Riverside Family Practice"
                       value={merchantName}
                       onChange={(e) => setMerchantName(e.target.value)}
                       className="zeno-input"
@@ -1087,7 +1087,7 @@ export function Register() {
                       type="email"
                       required
                       autoComplete="email"
-                      placeholder="jane@acmestore.com"
+                      placeholder="jane@riversidepractice.example"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="zeno-input"

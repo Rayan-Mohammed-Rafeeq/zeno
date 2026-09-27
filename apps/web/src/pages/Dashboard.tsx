@@ -18,13 +18,13 @@ export function Dashboard() {
   const [triageLoadingId, setTriageLoadingId] = useState<number | null>(null);
 
   // Queries
-  const { data: summary, isLoading: summaryLoading } = useQuery({
+  const { data: summary, isLoading: summaryLoading, isError: summaryError, refetch: refetchSummary } = useQuery({
     queryKey: ['dashboard-summary'],
     queryFn: () => zenoApi.getDashboardSummary(),
     refetchInterval: 15000,
   });
 
-  const { data: refills = [], isLoading: refillsLoading, refetch: refetchRefills } = useQuery({
+  const { data: refills = [], isLoading: refillsLoading, isError: refillsError, refetch: refetchRefills } = useQuery({
     queryKey: ['dashboard-refills'],
     queryFn: () => zenoApi.getDashboardRefills(),
     refetchInterval: 15000,
@@ -113,6 +113,21 @@ export function Dashboard() {
           </Link>
         </div>
       </div>
+
+      {(summaryError || refillsError) && (
+        <div role="alert" className="flex flex-col gap-3 rounded-2xl border border-rose-500/25 bg-rose-500/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-[var(--fg)]">Live workspace data could not be loaded</p>
+            <p className="mt-1 text-xs text-[var(--fg-muted)]">Check that the API is running and your session is valid. No sample records are being shown.</p>
+          </div>
+          <button
+            onClick={() => { void refetchSummary(); void refetchRefills(); }}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-semibold text-[var(--fg)] hover:bg-[var(--surface-2)]"
+          >
+            <RefreshCw className="h-3.5 w-3.5" /> Try again
+          </button>
+        </div>
+      )}
 
       {/* ── KPI Metric Cards ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -207,7 +222,7 @@ export function Dashboard() {
               <p className="text-xs text-[var(--fg-muted)]">Automatic categorization by Zeno deterministic triage engine</p>
             </div>
             <span className="text-xs font-medium px-2 py-1 rounded-md bg-[var(--surface-2)] text-[var(--fg-muted)]">
-              {summary?.activeCases ?? 6} active cases
+              {summaryLoading ? 'Loading cases…' : `${summary?.activeCases ?? 0} active cases`}
             </span>
           </div>
 
@@ -259,7 +274,7 @@ export function Dashboard() {
                   </div>
                 </div>
                 <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-400">
-                  {summary?.awaitingPharmacy ?? 1}
+                  {summary?.awaitingPharmacy ?? 0}
                 </span>
               </div>
 
@@ -275,7 +290,7 @@ export function Dashboard() {
                   </div>
                 </div>
                 <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
-                  2
+                  {summary?.awaitingPractice ?? 0}
                 </span>
               </div>
 
@@ -291,7 +306,7 @@ export function Dashboard() {
                   </div>
                 </div>
                 <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400">
-                  {summary?.awaitingProvider ?? 3}
+                  {summary?.awaitingProvider ?? 0}
                 </span>
               </div>
             </div>

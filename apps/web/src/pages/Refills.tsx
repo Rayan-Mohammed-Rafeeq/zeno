@@ -20,7 +20,7 @@ export function Refills() {
   const [notes, setNotes] = useState('');
 
   // Queries
-  const { data: refills = [], isLoading } = useQuery({
+  const { data: refills = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['refills-all'],
     queryFn: () => zenoApi.getRefills(),
   });
@@ -97,6 +97,12 @@ export function Refills() {
         </button>
       </div>
 
+      {createRefillMutation.isError && (
+        <div role="alert" className="rounded-xl border border-rose-500/25 bg-rose-500/5 px-4 py-3 text-sm text-rose-300">
+          Could not create the refill request. Please check the prescription and try again.
+        </div>
+      )}
+
       {/* ── Filter & Search Toolbar ─────────────────────────────────────────── */}
       <div className="p-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="relative w-full md:w-80">
@@ -154,6 +160,13 @@ export function Refills() {
                   <td colSpan={7} className="py-12 text-center text-xs text-[var(--fg-muted)]">
                     <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-[var(--accent)]" />
                     Loading requests...
+                  </td>
+                </tr>
+              ) : isError ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center">
+                    <p className="text-sm font-semibold text-[var(--fg)]">Refill requests could not be loaded</p>
+                    <button onClick={() => void refetch()} className="mt-2 text-xs font-semibold text-[var(--accent)] hover:underline">Try again</button>
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (

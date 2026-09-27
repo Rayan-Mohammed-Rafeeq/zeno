@@ -199,18 +199,8 @@ export const authApi = {
   },
 
   async logout(): Promise<void> {
-    try {
-      if (MOCK_API_ENABLED) {
-        await delay(100);
-      } else {
-        await apiRequest('/auth/logout', { method: 'POST' });
-      }
-    } catch (err) {
-      // Non-blocking: remote server might be down or session expired, but local logout must always complete
-      console.warn('Backend logout request failed, continuing with local cleanup:', err);
-    } finally {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-    }
+    // The API is stateless and has no logout endpoint; end the browser session locally.
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
   },
 };

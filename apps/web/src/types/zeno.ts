@@ -212,7 +212,6 @@ export interface RefillEvent {
   description: string;
   fromStatus?: RefillStatus;
   toStatus?: RefillStatus;
-  actor?: User;
   actorLabel?: string;
   relatedCaseId?: number;
   relatedActionId?: number;
@@ -222,6 +221,7 @@ export interface RefillEvent {
 export interface DashboardSummary {
   totalActive: number;
   awaitingProvider: number;
+  awaitingPractice?: number;
   awaitingPharmacy: number;
   awaitingInsurance: number;
   ready: number;

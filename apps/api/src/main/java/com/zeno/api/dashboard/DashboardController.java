@@ -52,6 +52,8 @@ public class DashboardController {
 
             summary.put("awaitingProvider",
                     refillRepository.countByStatusAndOrganizationId(RefillStatus.AWAITING_PROVIDER, orgId));
+            summary.put("awaitingPractice",
+                    refillRepository.countByStatusAndOrganizationId(RefillStatus.AWAITING_PRACTICE, orgId));
             summary.put("awaitingPharmacy",
                     refillRepository.countByStatusAndOrganizationId(RefillStatus.AWAITING_PHARMACY, orgId));
             summary.put("awaitingInsurance",

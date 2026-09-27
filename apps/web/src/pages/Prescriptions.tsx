@@ -10,7 +10,7 @@ export function Prescriptions() {
   const [search, setSearch] = useState('');
   const [requestingId, setRequestingId] = useState<number | null>(null);
 
-  const { data: prescriptions = [], isLoading } = useQuery({
+  const { data: prescriptions = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['prescriptions-all'],
     queryFn: () => zenoApi.getPrescriptions(),
   });
@@ -53,6 +53,12 @@ export function Prescriptions() {
         </div>
       </div>
 
+      {createRefillMutation.isError && (
+        <div role="alert" className="rounded-xl border border-rose-500/25 bg-rose-500/5 px-4 py-3 text-sm text-rose-300">
+          Refill request could not be created. Check the prescription and try again.
+        </div>
+      )}
+
       {/* ── Search Toolbar ──────────────────────────────────────────────────── */}
       <div className="p-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-xs flex items-center justify-between">
         <div className="relative w-full max-w-sm">
@@ -91,6 +97,13 @@ export function Prescriptions() {
                   <td colSpan={7} className="py-12 text-center text-xs text-[var(--fg-muted)]">
                     <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-[var(--accent)]" />
                     Loading prescriptions...
+                  </td>
+                </tr>
+              ) : isError ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center">
+                    <p className="text-sm font-semibold text-[var(--fg)]">Prescription records could not be loaded</p>
+                    <button onClick={() => void refetch()} className="mt-2 text-xs font-semibold text-[var(--accent)] hover:underline">Try again</button>
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (

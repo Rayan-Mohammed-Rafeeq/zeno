@@ -5,9 +5,9 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { ZenoMark } from '@/components/brand/Logo';
 import {
   LayoutDashboard, FileText, Settings,
-  Moon, Sun, Monitor, ChevronDown, AlertTriangle,
+  Moon, Sun, Monitor, ChevronDown,
   LogOut, Menu, X, PanelLeftClose, PanelLeft,
-  Pill, History, Activity
+  Pill, History, Building2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -272,6 +272,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [hovered, setHovered]       = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -285,9 +286,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleLogout = async () => {
+    setConfirmLogout(false);
     setUserMenuOpen(false);
     try {
       await logout();
@@ -425,37 +425,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
           {/* Right: Environment, Status, Theme, User Profile */}
           <div className="flex items-center gap-2">
-            <button
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-              style={{ border: '1px solid var(--border)', color: 'var(--fg-muted)' }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)';
-                (e.currentTarget as HTMLElement).style.color = 'var(--fg)';
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
-                (e.currentTarget as HTMLElement).style.color = 'var(--fg-muted)';
-              }}
-            >
-              <span>ACME STORE</span>
-              <ChevronDown className="h-3.5 w-3.5" />
-            </button>
-
-            <div
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
-              style={{ background: 'var(--warning-bg)', color: 'var(--warning)' }}
-            >
-              <AlertTriangle className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">TEST ENV</span>
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border)] text-xs text-[var(--fg-muted)]">
+              <Building2 className="h-3.5 w-3.5 text-[var(--accent)]" />
+              <span>Zeno Workspace</span>
             </div>
-
-            <div
-              className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
-              style={{ background: 'var(--success-bg)', color: 'var(--success)' }}
-            >
-              <Activity className="h-3 w-3" />
-              Operational
-            </div>
+            {import.meta.env.DEV && (
+              <span className="hidden md:inline-flex px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wide bg-[var(--warning-bg)] text-[var(--warning)]">
+                DEVELOPMENT
+              </span>
+            )}
 
             <button
               onClick={cycleTheme}
@@ -470,7 +448,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <button
                 onClick={() => setUserMenuOpen((prev) => !prev)}
                 className="flex items-center gap-2 p-1 pl-1.5 pr-2 rounded-full hover:bg-[var(--surface-2)] border border-transparent hover:border-[var(--border)]/60 transition-all select-none"
-                title={`${user?.name ?? 'User'} (${user?.role ?? 'Role'})`}
+                  title={`${user?.name ?? 'User'} (${user?.roleDisplayName ?? user?.role ?? 'Team member'})`}
               >
                 <div
                   className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold select-none ring-2 ring-[var(--accent)]/30 shrink-0"
@@ -480,10 +458,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </div>
                 <div className="hidden sm:flex flex-col text-left leading-tight pr-0.5">
                   <span className="text-xs font-semibold max-w-[100px] truncate" style={{ color: 'var(--fg)' }}>
-                    {user?.name ?? 'Analyst'}
+                    {user?.name ?? 'Team member'}
                   </span>
                   <span className="text-[10px] text-[var(--fg-subtle)] max-w-[100px] truncate">
-                    {user?.role ?? 'Risk Operations'}
+                    {user?.roleDisplayName ?? user?.role ?? 'Zeno workspace'}
                   </span>
                 </div>
                 <ChevronDown className={cn('h-3.5 w-3.5 text-[var(--fg-subtle)] transition-transform duration-200', userMenuOpen && 'rotate-180')} />
@@ -496,16 +474,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                       {user?.name ?? 'Analyst'}
                     </p>
                     <p className="text-[11px] text-[var(--fg-subtle)] truncate mt-0.5">
-                      {user?.email ?? 'analyst@zeno.risk'}
+                      {user?.email ?? 'Signed-in account'}
                     </p>
                     <span className="inline-block mt-1.5 px-2 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase bg-[var(--accent-muted)] text-[var(--accent)] border border-[var(--accent)]/20">
-                      {user?.role ?? 'Risk Operations'}
+                      {user?.roleDisplayName ?? user?.role ?? 'Team member'}
                     </span>
                   </div>
 
                   <button
                     type="button"
-                    onClick={handleLogout}
+                    onClick={() => { setUserMenuOpen(false); setConfirmLogout(true); }}
                     className="w-full mt-1.5 flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl text-[var(--danger)] hover:bg-[var(--danger-bg)] transition-colors text-left cursor-pointer"
                   >
                     <LogOut className="h-4 w-4 shrink-0" />
@@ -524,6 +502,47 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </main>
       </div>
+
+      {confirmLogout && (
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm"
+          onMouseDown={(event) => { if (event.target === event.currentTarget) setConfirmLogout(false); }}
+          onKeyDown={(event) => { if (event.key === 'Escape') setConfirmLogout(false); }}
+        >
+          <section
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="logout-title"
+            aria-describedby="logout-description"
+            className="w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-2xl"
+          >
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--danger-bg)] text-[var(--danger)]">
+              <LogOut className="h-5 w-5" />
+            </div>
+            <h2 id="logout-title" className="text-center text-lg font-bold text-[var(--fg)]">Log out of Zeno?</h2>
+            <p id="logout-description" className="mt-2 text-center text-sm text-[var(--fg-muted)]">
+              You’ll need to sign in again to return to your refill workspace.
+            </p>
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                autoFocus
+                onClick={() => setConfirmLogout(false)}
+                className="rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-semibold text-[var(--fg)] hover:bg-[var(--surface-2)]"
+              >
+                Stay signed in
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleLogout()}
+                className="rounded-xl bg-[var(--danger)] px-4 py-2.5 text-sm font-semibold text-white hover:brightness-110"
+              >
+                Log out
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
