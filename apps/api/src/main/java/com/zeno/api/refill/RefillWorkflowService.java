@@ -2,6 +2,7 @@ package com.zeno.api.refill;
 
 import com.zeno.api.common.exception.BusinessException;
 import com.zeno.api.prescription.Prescription;
+import com.zeno.api.prescription.PrescriptionRepository;
 import com.zeno.api.resolution.ResolutionCase;
 import com.zeno.api.resolution.ResolutionCaseService;
 import com.zeno.api.user.User;
@@ -39,6 +40,7 @@ public class RefillWorkflowService {
     private final RefillRequestRepository refillRepository;
     private final RefillRequestService refillRequestService;
     private final ResolutionCaseService resolutionCaseService;
+    private final PrescriptionRepository prescriptionRepository;
 
     /**
      * TRIAGE: Determine why a refill is stuck and create a resolution case.
@@ -162,9 +164,11 @@ public class RefillWorkflowService {
     private RefillRequest markReady(RefillRequest request, User actor) {
         log.info("[refillId={}] No blockers detected — marking READY", request.getId());
 
-        // Increment refills used
+        // Increment refills used and persist explicitly — don't rely on dirty-checking
+        // alone since the Prescription may not be considered managed in all tx contexts.
         Prescription rx = request.getPrescription();
         rx.setRefillsUsed(rx.getRefillsUsed() + 1);
+        prescriptionRepository.save(rx);
 
         request.setStatus(RefillStatus.READY);
         refillRepository.save(request);

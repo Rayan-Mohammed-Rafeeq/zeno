@@ -102,7 +102,7 @@ public class ResolutionCaseService {
         return Optional.empty();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public ResolutionCase findByRefillRequestId(Long refillId) {
         return findOptionalByRefillRequestId(refillId)
                 .orElseThrow(() -> new ResourceNotFoundException("No resolution case found for refill request: " + refillId));
@@ -114,15 +114,19 @@ public class ResolutionCaseService {
     }
 
     /**
-     * Creates a new resolution case for a blocked refill request.
-     * Also creates the first suggested action based on the blocker type.
+     * Creates or updates a resolution case for a blocked refill request.
+     *
+     * On first triage: creates a new case and an initial suggested action.
+     * On re-triage: resets the existing case (blocker/status/reason) without
+     * adding duplicate actions — existing pending actions remain intact.
      */
     public ResolutionCase createCase(RefillRequest refillRequest, BlockerType blockerType,
                                      String reason, User createdBy) {
-        log.info("[refillId={}] Creating resolution case for blocker={}", refillRequest.getId(), blockerType);
+        log.info("[refillId={}] Creating/updating resolution case for blocker={}", refillRequest.getId(), blockerType);
 
         Optional<ResolutionCase> existing = caseRepository.findByRefillRequestId(refillRequest.getId());
         ResolutionCase resolutionCase;
+        boolean isNew;
         if (existing.isPresent()) {
             resolutionCase = existing.get();
             resolutionCase.setBlockerType(blockerType);
@@ -131,6 +135,7 @@ public class ResolutionCaseService {
             resolutionCase.setReason(reason);
             resolutionCase.setResolutionSummary(null);
             resolutionCase.setResolvedAt(null);
+            isNew = false;
         } else {
             resolutionCase = ResolutionCase.builder()
                     .refillRequest(refillRequest)
@@ -139,17 +144,23 @@ public class ResolutionCaseService {
                     .priority(refillRequest.getPriority())
                     .reason(reason)
                     .build();
+            isNew = true;
         }
 
         ResolutionCase saved = caseRepository.save(resolutionCase);
 
-        // Record the case creation event
+        // Record the case event
+        String eventDesc = isNew
+                ? "Resolution case #" + saved.getId() + " created for blocker: " + blockerType
+                : "Resolution case #" + saved.getId() + " re-opened for blocker: " + blockerType;
         recordEvent(refillRequest, RefillEventType.CASE_CREATED, null,
-                "Resolution case #" + saved.getId() + " created for blocker: " + blockerType,
-                createdBy, triageActorLabel(createdBy), saved.getId(), null);
+                eventDesc, createdBy, triageActorLabel(createdBy), saved.getId(), null);
 
-        // Auto-create the first suggested action based on blocker type
-        createInitialAction(saved, blockerType, createdBy);
+        // Only create the initial action on first triage — never on re-triage
+        // to avoid duplicating actions that are already pending.
+        if (isNew) {
+            createInitialAction(saved, blockerType, createdBy);
+        }
 
         return saved;
     }
