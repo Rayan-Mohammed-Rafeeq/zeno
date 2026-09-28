@@ -82,15 +82,22 @@ export function Refills() {
       {/* ── Page Header ─────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--fg)]">Prescription Refill Requests</h1>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/20">
+              Directory
+            </span>
+            <span className="text-xs text-[var(--fg-subtle)]">·</span>
+            <span className="text-xs text-[var(--fg-muted)]">{refills.length} total recorded requests</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--fg)] tracking-tight">Prescription Refill Requests</h1>
           <p className="text-sm text-[var(--fg-muted)]">
-            Manage, triage, and resolve incoming pharmacy refill requests.
+            Manage, triage, and coordinate incoming pharmacy refill authorizations and blocked workflows.
           </p>
         </div>
 
         <button
           onClick={() => setIsNewModalOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--accent)] text-white font-medium text-sm hover:opacity-90 transition-opacity shadow-sm self-start sm:self-auto"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm hover:opacity-95 hover:shadow-[0_4px_20px_rgba(94,91,193,0.35)] active:scale-95 transition-all shadow-sm self-start sm:self-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>New Refill Request</span>
@@ -98,27 +105,35 @@ export function Refills() {
       </div>
 
       {createRefillMutation.isError && (
-        <div role="alert" className="rounded-xl border border-rose-500/25 bg-rose-500/5 px-4 py-3 text-sm text-rose-300">
+        <div role="alert" className="rounded-2xl border border-rose-500/25 bg-rose-500/5 px-4 py-3 text-sm text-rose-300">
           Could not create the refill request. Please check the prescription and try again.
         </div>
       )}
 
       {/* ── Filter & Search Toolbar ─────────────────────────────────────────── */}
-      <div className="p-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="glass-card-elevated p-4 flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--fg-subtle)]" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search patient or medication..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-xs text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-hidden focus:border-[var(--accent)]"
+            placeholder="Search patient, medication, or case…"
+            className="w-full pl-9 pr-8 py-2 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] text-xs text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-hidden focus:border-[var(--accent)] transition-colors"
           />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--fg-subtle)] hover:text-[var(--fg)] text-xs p-0.5"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
-        <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto text-xs">
+        <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto text-xs p-1 rounded-2xl bg-[var(--surface-2)]/60 border border-[var(--border)]/70">
           {[
-            { id: 'ALL', label: 'All' },
+            { id: 'ALL', label: `All (${refills.length})` },
             { id: 'BLOCKED', label: 'Blocked' },
             { id: 'PROVIDER', label: 'Awaiting Doctor' },
             { id: 'READY', label: 'Ready' },
@@ -127,10 +142,10 @@ export function Refills() {
             <button
               key={f.id}
               onClick={() => setStatusFilter(f.id)}
-              className={`px-3 py-1.5 rounded-xl font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer ${
                 statusFilter === f.id
-                  ? 'bg-[var(--accent)] text-white'
-                  : 'bg-[var(--surface-2)] text-[var(--fg-muted)] hover:text-[var(--fg)]'
+                  ? 'bg-[var(--accent)] text-white shadow-xs'
+                  : 'text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--surface)]'
               }`}
             >
               {f.label}
@@ -140,96 +155,116 @@ export function Refills() {
       </div>
 
       {/* ── Refills Table ───────────────────────────────────────────────────── */}
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-xs overflow-hidden">
+      <div className="glass-card-elevated overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-[var(--surface-2)]/50 text-[11px] font-semibold text-[var(--fg-muted)] uppercase tracking-wider border-b border-[var(--border)]">
               <tr>
-                <th className="py-3 px-4">Refill ID</th>
-                <th className="py-3 px-4">Patient</th>
-                <th className="py-3 px-4">Medication</th>
-                <th className="py-3 px-4">Workflow State</th>
-                <th className="py-3 px-4">Blocker Type</th>
-                <th className="py-3 px-4">Priority</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+                <th className="py-3.5 px-4">Refill ID</th>
+                <th className="py-3.5 px-4">Patient</th>
+                <th className="py-3.5 px-4">Medication</th>
+                <th className="py-3.5 px-4">Workflow State</th>
+                <th className="py-3.5 px-4">Blocker Type</th>
+                <th className="py-3.5 px-4">Priority</th>
+                <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border)]">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-xs text-[var(--fg-muted)]">
-                    <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-[var(--accent)]" />
-                    Loading requests...
+                  <td colSpan={7} className="py-16 text-center text-xs text-[var(--fg-muted)]">
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-[var(--accent)]" />
+                    <span className="font-semibold text-sm text-[var(--fg)]">Loading refill requests…</span>
                   </td>
                 </tr>
               ) : isError ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center">
+                  <td colSpan={7} className="py-16 text-center">
                     <p className="text-sm font-semibold text-[var(--fg)]">Refill requests could not be loaded</p>
                     <button onClick={() => void refetch()} className="mt-2 text-xs font-semibold text-[var(--accent)] hover:underline">Try again</button>
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-xs text-[var(--fg-muted)]">
-                    No matching refill requests found.
+                  <td colSpan={7} className="py-16 text-center text-xs text-[var(--fg-muted)]">
+                    <p className="font-semibold text-sm text-[var(--fg)]">No matching refill requests found</p>
+                    <p className="text-xs text-[var(--fg-subtle)] mt-1">Try adjusting your search query or status filter.</p>
                   </td>
                 </tr>
               ) : (
                 filtered.map(r => (
-                  <tr key={r.id} className="hover:bg-[var(--surface-2)]/40 transition-colors">
-                    <td className="py-3.5 px-4 font-mono text-xs text-[var(--fg-subtle)]">
-                      #{r.id}
+                  <tr key={r.id} className="hover:bg-[var(--surface-2)]/60 transition-all table-row-hover group">
+                    <td className="py-4 px-4 font-mono text-xs">
+                      <span className="px-2 py-0.5 rounded-lg bg-[var(--surface-2)] text-[var(--fg-muted)] border border-[var(--border)]/60 font-semibold">
+                        #{r.id}
+                      </span>
                     </td>
-                    <td className="py-3.5 px-4">
-                      <div className="font-semibold text-[var(--fg)]">
+                    <td className="py-4 px-4">
+                      <div className="font-bold text-[var(--fg)] group-hover:text-[var(--accent)] transition-colors">
                         {r.patient?.firstName} {r.patient?.lastName}
                       </div>
-                      <div className="text-xs text-[var(--fg-subtle)]">
+                      <div className="text-xs text-[var(--fg-subtle)] mt-0.5">
                         {r.pharmacy?.name || 'Main Pharmacy'}
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 font-medium text-[var(--fg)]">
-                      {r.prescription?.medicationName}
+                    <td className="py-4 px-4 font-semibold text-[var(--fg)]">
+                      <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
+                        <span>{r.prescription?.medicationName}</span>
+                      </div>
                     </td>
-                    <td className="py-3.5 px-4">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--surface-2)] text-[var(--fg-muted)]">
+                    <td className="py-4 px-4">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--surface-2)] text-[var(--fg-muted)] border border-[var(--border)]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-current" />
                         {r.status.replace(/_/g, ' ')}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-4 px-4">
                       {r.blockerType ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20">
-                          <AlertTriangle className="w-3 h-3" />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/25 shadow-xs">
+                          <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                           {r.blockerType.replace(/_/g, ' ')}
                         </span>
                       ) : (
-                        <span className="text-xs text-[var(--fg-subtle)]">— None —</span>
+                        <span className="text-xs text-[var(--fg-subtle)] italic">— None —</span>
                       )}
                     </td>
-                    <td className="py-3.5 px-4">
-                      <span className={`text-xs font-bold ${r.priority === 'URGENT' ? 'text-rose-400' : r.priority === 'HIGH' ? 'text-amber-400' : 'text-[var(--fg-muted)]'}`}>
-                        {r.priority}
-                      </span>
+                    <td className="py-4 px-4">
+                      {r.priority === 'URGENT' ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30 shadow-[0_0_8px_rgba(244,63,94,0.2)]">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500" />
+                          </span>
+                          URGENT
+                        </span>
+                      ) : r.priority === 'HIGH' ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b]" />
+                          HIGH
+                        </span>
+                      ) : (
+                        <span className="text-xs text-[var(--fg-muted)] font-medium">Normal</span>
+                      )}
                     </td>
-                    <td className="py-3.5 px-4 text-right">
+                    <td className="py-4 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {r.status === 'REQUESTED' && (
                           <button
                             onClick={e => handleTriage(e, r.id)}
                             disabled={triageLoadingId === r.id}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-[var(--accent)] text-white hover:opacity-90"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-[var(--accent)] text-white hover:opacity-95 hover:shadow-[0_2px_12px_rgba(94,91,193,0.35)] active:scale-95 transition-all shadow-xs cursor-pointer"
                           >
                             <Sparkles className="w-3 h-3" />
-                            <span>{triageLoadingId === r.id ? 'Evaluating...' : 'Triage'}</span>
+                            <span>{triageLoadingId === r.id ? 'Evaluating…' : 'Triage'}</span>
                           </button>
                         )}
                         <Link
                           to={`/refills/${r.id}`}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--border)] bg-[var(--surface-2)]/60 text-[var(--fg)] hover:border-[var(--accent)] transition-colors"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold border border-[var(--border)] bg-[var(--surface-2)]/60 text-[var(--fg)] hover:border-[var(--accent)] hover:bg-[var(--surface)] hover:text-[var(--accent)] hover:shadow-xs transition-all group/btn"
                         >
                           <span>Resolution Hub</span>
-                          <ArrowRight className="w-3 h-3" />
+                          <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-0.5" />
                         </Link>
                       </div>
                     </td>

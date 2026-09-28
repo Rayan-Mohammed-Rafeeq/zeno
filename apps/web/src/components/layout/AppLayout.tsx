@@ -7,7 +7,7 @@ import {
   LayoutDashboard, FileText, Settings,
   Moon, Sun, Monitor, ChevronDown,
   LogOut, Menu, X, PanelLeftClose, PanelLeft,
-  Pill, History, Building2
+  Pill, History, Building2, Search
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -341,6 +341,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       className="flex h-screen w-screen overflow-hidden p-3 gap-3 relative"
       style={{ background: 'var(--bg)' }}
     >
+      {/* ── Ambient aura lighting ── */}
+      <div className="pointer-events-none fixed -top-40 -right-40 h-[480px] w-[480px] rounded-full bg-[var(--accent)] opacity-[0.07] dark:opacity-[0.14] blur-[120px] z-0" />
+      <div className="pointer-events-none fixed -bottom-40 -left-40 h-[480px] w-[480px] rounded-full bg-indigo-500 opacity-[0.06] dark:opacity-[0.12] blur-[120px] z-0" />
 
       {/* ── Desktop floating sidebar (stretched full-height island) ── */}
       <aside
@@ -423,8 +426,30 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          {/* Right: Environment, Status, Theme, User Profile */}
+          {/* Right: Environment, Status, Quick Search, Theme, User Profile */}
           <div className="flex items-center gap-2">
+            {/* Live Engine Status Indicator */}
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full border border-[var(--border)]/70 bg-[var(--surface-2)]/50 backdrop-blur-sm text-xs select-none">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_8px_#10b981]" />
+              </span>
+              <span className="font-semibold text-xs" style={{ color: 'var(--fg)' }}>Live Engine</span>
+              <span className="text-[10px] text-[var(--fg-subtle)]">· Connected</span>
+            </div>
+
+            {/* Quick Search Shortcut */}
+            <Link
+              to="/refills"
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface-2)]/40 hover:bg-[var(--surface-2)] text-xs text-[var(--fg-muted)] hover:text-[var(--fg)] transition-all group"
+              title="Quick Search Cases"
+            >
+              <Search className="w-3.5 h-3.5 text-[var(--fg-subtle)] group-hover:text-[var(--accent)] transition-colors" />
+              <span className="hidden xl:inline">Search refills…</span>
+              <span className="xl:hidden">Search…</span>
+              <kbd className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[var(--surface-3)] text-[var(--fg-subtle)] border border-[var(--border)]/50">⌘K</kbd>
+            </Link>
+
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border)] text-xs text-[var(--fg-muted)]">
               <Building2 className="h-3.5 w-3.5 text-[var(--accent)]" />
               <span>Zeno Workspace</span>
@@ -447,14 +472,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="relative z-50" ref={userMenuRef}>
               <button
                 onClick={() => setUserMenuOpen((prev) => !prev)}
-                className="flex items-center gap-2 p-1 pl-1.5 pr-2 rounded-full hover:bg-[var(--surface-2)] border border-transparent hover:border-[var(--border)]/60 transition-all select-none"
+                className="group flex items-center gap-2 p-1 pl-1.5 pr-2 rounded-full hover:bg-[var(--surface-2)] border border-transparent hover:border-[var(--border)]/60 transition-all select-none"
                   title={`${user?.name ?? 'User'} (${user?.roleDisplayName ?? user?.role ?? 'Team member'})`}
               >
                 <div
-                  className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold select-none ring-2 ring-[var(--accent)]/30 shrink-0"
+                  className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold select-none ring-2 ring-[var(--accent)]/30 group-hover:ring-[var(--accent)]/60 shrink-0 relative transition-all"
                   style={{ background: 'var(--accent-muted)', color: 'var(--accent)' }}
                 >
                   {user?.name?.charAt(0) ?? 'A'}
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[var(--surface)] shadow-xs" />
                 </div>
                 <div className="hidden sm:flex flex-col text-left leading-tight pr-0.5">
                   <span className="text-xs font-semibold max-w-[100px] truncate" style={{ color: 'var(--fg)' }}>
