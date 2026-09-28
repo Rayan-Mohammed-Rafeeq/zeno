@@ -17,6 +17,7 @@ import {
   Mail, Lock, User, Building2, ShieldCheck,
 } from 'lucide-react';
 import { AccountTypeSelector, type AccountRole } from '@/components/auth/AccountTypeSelector';
+import { ColdStartOverlay } from '@/components/auth/ColdStartOverlay';
 
 const REGISTER_STYLES = `
   .zeno-login-shell {
@@ -1162,6 +1163,8 @@ export function Register() {
         </div>
 
       </div>
+
+      <ColdStartOverlay isOpen={loading} actionText="Creating workspace…" />
     </>
   );
 }

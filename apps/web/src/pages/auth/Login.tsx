@@ -13,6 +13,7 @@ import { ZenoVisualization } from '@/components/brand/ZenoVisualization';
 import { AuthPurpleDecorations } from '@/components/brand/AuthPurpleDecorations';
 import { AlertCircle, Eye, EyeOff, ArrowRight, Mail, Lock } from 'lucide-react';
 import { AccountTypeSelector, type AccountRole } from '@/components/auth/AccountTypeSelector';
+import { ColdStartOverlay } from '@/components/auth/ColdStartOverlay';
 import { useForceDark } from '@/hooks/useForceDark';
 
 const LOGIN_STYLES = `
@@ -599,57 +600,6 @@ const LOGIN_STYLES = `
   @keyframes zeno-spin { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) { .zeno-spinner { animation: none; opacity: 0.7; } }
 
-  /* ── Render cold-start screen ── */
-  .zeno-cold-start {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    background: var(--login-page-bg, #f7f7fc);
-  }
-  .zeno-cold-start-content {
-    width: min(100%, 420px);
-    text-align: center;
-  }
-  .zeno-cold-start-mark {
-    position: relative;
-    width: 88px;
-    height: 88px;
-    display: grid;
-    place-items: center;
-    margin: 0 auto 28px;
-  }
-  .zeno-cold-start-ring {
-    position: absolute;
-    inset: 0;
-    border: 3px solid var(--accent-muted, #ebe9fb);
-    border-top-color: var(--accent, #5e5bc1);
-    border-radius: 50%;
-    animation: zeno-spin 1.15s linear infinite;
-  }
-  .zeno-cold-start-mark img {
-    height: 42px;
-    width: auto;
-  }
-  .zeno-cold-start-title {
-    margin: 0;
-    color: var(--fg, #171d32);
-    font-size: 1.35rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
-  .zeno-cold-start-message {
-    margin: 12px 0 0;
-    color: var(--fg-subtle, #727895);
-    font-size: 0.95rem;
-    line-height: 1.65;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .zeno-cold-start-ring { animation: none; }
-  }
 
   /* ── Trust badges ── */
   .zeno-trust {
@@ -1221,20 +1171,7 @@ export function Login() {
 
       </div>
 
-      {loading && (
-        <div className="zeno-cold-start" role="status" aria-live="polite" aria-label="Signing in">
-          <div className="zeno-cold-start-content">
-            <div className="zeno-cold-start-mark" aria-hidden="true">
-              <span className="zeno-cold-start-ring" />
-              <img src="/dark-logo.svg" alt="" />
-            </div>
-            <h2 className="zeno-cold-start-title">Waking up the backend…</h2>
-            <p className="zeno-cold-start-message">
-              This demo runs on Render’s free tier. After a period of inactivity, the first request can take 2–4 minutes. Please keep this page open while we sign you in.
-            </p>
-          </div>
-        </div>
-      )}
+      <ColdStartOverlay isOpen={loading} actionText="Signing you in…" />
     </>
   );
 }
